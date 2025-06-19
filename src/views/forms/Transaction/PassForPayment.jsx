@@ -42,7 +42,7 @@ const PassForPayment = () => {
     const [deductionValue, setDeductionValue] = useState("");
     const [deductedAcCodeValue, setDeductedAcCodeValue] = useState("");
     const [tableData, setTableData] = useState([]);
-
+    const [hasEditedGross, setHasEditedGross] = useState(false);
     const [partyTypeAllList, setPartyTypeAllList] = useState([]);
     const [acCodeDescAllList, setAcCodeDescAllList] = useState([]);
     const [nameList, setNameList] = useState([]);
@@ -78,6 +78,7 @@ const PassForPayment = () => {
     const [groupOfContractorsStartDate, setGroupOfContractorsStartDate] = useState("");
     const [groupOfContractorsEndDate, setGroupOfContractorsEndDate] = useState("");
     const [accountHead, setAccountHead] = useState("")
+    const [contractorName, setContractorName] = useState("")
     const [headShowDropdown, setHeadShowDropdown] = useState(false);
     const [accountHeadAllList, setAccountHeadAllList] = useState([]);
     const [groupOfContractorsData, setGroupOfContractorsData] = useState([]);
@@ -100,6 +101,18 @@ const PassForPayment = () => {
     const totalDeductionAmount = selectedData && Array.isArray(selectedData)
         ? selectedData.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0).toFixed(2)
         : "0.00";
+
+    useEffect(() => {
+        setHasEditedGross(false); // Reset edit flag when selection changes
+    }, [selectedData]);
+
+
+    useEffect(() => {
+        if (!hasEditedGross) {
+            onGrossAmount(totalDeductionAmount);
+        }
+    }, [totalDeductionAmount, hasEditedGross]);
+
 
     const ids = selectedData.map(item => item.id).join(",");
 
@@ -153,6 +166,10 @@ const PassForPayment = () => {
         })
     }
 
+    const onSearchContractorName = (e) => {
+        setContractorName(e.target.value)
+    }
+
     const onAccountHeadType = (i) => {
         setAccountHead(i?.groupName)
         setHeadShowDropdown(false)
@@ -169,7 +186,7 @@ const PassForPayment = () => {
             toast.error("Please select To Date")
         } else {
             getDeductionList(userData?.CORE_LGD,
-                accountHeadAllList.find(item => item.groupName === accountHead)?.groupId ?? null, partyTypeAllList.find(item => item.groupName === partyType)?.groupId ?? null, groupOfContractorsStartDate, groupOfContractorsEndDate
+                accountHeadAllList.find(item => item.groupName === accountHead)?.groupId ?? null, partyTypeAllList.find(item => item.groupName === partyType)?.groupId ?? null, groupOfContractorsStartDate, groupOfContractorsEndDate, contractorName ? contractorName : 0
             ).then(function (result) {
                 const response = result?.data;
                 console.log(response, "report")
@@ -634,7 +651,7 @@ const PassForPayment = () => {
             toast.error("Please Select Party Type")
         } else if (!payto) {
             toast.error("Please Enter Pay To")
-        }  else if (!partyName) {
+        } else if (!partyName) {
             toast.error("Please Select Party Name")
         } else if (!(partyTypes === "N" || partyTypes === "O" || partyTypes === "GC") && !activeModal) {
             toast.error("Please Select Party Code")
@@ -1151,7 +1168,7 @@ const PassForPayment = () => {
 
                     <div className="flex-2">
                         <label htmlFor="scheme" className="block font-semibold mb-1 text-xs">
-                            Head of Accounts:
+                            Head of Accounts:<span className="text-red-500 "> * </span>
                         </label>
                         <input
                             type="text"
@@ -1184,6 +1201,20 @@ const PassForPayment = () => {
                             )}
                         </div>
                     )}
+
+                    <div className="flex-2">
+                        <label htmlFor="scheme" className="block font-semibold mb-1 text-xs">
+                            Search by Contractor name:
+                        </label>
+                        <input
+                            type="text"
+                            className="flex-grow text-xs px-3 h-7 outline-none rounded bg-white"
+                            placeholder="Search Name"
+                            onChange={onSearchContractorName}
+                            value={contractorName}
+                        />
+
+                    </div>
                     <div className="flex-3">
                         <label htmlFor="activity" className="block font-semibold mb-1 text-xs">
                             From Date:<span className="text-red-500 "> * </span>
@@ -2397,7 +2428,10 @@ const PassForPayment = () => {
                                             <input type="number"
                                                 class="flex-grow text-xs px-3 py-2 h-8 outline-none rounded"
                                                 placeholder="Gross Amount (Rs.)"
-                                                onChange={(e) => onGrossAmount(e.target.value)}
+                                                onChange={(e) => {
+                                                    setHasEditedGross(true);            // User has edited
+                                                    onGrossAmount(e.target.value);
+                                                }}
                                                 value={grossAmount}
 
                                             />

@@ -20,6 +20,9 @@ import classNames from "classnames";
 import { SortIcon } from "../../../components/SortIcon";
 import { ToastContainer, toast } from "react-toastify";
 import * as XLSX from "xlsx";
+import Modal from 'react-modal';
+import { use } from "react";
+import { addDeleteChequeId } from "../../../Service/Transaction/TransactionService"
 
 
 const ChequeMaster = () => {
@@ -40,7 +43,8 @@ const ChequeMaster = () => {
     const jsonString = sessionStorage.getItem("SAHAJ_SARAL_USER");
     const userData = JSON.parse(jsonString);
     const [openModal, setOpenModal] = useState(false);
-
+    const [deleteFlag, setDeleteFlag] = useState(false);
+    const [chequeDeleteID, setChequeDeleteID] = useState(null);
 
     const { data: schemeList } = useQuery({
         queryKey: ["schemeList"],
@@ -166,6 +170,11 @@ const ChequeMaster = () => {
             headclass: "cursor-pointer",
         },
         {
+            header: "Cheque Book ID",
+            accessorKey: "chequeBookId",
+            headclass: "cursor-pointer",
+        },
+        {
             header: "Cheque Book No",
             accessorKey: "chequeBookNo",
             headclass: "cursor-pointer",
@@ -242,12 +251,45 @@ const ChequeMaster = () => {
         },
     });
 
-          const exportToExcel = (tableData, fileName) => {
-            const ws = XLSX.utils.json_to_sheet(tableData);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-            XLSX.writeFile(wb, `${fileName}.xlsx`);
-          };
+    const exportToExcel = (tableData, fileName) => {
+        const ws = XLSX.utils.json_to_sheet(tableData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+        XLSX.writeFile(wb, `${fileName}.xlsx`);
+    };
+
+    const onDelete = (e) => {
+        setChequeDeleteID(e);
+        setDeleteFlag(true)
+    }
+
+    const onSubmitDelete = () => {
+        if (!chequeDeleteID) {
+            toast.error("Please select a Cheque to delete");
+        } else {
+            addDeleteChequeId(userData?.CORE_LGD,
+                chequeDeleteID,
+                (r) => {
+                    console.log(r, "dd");
+                    if (r.status == 0) {
+                        // setOpenModal(true);
+                        toast.success(r.message);
+                        queryClient.invalidateQueries("schemeList");
+                        setDeleteFlag(false)
+                        setChequeDeleteID(null);
+
+                    } else if (r.status == 1) {
+                        toast.error(r.message);
+                    }
+                }
+            );
+        }
+
+    }
+
+    const onDeleteClose = () => {
+        setDeleteFlag(false);
+    }
 
     return (
         <>
@@ -259,6 +301,51 @@ const ChequeMaster = () => {
                 // resetData={resetData}
                 isSuccess={true}
             />
+            <Modal
+                isOpen={deleteFlag}
+                onRequestClose={() => setDeleteFlag(false)}
+                shouldCloseOnOverlayClick={false}
+                style={{
+                    content: {
+                        width: "40%",
+                        height: "30%", // Increased height slightly to accommodate the new field
+                        margin: "auto",
+                        padding: "20px",
+                        borderRadius: "10px",
+                        display: "flex",
+                        flexDirection: "column",
+                    },
+                    overlay: {
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        backdropFilter: "blur(5px)",
+                    },
+                }}
+            >
+
+                <h3 className="text-center text-gray-800 text-xl font-bold mb-1">
+                    Are you sure you want to Delete this Cheque?</h3>
+                {/* Reason Input */}
+
+
+                {/* Buttons */}
+                <div className="mt-4 text-center">
+                    <button
+                        type="button"
+                        className="px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
+                        onClick={onSubmitDelete}
+                    >
+                        Delete
+                    </button>
+                    &nbsp;&nbsp;
+                    <button
+                        type="button"
+                        className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm"
+                        onClick={onDeleteClose}
+                    >
+                        CLOSE
+                    </button>
+                </div>
+            </Modal>
             <ToastContainer />
 
             <div className="bg-white rounded-lg p-2 flex flex-col flex-grow" style={{ marginTop: "-40px" }}>
@@ -433,7 +520,9 @@ const ChequeMaster = () => {
                                         )}
                                     </Table.HeadCell>
                                 ))}
-
+                                <Table.HeadCell className="normal-case bg-cyan-400/90 btn-blue">
+                                    Action
+                                </Table.HeadCell>
                             </Table.Head>
                         ))}
 
@@ -453,7 +542,16 @@ const ChequeMaster = () => {
                                             )}
                                         </Table.Cell>
                                     ))}
-
+                                    <Table.Cell className="border-gray-600 flex items-center justify-center space-x-4 p-1">
+                                        <button
+                                            onClick={() => onDelete(row.original.chequeBookId)}
+                                        >
+                                            <Icon
+                                                icon={"mingcute:delete-line"}
+                                                className="font-medium text-red-600 hover:underline text-2xl cursor-pointer"
+                                            />
+                                        </button>
+                                    </Table.Cell>
 
                                 </Table.Row>
                             ))}

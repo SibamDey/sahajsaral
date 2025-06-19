@@ -393,8 +393,8 @@ export const getReferenceOfAdvanceAdj = async (lgd, glGroup, partyCode) => {
     return await webApi.get(`/Voucher/GetAdvanceVoucherPopup?lgdCode=${lgd}&glGroup=${glGroup}&partyCode=${partyCode}`,);
 }
 
-export const getDeductionList = async (lgd, gl, mainGlGroup, from, to) => {
-    return await webApi.get(`/Deduction/DeductionListPFPModal?lgdCode=${lgd}&glGroup=${gl}&mainGlGroup=${mainGlGroup}&frmDate=${from}&toDate=${to}`);
+export const getDeductionList = async (lgd, gl, mainGlGroup, from, to,contractorName) => {
+    return await webApi.get(`/Deduction/DeductionListPFPModal?lgdCode=${lgd}&glGroup=${gl}&mainGlGroup=${mainGlGroup}&frmDate=${from}&toDate=${to}&srchByName=${contractorName}`,);
 }
 
 export const getVoucherDetails = async (lgd, from, to, type, status, narration) => {
@@ -404,3 +404,37 @@ export const getVoucherDetails = async (lgd, from, to, type, status, narration) 
 export const getVoucherById = async (lgd, voucherId) => {
     return await webApi.get(`/Voucher/GetVoucherDetails?lgdCode=${lgd}&voucherId=${voucherId}`,);
 }
+
+export const addDeleteChequeId = async (lgdCode, chequeBookId, onSuccess, onFailure) => {
+    try {
+        const res = await webApi.post(
+            `/ChequeBook/Delete`,
+            {
+                "lgdCode": lgdCode,
+                "chequeBookId": chequeBookId,
+            
+            },
+
+
+        );
+
+        console.log(res, "sibam")
+        if (res?.data?.status == 0) {
+            const r = res?.data;
+            console.log(r, "rerere")
+
+            return onSuccess(r);
+
+        } else if (res?.data?.status == 1) {
+            const r = res?.data;
+            console.log(r, "rerere")
+
+            return onSuccess(r);
+        } else {
+            onFailure("Something Wrong! Please Try again later" + res.data);
+
+        }
+    } catch (error) {
+        console.log("fdgdf")
+    }
+};
