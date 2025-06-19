@@ -1,0 +1,80 @@
+{
+  "name": "my_app",
+  "version": "0.1.0",
+  "private": true,
+  "homepage": "https://wbpms.in/SahajSaral/",
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/react-fontawesome": "^0.2.2",
+    "@iconify/react": "^4.1.1",
+    "@mui/material": "^6.4.5",
+    "@react-pdf/renderer": "^4.2.2",
+    "@tanstack/react-query": "^5.29.2",
+    "@tanstack/react-query-devtools": "^5.29.2",
+    "@tanstack/react-table": "^8.16.0",
+    "@uidotdev/usehooks": "^2.4.1",
+    "apexcharts": "^3.49.1",
+    "classnames": "^2.5.1",
+    "exceljs": "^4.4.0",
+    "file-saver": "^2.0.5",
+    "flowbite-react": "^0.7.8",
+    "framer-motion": "^12.6.2",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
+    "macaddress": "^0.5.3",
+    "peekdata-datagateway-api-sdk": "^3.2.5",
+    "react": "^18.2.0",
+    "react-apexcharts": "^1.4.1",
+    "react-axios": "^2.0.6",
+    "react-countup": "^6.5.3",
+    "react-datepicker": "^6.9.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
+    "react-dom": "^18.2.0",
+    "react-icons": "^5.0.1",
+    "react-live-clock": "^6.1.22",
+    "react-loader-spinner": "^6.1.6",
+    "react-loading-skeleton": "^3.4.0",
+    "react-modal": "^3.16.1",
+    "react-report-builder": "^5.0.8",
+    "react-router-dom": "^6.22.3",
+    "react-scripts": "5.0.0",
+    "react-select": "^5.8.0",
+    "react-swipeable": "^7.0.1",
+    "react-to-print": "^2.15.1",
+    "react-toastify": "^10.0.5",
+    "recharts": "^2.15.3",
+    "uuid": "^11.1.0",
+    "xlsx": "^0.18.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "react-router-dom": "^6.21.0",
+    "tailwindcss": "^3.4.11"
+  }
+}

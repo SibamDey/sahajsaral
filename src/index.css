@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .btn-blue {
+    @apply capitalize hover:bg-cyan-400/60 text-blue-900;
+  }
+
+  .btn-submit {
+    @apply  rounded-md shadow-sm text-white bg-cyan-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500;
+  }
+
+  .div-odd{
+    @apply p-4 px-6 text-sm flex text-sm
+  }
+  .div-even{
+    @apply p-4 px-6 bg-gray-100/80 text-sm flex 
+  }
+  .label-style{
+    @apply w-[48%] text-slate-500/90 font-semibold capitalize
+  }
+  .disabled-input {
+    @apply disabled:text-zinc-500 disabled:bg-zinc-100
+  }
+}
+@keyframes fly {
+  0% {
+    transform: translateY(0) rotate(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.animate-fly {
+  position: absolute;
+  font-weight: bold;
+  animation: fly linear infinite;
+}
+
+
+@font-face {
+  font-family: InterVariable;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('font-files/InterVariable.woff2') format('woff2');
+}
+
+:root {
+  font-family: Inter, sans-serif;
+  font-feature-settings: "liga" 1, "calt" 1; /* fix for Chrome */
+}
+@supports (font-variation-settings: normal) {
+  :root {
+    font-family: InterVariable, sans-serif;
+  }
+}
+
+.loaderDesign {
+  display: inline-block;
+  position: relative;
+}
+
+.loaderDesign img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 38px;
+}
+
+input [type=date]::placeholder {
+  font-size: 0.75rem !important;
+  opacity: 0.5;
+}
+
