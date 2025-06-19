@@ -12,6 +12,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye } from "@fortawesome/free-solid-svg-icons";
 import { motion } from "framer-motion";
 
+
 const PassForPayment = () => {
     const [loader, setLoader] = useState(false)
     const getCurrentDate = () => new Date().toISOString().split("T")[0];
