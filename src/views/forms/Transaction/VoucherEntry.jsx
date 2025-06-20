@@ -1009,43 +1009,7 @@ const VoucherEntry = () => {
         setGrossAmount("");
         setDeductedAmount("");
         setNetAmount("");
-        if (voucherModeData !== "R" && instType === "Cheque" && realAccWithbalance[0]?.accountCode === "900000001") {
-            setInstTypeAllList({})
-            setInstType(instType)
-            getChequeNoForVoucher(userData?.CORE_LGD,
-                realAccWithbalance[0]?.accountCode,
-            ).then(function (result) {
-                const response = result?.data;
-                console.log(response, "report")
-                setInstTypeAllList(response);
-            })
-
-        } else if (voucherModeData !== "R" && instType === "Cheque" && bankTreasury) {
-            setInstTypeAllList({})
-            setInstType(instType)
-            getChequeNoForVoucher(userData?.CORE_LGD,
-                bankTreasury,
-            ).then(function (result) {
-                const response = result?.data;
-                console.log(response, "report")
-                setInstTypeAllList(response);
-            })
-
-        } else if (instType === "Cheque" && selectedValue && voucherTypeData === "N") {
-            setInstTypeAllList({})
-            setInstType(instType)
-            getChequeNoForVoucher(userData?.CORE_LGD,
-                selectedValue,
-            ).then(function (result) {
-                const response = result?.data;
-                console.log(response, "report")
-                setInstTypeAllList(response);
-            })
-
-        } else {
-            setInstType(instType)
-            setInstTypeAllList({})
-        }
+   
 
     }
 
@@ -1328,6 +1292,43 @@ const VoucherEntry = () => {
                 voucherStatus: ""
             });
         })
+             if (voucherModeData !== "R" && instType === "Cheque" && realAccWithbalance[0]?.accountCode === "900000001") {
+            setInstTypeAllList({})
+            setInstType(instType)
+            getChequeNoForVoucher(userData?.CORE_LGD,
+                realAccWithbalance[0]?.accountCode,
+            ).then(function (result) {
+                const response = result?.data;
+                console.log(response, "report")
+                setInstTypeAllList(response);
+            })
+
+        } else if (voucherModeData !== "R" && instType === "Cheque" && bankTreasury) {
+            setInstTypeAllList({})
+            setInstType(instType)
+            getChequeNoForVoucher(userData?.CORE_LGD,
+                bankTreasury,
+            ).then(function (result) {
+                const response = result?.data;
+                console.log(response, "report")
+                setInstTypeAllList(response);
+            })
+
+        } else if (instType === "Cheque" && selectedValue && voucherTypeData === "N") {
+            setInstTypeAllList({})
+            setInstType(instType)
+            getChequeNoForVoucher(userData?.CORE_LGD,
+                selectedValue,
+            ).then(function (result) {
+                const response = result?.data;
+                console.log(response, "report")
+                setInstTypeAllList(response);
+            })
+
+        } else {
+            setInstType(instType)
+            setInstTypeAllList({})
+        }
 
     }
 
@@ -1359,6 +1360,43 @@ const VoucherEntry = () => {
                 voucherStatus: ""
             });
         })
+             if (voucherModeData !== "R" && instType === "Cheque" && realAccWithbalance[0]?.accountCode === "900000001") {
+            setInstTypeAllList({})
+            setInstType(instType)
+            getChequeNoForVoucher(userData?.CORE_LGD,
+                realAccWithbalance[0]?.accountCode,
+            ).then(function (result) {
+                const response = result?.data;
+                console.log(response, "report")
+                setInstTypeAllList(response);
+            })
+
+        } else if (voucherModeData !== "R" && instType === "Cheque" && bankTreasury) {
+            setInstTypeAllList({})
+            setInstType(instType)
+            getChequeNoForVoucher(userData?.CORE_LGD,
+                bankTreasury,
+            ).then(function (result) {
+                const response = result?.data;
+                console.log(response, "report")
+                setInstTypeAllList(response);
+            })
+
+        } else if (instType === "Cheque" && selectedValue && voucherTypeData === "N") {
+            setInstTypeAllList({})
+            setInstType(instType)
+            getChequeNoForVoucher(userData?.CORE_LGD,
+                selectedValue,
+            ).then(function (result) {
+                const response = result?.data;
+                console.log(response, "report")
+                setInstTypeAllList(response);
+            })
+
+        } else {
+            setInstType(instType)
+            setInstTypeAllList({})
+        }
 
     }
 

@@ -97,7 +97,7 @@ const PassForPayment = () => {
     const [deleteFlag, setDeleteFlag] = useState(false);
     const [deleteReason, setDeleteReason] = useState("");
 
-
+    console.log(selectedData, "selectedData")
     const totalDeductionAmount = selectedData && Array.isArray(selectedData)
         ? selectedData.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0).toFixed(2)
         : "0.00";
@@ -119,7 +119,8 @@ const PassForPayment = () => {
     const firstAccountCode = selectedData.length > 0 ? selectedData[0].accountCode : null;
 
     // Handle individual checkbox selection
-    const handleCheckboxChange = ({ id, amount, accountCode }) => {
+    const handleCheckboxChange = ({ id, amount, accountCode, partyDetails }) => {
+            setPayto(partyDetails); // Set payto from the newly selected item
         if (selectedData.some((item) => item.id === id)) {
             // Remove the object if it's already selected
             setSelectedIds(selectedIds.filter((item) => item !== id));
@@ -129,9 +130,12 @@ const PassForPayment = () => {
             // Add the new object to the list
             setSelectedIds([...selectedIds, id]);
 
-            setSelectedData([...selectedData, { id, amount, accountCode }]);
+            setSelectedData([...selectedData, { id, amount, accountCode, partyDetails }]);
         }
     };
+
+    console.log(payto, "payto")
+
 
     // Handle select all
     const handleSelectAll = () => {
@@ -142,11 +146,16 @@ const PassForPayment = () => {
             const allData = groupOfContractorsData.map((item) => ({
                 id: item.voucherId,
                 amount: item.deductionAmount,
-                accountCode: item?.accountCode
+                accountCode: item?.accountCode,
+                partyDetails: item?.partyDetails
+                
             }));
 
             setSelectedIds(allData.map((data) => data.id)); // Store all IDs
             setSelectedData(allData); // Store all full data
+            console.log(allData, "allData")
+            setPayto(allData[0]?.partyDetails || "");
+             // Set payto from the first selected item
         }
 
         setSelectAll(!selectAll); // Toggle "Select All" state
@@ -1292,7 +1301,7 @@ const PassForPayment = () => {
                                         <input
                                             type="checkbox"
                                             checked={selectedIds.includes(d.voucherId)}
-                                            onChange={() => handleCheckboxChange({ id: d?.voucherId, amount: d?.deductionAmount, accountCode: d?.accountCode })}
+                                            onChange={() => handleCheckboxChange({ id: d?.voucherId, amount: d?.deductionAmount, accountCode: d?.accountCode, partyDetails: d?.partyDetails })}
                                         />
                                     </td>
                                     <td
@@ -2381,7 +2390,7 @@ const PassForPayment = () => {
                                                 <input type="url"
                                                     class="flex-grow text-xs px-3 py-2 h-8 outline-none rounded"
                                                     placeholder="Pay to"
-                                                    value={payto}
+                                                    value={selectedData?.partyDetails ? selectedData?.partyDetails : payto}
                                                     onChange={onPayTo}
                                                 />
 
