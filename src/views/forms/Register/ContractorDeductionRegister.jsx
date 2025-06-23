@@ -146,40 +146,40 @@ const ContractorDeductionRegister = () => {
     const list = [
 
         {
-            header: "Voucher Date",
+            header: "Date",
             accessorKey: "voucherDate",
             headclass: "cursor-pointer",
         },
         {
-            header: "Contractor ID ",
+            header: "ID ",
             accessorKey: "contructorId",
             headclass: "cursor-pointer",
         },
         {
-            header: "Contractor Name ",
+            header: "Name ",
             accessorKey: "contructorName",
             headclass: "cursor-pointer",
         },
         {
-            header: "GL Group Name",
+            header: "GL",
             accessorKey: "glGroupName",
             headclass: "cursor-pointer",
         },
 
         {
-            header: "Payment Voucher Id",
+            header: "Voucher Id",
             accessorKey: "paymentVoucherId",
             headclass: "cursor-pointer",
         },
 
         {
-            header: "Deduction Voucher Id",
+            header: "Deduction Id",
             accessorKey: "deductionVoucherId",
             headclass: "cursor-pointer",
         },
 
         {
-            header: "Deposit Voucher Id",
+            header: "Deposit Id",
             accessorKey: "depositVoucherId",
             headclass: "cursor-pointer",
         },
@@ -197,6 +197,18 @@ const ContractorDeductionRegister = () => {
         {
             header: "Gross Amount",
             accessorKey: "grossAmount",
+            headclass: "cursor-pointer",
+        },
+
+        {
+            header: "GST",
+            accessorKey: "contructorGst",
+            headclass: "cursor-pointer",
+        },
+
+        {
+            header: "PAN",
+            accessorKey: "contructorPan",
             headclass: "cursor-pointer",
         },
 

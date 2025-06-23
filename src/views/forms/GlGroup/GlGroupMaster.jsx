@@ -362,7 +362,7 @@ const GlGroupMaster = () => {
                                 />
 
                             </div>
-                            {userData?.USER_LEVEL === "HQ" ?
+                            
                             <div className="flex-2">
                                 <button
                                     type="button"
@@ -378,7 +378,7 @@ const GlGroupMaster = () => {
                                 >
                                     {!mutationId ? "Submit" : "Update"}
                                 </button>
-                            </div>:""}
+                            </div>
                         </div>
 
 

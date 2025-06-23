@@ -649,6 +649,8 @@ export const sideBarList = [
 
 
 
+
+
 ];
 
 export const Sidebar = () => {
@@ -684,7 +686,7 @@ export const Sidebar = () => {
 
 
       <SidebarExpand text="Master" icon="hugeicons:microsoft-admin">
-        {userData?.USER_LEVEL === "HQ" ?
+        {userData?.USER_INDEX === 1 ?
           <SidebarElement
             to="/scheme-master"
             customCss={"flex justify-start pl-4 "}
@@ -695,6 +697,8 @@ export const Sidebar = () => {
               </span>
             </div>
           </SidebarElement> : ""}
+
+
 
         <SidebarElement
           to="/pri-master"
@@ -773,6 +777,7 @@ export const Sidebar = () => {
         </SidebarExpand>
 
         <SidebarExpand text="Report Group" icon="fluent-mdl2:radio-bullet">
+          {userData?.USER_INDEX === 1 ?
           <SidebarElement
             to="/gl-group-master"
             customCss={"flex justify-start pl-4 "}
@@ -783,7 +788,7 @@ export const Sidebar = () => {
                 <span>General Ledger -  State</span>
               </span>
             </div>
-          </SidebarElement>
+          </SidebarElement>:""}
           <SidebarElement
             to="/gl_group_pri"
             customCss={"flex justify-start pl-4 "}
