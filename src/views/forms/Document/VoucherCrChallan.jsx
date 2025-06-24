@@ -258,6 +258,7 @@ const VoucherCrChallan = () => {
                     .logomy img{width:100px;}
                     .logomy{text-align:right !important;position:absolute;top:0px;right:0px !important;}
 .redclr {color:red}
+.heightLine {line-height:1.5 !important;}
 .lhght{line-height:1.5 !important;}
 .half{width:300px !important;float:left !important;}
 .tbsize {font-size:12px}
@@ -782,7 +783,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                         <div className="w-1/2 print-half half">
                             <p><span className="font-semibold text-cyan-700">Pay to:</span> {voucherData?.voucherDetails?.payTo}</p>
                             <p><span className="font-semibold text-cyan-700">of:</span> {voucherData?.voucherDetails?.partyAddress}</p>
-                            <p><span className="font-semibold text-cyan-700" style={{lineHeight:"1.8"}}>Description:</span> {voucherData?.voucherDetails?.voucherNarration}</p>
+                            <p className="lhght"><span className="lhght font-semibold text-cyan-700">Description:</span> {voucherData?.voucherDetails?.voucherNarration}</p>
                             <p><span className="font-semibold text-cyan-700 lhght" style={{lineHeight:"1.5"}}>Rs.:</span> {voucherData?.voucherDetails?.voucherNetAmount}/- (Rs.{voucherData?.voucherDetails?.voucherNetAmountWord})</p>
                             <p><span className="font-semibold text-cyan-700">Paid by:</span> {voucherData?.voucherDetails?.instrumentType}</p>
                             <p><span className="font-semibold text-cyan-700">No.:</span> {voucherData?.voucherDetails?.instrumentNo}</p>
@@ -1024,7 +1025,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                         <div className="w-1/2 print-half">
                             <p><span className="font-semibold text-cyan-700">Received from:</span> {voucherData?.payTo}</p>
                             <p><span className="font-semibold text-cyan-700">of:</span> {voucherData?.partyAddress}</p>
-                            <p><span className="font-semibold text-cyan-700" style={{lineHeight:"1.8"}}>Description:</span> {voucherData?.voucherNarration}</p>
+                            <p className="lhght"><span className="font-semibold text-cyan-700" style={{lineHeight:"1.8"}}>Description:</span> {voucherData?.voucherNarration}</p>
                             <p><span className="font-semibold text-cyan-700" style={{lineHeight:"1.5"}}>Rs.:</span> {voucherData?.voucherNetAmount}/- (Rs.{voucherData?.voucherNetAmountWord})</p>
                             <p><span className="font-semibold text-cyan-700">Received by:</span> {voucherData?.instrumentType}</p>
                             <p><span className="font-semibold text-cyan-700">No.:</span> {voucherData?.instrumentNo}</p>
