@@ -70,6 +70,39 @@ export const getPfpUnverified = async (
 };
 
 
+export const getMonthOpen = async (
+    lgd,
+    month,
+    onSuccess,
+    onFailure) => {
+    try {
+        const res = await webApi.post(
+            `/AdminRectify/MonthOpen`,
+            {
+                "lgdCode": lgd,
+                "finYear": "2025-2026",
+                "month": month,
+                "securityCode": 9539
+            },
+        );
+        console.log(res, "resresres")
+        if (res?.status == 200) {
+            const r = res.data;
+            console.log(r, "rerere")
+            return onSuccess(r);
+        } else if (res?.status == 1) {
+            const r = res.data;
+            console.log(r, "rerere")
+            return onSuccess(r);
+        } else {
+            onFailure("Something Wrong! Please Try again later" + res.data);
+        }
+    } catch (error) {
+        console.log("fdgdf")
+    }
+};
+
+
 export const getRealAcCode = async (
     lgd,
     accountCode,

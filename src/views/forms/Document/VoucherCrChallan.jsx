@@ -11,6 +11,10 @@ import "jspdf-autotable";
 import Modal from 'react-modal';
 import html2canvas from "html2canvas";
 import LOGO from "../../../Img/logo.png"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye } from "@fortawesome/free-solid-svg-icons";
+import { motion } from "framer-motion";
+
 
 const VoucherCrChallan = () => {
     const getCurrentDate = () => new Date().toISOString().split("T")[0];
@@ -784,7 +788,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                             <p><span className="font-semibold text-cyan-700">Pay to:</span> {voucherData?.voucherDetails?.payTo}</p>
                             <p><span className="font-semibold text-cyan-700">of:</span> {voucherData?.voucherDetails?.partyAddress}</p>
                             <p className="lhght"><span className="lhght font-semibold text-cyan-700">Description:</span> {voucherData?.voucherDetails?.voucherNarration}</p>
-                            <p><span className="font-semibold text-cyan-700 lhght" style={{lineHeight:"1.5"}}>Rs.:</span> {voucherData?.voucherDetails?.voucherNetAmount}/- (Rs.{voucherData?.voucherDetails?.voucherNetAmountWord})</p>
+                            <p><span className="font-semibold text-cyan-700 lhght" style={{ lineHeight: "1.5" }}>Rs.:</span> {voucherData?.voucherDetails?.voucherNetAmount}/- (Rs.{voucherData?.voucherDetails?.voucherNetAmountWord})</p>
                             <p><span className="font-semibold text-cyan-700">Paid by:</span> {voucherData?.voucherDetails?.instrumentType}</p>
                             <p><span className="font-semibold text-cyan-700">No.:</span> {voucherData?.voucherDetails?.instrumentNo}</p>
                             <p><span className="font-semibold text-cyan-700">Dated:</span> {voucherData?.voucherDetails?.instrumentType === "None" ? "" : voucherData?.voucherDetails?.instrumentDate}</p>
@@ -928,7 +932,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
 
                     </div>
 
-                     {/* Signatures */}
+                    {/* Signatures */}
                     <div className="flex justify-between text-black-600 font-semibold text-xs mt-6 gap smallbold">
                         <span style={{ float: "left" }}>{voucherData?.leftSignatory}</span>
                         <span style={{ float: "right" }}>{voucherData?.rightSignatory}</span>
@@ -1025,8 +1029,8 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                         <div className="w-1/2 print-half">
                             <p><span className="font-semibold text-cyan-700">Received from:</span> {voucherData?.payTo}</p>
                             <p><span className="font-semibold text-cyan-700">of:</span> {voucherData?.partyAddress}</p>
-                            <p className="lhght"><span className="font-semibold text-cyan-700" style={{lineHeight:"1.8"}}>Description:</span> {voucherData?.voucherNarration}</p>
-                            <p><span className="font-semibold text-cyan-700" style={{lineHeight:"1.5"}}>Rs.:</span> {voucherData?.voucherNetAmount}/- (Rs.{voucherData?.voucherNetAmountWord})</p>
+                            <p className="lhght"><span className="font-semibold text-cyan-700" style={{ lineHeight: "1.8" }}>Description:</span> {voucherData?.voucherNarration}</p>
+                            <p><span className="font-semibold text-cyan-700" style={{ lineHeight: "1.5" }}>Rs.:</span> {voucherData?.voucherNetAmount}/- (Rs.{voucherData?.voucherNetAmountWord})</p>
                             <p><span className="font-semibold text-cyan-700">Received by:</span> {voucherData?.instrumentType}</p>
                             <p><span className="font-semibold text-cyan-700">No.:</span> {voucherData?.instrumentNo}</p>
                             <p><span className="font-semibold text-cyan-700">Dated:</span> {voucherData?.instrumentType === "None" ? "" : voucherData?.instrumentDate}</p>
@@ -1039,8 +1043,8 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
 
                     {/* Signatures */}
                     <div className="flex justify-between text-black-600 font-semibold text-xs mt-6 gap smallbold">
-                        <span style={{ float: "left" }}>{voucherData?.leftSignatory}</span>
                         <span style={{ float: "right" }}>{voucherData?.rightSignatory}</span>
+                        <span style={{ float: "left" }}>{voucherData?.leftSignatory}</span>
 
                     </div>
                     <div className="clearfix"></div>
@@ -1116,7 +1120,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                         <p><span className="font-bold text-cyan-700">Voucher No.:</span> {voucherData?.journalVoucherDetails?.voucherNo}</p>
                         <p><span className="font-bold text-cyan-700">Voucher Date:</span> {voucherData?.journalVoucherDetails?.voucherDate}</p>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-6 text-xs font-semibold smallbold">
                         <div>
                             <p>
@@ -1610,9 +1614,17 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                                     <tr>
                                         {tableHeaders1.map((header) => (
                                             <th key={header} className="border border-gray-400 px-4 py-2 text-sm">
-                                                {header}
+                                                {header === "verifyStts" ?
+                                                    "Status" : header === "uploadFile"
+                                                        ? "V_Doc"
+                                                        : header === "pfpFile"
+                                                            ? "PFP Doc"
+                                                            : header}
                                             </th>
                                         ))}
+
+
+
                                     </tr>
                                 </thead>
 
@@ -1622,16 +1634,42 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                                         <tr
                                             key={rowIndex}
                                             className="text-left cursor-pointer hover:bg-gray-100"
-                                            onClick={() => handleRowClick(row?.voucherId)} // Pass row data when clicked
+                                            onClick={() => handleRowClick(row?.voucherId)}
                                         >
                                             {tableHeaders1.map((header) => (
                                                 <td key={header} className="border border-gray-400 px-4 py-1 text-xs">
-                                                    {row[header] || "-"}
+                                                    {header === "uploadFile" && row[header] ? (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation(); // 👈 Prevent the row click
+                                                                window.open("https://javaapi.wbpms.in/" + row?.uploadFile, "_blank");
+                                                            }}
+                                                            className="text-blue-600 hover:text-blue-800"
+                                                            title="View File"
+                                                        >
+                                                            <FontAwesomeIcon size="2x" icon={faEye} title="View File" />
+                                                        </button>
+                                                    ) :  header === "pfpFile" && row[header] ? (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation(); // 👈 Prevent the row click
+                                                                window.open("https://javaapi.wbpms.in/" + row?.pfpFile, "_blank");
+                                                            }}
+                                                            className="text-blue-600 hover:text-blue-800"
+                                                            title="View File"
+                                                        >
+                                                            <FontAwesomeIcon size="2x" icon={faEye} title="View File" />
+                                                        </button>
+                                                    ) : (
+                                                        row[header] || "-"
+                                                    )}
                                                 </td>
                                             ))}
                                         </tr>
                                     ))}
                                 </tbody>
+
+
                             </table>
 
                             {/* Show Selected Row Data */}

@@ -1009,7 +1009,7 @@ const VoucherEntry = () => {
         setGrossAmount("");
         setDeductedAmount("");
         setNetAmount("");
-   
+
 
     }
 
@@ -1292,7 +1292,7 @@ const VoucherEntry = () => {
                 voucherStatus: ""
             });
         })
-             if (voucherModeData !== "R" && instType === "Cheque" && realAccWithbalance[0]?.accountCode === "900000001") {
+        if (voucherModeData !== "R" && instType === "Cheque" && realAccWithbalance[0]?.accountCode === "900000001") {
             setInstTypeAllList({})
             setInstType(instType)
             getChequeNoForVoucher(userData?.CORE_LGD,
@@ -1360,7 +1360,7 @@ const VoucherEntry = () => {
                 voucherStatus: ""
             });
         })
-             if (voucherModeData !== "R" && instType === "Cheque" && realAccWithbalance[0]?.accountCode === "900000001") {
+        if (voucherModeData !== "R" && instType === "Cheque" && realAccWithbalance[0]?.accountCode === "900000001") {
             setInstTypeAllList({})
             setInstType(instType)
             getChequeNoForVoucher(userData?.CORE_LGD,
@@ -2462,8 +2462,8 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
 
                         {/* Signatures */}
                         <div className="flex justify-between text-black-600 font-semibold text-xs mt-6 gap smallbold">
-                            <span style={{ float: "left" }}>{voucherData?.leftSignatory}</span>
                             <span style={{ float: "right" }}>{voucherData?.rightSignatory}</span>
+                            <span style={{ float: "left" }}>{voucherData?.leftSignatory}</span>
 
                         </div>
                         <div className="clearfix"></div>
@@ -2571,8 +2571,8 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
 
                         {/* Signatures */}
                         <div className="flex justify-between mt-4 font-semibold pt-4">
-                            <span>{voucherData?.leftSignatory}</span>
                             <span>{voucherData?.rightSignatory}</span>
+                            <span>{voucherData?.leftSignatory}</span>
                         </div>
 
                         {/* Footer */}
@@ -7294,16 +7294,20 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                             < button className="bg-blue-500 text-white px-4 py-1 text-xs rounded hover:bg-blue-600 transition duration-200" onClick={onCashierReceiptPrint} disabled={VoucherResponse?.voucherStatus ? false : true}>
                                 Cashier Receipt
                             </button> : ""}
-                        {/* {pageChange === "Add" ? "" :
 
+                        {pageChange === "Query" ?
                             < button className="bg-blue-500 text-white px-4 py-1 text-xs rounded hover:bg-blue-600 transition duration-200">
-                                Query
-                            </button>} */}
+                                Next Query
+                            </button> : ""}
 
                         {pageChange === "Verify" ?
-
                             <button className="bg-yellow-500 text-white px-4 py-1 text-xs rounded hover:bg-yellow-600 transition duration-200" onClick={onVerifyPop}>
                                 Verify
+                            </button> : ""}
+
+                        {pageChange === "Verify" ?
+                            < button className="bg-blue-500 text-white px-4 py-1 text-xs rounded hover:bg-blue-600 transition duration-200">
+                                Next Verify
                             </button> : ""}
 
                         {pageChange === "Delete" ?

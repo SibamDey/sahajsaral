@@ -96,6 +96,7 @@ const PassForPayment = () => {
     const [saveDisable, setSaveDisable] = useState(false);
     const [deleteFlag, setDeleteFlag] = useState(false);
     const [deleteReason, setDeleteReason] = useState("");
+    console.log(selectedData[0]?.partyDetails, acCodeDesc, "acCodeDescacCodeDesc")
 
     console.log(selectedData, "selectedData")
     const totalDeductionAmount = selectedData && Array.isArray(selectedData)
@@ -120,7 +121,7 @@ const PassForPayment = () => {
 
     // Handle individual checkbox selection
     const handleCheckboxChange = ({ id, amount, accountCode, partyDetails }) => {
-            setPayto(partyDetails); // Set payto from the newly selected item
+        // setPayto(partyDetails); // Set payto from the newly selected item
         if (selectedData.some((item) => item.id === id)) {
             // Remove the object if it's already selected
             setSelectedIds(selectedIds.filter((item) => item !== id));
@@ -148,14 +149,14 @@ const PassForPayment = () => {
                 amount: item.deductionAmount,
                 accountCode: item?.accountCode,
                 partyDetails: item?.partyDetails
-                
+
             }));
 
             setSelectedIds(allData.map((data) => data.id)); // Store all IDs
             setSelectedData(allData); // Store all full data
             console.log(allData, "allData")
             setPayto(allData[0]?.partyDetails || "");
-             // Set payto from the first selected item
+            // Set payto from the first selected item
         }
 
         setSelectAll(!selectAll); // Toggle "Select All" state
@@ -364,6 +365,8 @@ const PassForPayment = () => {
         setActivityTheme(d)
         setIsOpen(false)
     }
+
+    console.log(selectedData?.partyDetails, acCodeDesc, "sisisisisisisi")
 
     const onTenderChosse = (d) => {
         setTender(d)
@@ -658,15 +661,16 @@ const PassForPayment = () => {
             toast.error("Please Enter Pass for Payment Narration")
         } else if (!partyTypes) {
             toast.error("Please Select Party Type")
-        } else if (!payto) {
+        } else if (Number(acCodeDesc) !== 202601005 && !payto) {
             toast.error("Please Enter Pay To")
         } else if (!partyName) {
             toast.error("Please Select Party Name")
         } else if (!(partyTypes === "N" || partyTypes === "O" || partyTypes === "GC") && !activeModal) {
             toast.error("Please Select Party Code")
-        } else if (schematicType != "0" && !payto) {
+        } else if (schematicType !== "0" && Number(acCodeDesc) !== 202601005 && !payto) {
             toast.error("Please Enter Pay To")
-        } else if (grossAmount <= 0) {
+        }
+        else if (grossAmount <= 0) {
             toast.error("Please Enter Gross Amount")
         }
         // else if (!documentType) {
@@ -835,7 +839,7 @@ const PassForPayment = () => {
             financialYear, selectedDate, schematicType, expenditureType, activityTheme?.activityCode, activityTheme?.activityDesc, tender,
             activityTheme?.theme1Id, activityTheme?.theme1Name, activityTheme?.theme2Id, activityTheme?.theme2Name, activityTheme?.theme3Id, activityTheme?.theme3Name, activityTheme?.schemeId, workOrder, billType, acCodeDesc, passForPayNarration, partyTypes,
             partyTypes === "C" ? partyName?.contractorId : partyTypes === "E" ? partyName?.empId : partyTypes === "J" ? partyName?.jobWorkerId : partyTypes === "D" ? partyName?.deptId : partyTypes === "L" ? partyName?.lsgCode : "",
-            payto, payAddress,
+            payto ? payto : selectedData[0]?.partyDetails?.substring(13), payAddress,
             netAmount.toFixed(2), totalAmount.toFixed(2), allotementNo, subAllotment == true ? 1 : 0, tableData?.length > 0 ? 1 : 0, documentType, base64String, userData?.USER_INDEX, tableData, firstAccountCode, ids, billRa,
             (r) => {
                 console.log(r, "dd");
@@ -2386,14 +2390,12 @@ const PassForPayment = () => {
                                         <div className="px-3 w-1/2 flex flex-col mb-1">
 
                                             <div class="flex items-center border bg-gray-200 rounded h-8">
-                                                <span class="px-2 bg-gray-200 text-xs">Pay to</span>
                                                 <input type="url"
                                                     class="flex-grow text-xs px-3 py-2 h-8 outline-none rounded"
                                                     placeholder="Pay to"
-                                                    value={selectedData?.partyDetails ? selectedData?.partyDetails : payto}
+                                                    value={Number(acCodeDesc) === 202601005 ? selectedData[0]?.partyDetails?.substring(13) : payto}
                                                     onChange={onPayTo}
                                                 />
-
                                             </div>
                                         </div>
 

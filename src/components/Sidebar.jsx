@@ -88,6 +88,8 @@ import SecureWork from "../views/forms/AdministrativeWork/SecureWork";
 import AdministrativeSecureWork from "../views/forms/AdministrativeWork/AdministrativeSecureWork";
 import UnverifyPassForPayment from "../views/forms/Utility/UnverifyPassForPayment";
 import CashAnalysisDetails from "../views/forms/Reports/CashAnalysisDetails";
+import BankTryReconciliation from "../views/forms/Reports/BankTryReconciliation";
+import MonthClosingReport from "../views/forms/Reports/MonthCloseReport";
 
 
 
@@ -643,6 +645,20 @@ export const sideBarList = [
     permissions: [1],
   },
 
+  {
+    Component: BankTryReconciliation,
+    text: "BankTryReconciliation",
+    route: "/bank-try-reconciliation",
+    permissions: [1],
+  },
+
+  {
+    Component: MonthClosingReport,
+    text: "MonthClosingReport",
+    route: "/month-closing-report",
+    permissions: [1],
+  },
+
 
 
 
@@ -778,17 +794,17 @@ export const Sidebar = () => {
 
         <SidebarExpand text="Report Group" icon="fluent-mdl2:radio-bullet">
           {userData?.USER_INDEX === 1 ?
-          <SidebarElement
-            to="/gl-group-master"
-            customCss={"flex justify-start pl-4 "}
-          >
-            <div className="text-sm items-start py-2 capitalize">
-              <span className="flex items-center space-x-4">
-                {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                <span>General Ledger -  State</span>
-              </span>
-            </div>
-          </SidebarElement>:""}
+            <SidebarElement
+              to="/gl-group-master"
+              customCss={"flex justify-start pl-4 "}
+            >
+              <div className="text-sm items-start py-2 capitalize">
+                <span className="flex items-center space-x-4">
+                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                  <span>General Ledger -  State</span>
+                </span>
+              </div>
+            </SidebarElement> : ""}
           <SidebarElement
             to="/gl_group_pri"
             customCss={"flex justify-start pl-4 "}
@@ -1140,6 +1156,20 @@ export const Sidebar = () => {
         </SidebarElement>
       </SidebarExpand>
 
+      {[20546, 7175, 5281, 7161, 7162, 7177, 7164, 22061, 22062, 22063].includes(Number(userData?.USER_INDEX)) && (
+        <SidebarExpand text="Administrative Work" icon="material-symbols:help-center-outline-rounded">
+          <SidebarElement
+            to="/secure-work"
+            customCss="flex justify-start pl-4"
+          >
+            <div className="text-sm items-start py-1 capitalize">
+              <span className="flex items-center space-x-4">
+                <span>Secure Work</span>
+              </span>
+            </div>
+          </SidebarElement>
+        </SidebarExpand>
+      )}
 
       {userData?.USER_LEVEL === "HQ" ? "" :
         <>
@@ -1432,6 +1462,21 @@ export const Sidebar = () => {
                   </span>
                 </div>
               </SidebarElement>
+
+
+              <SidebarElement
+                to="/bank-try-reconciliation"
+                customCss={"flex justify-start pl-4 "}
+              >
+                <div className="text-sm items-start py-1 capitalize">
+                  <span className="flex items-center space-x-4">
+                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                    <span>Bank/Try Reconciliation</span>
+                  </span>
+                </div>
+              </SidebarElement>
+
+
               {/* : */}
 
 
@@ -1573,14 +1618,13 @@ export const Sidebar = () => {
                 </div>
               </SidebarElement>
 
-
-
               <SidebarElement
-                // to="/monthly-accounting-closing"
+                to="/month-closing-report"
                 customCss={"flex justify-start pl-4 "}
               >
                 <div className="text-sm items-start py-1 capitalize">
                   <span className="flex items-center space-x-4">
+                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
                     <span>Month Closing Report</span>
                   </span>
                 </div>
@@ -1758,20 +1802,22 @@ export const Sidebar = () => {
             </SidebarElement>
           </SidebarExpand>
 
-          {userData?.USER_INDEX === 20546 ?
+          {[20546, 7175, 5281, 7161, 7162, 7177, 7164, 22061, 22062, 22063].includes(Number(userData?.USER_INDEX)) && (
             <SidebarExpand text="Administrative Work" icon="material-symbols:help-center-outline-rounded">
               <SidebarElement
                 to="/secure-work"
-                customCss={"flex justify-start pl-4 "}
+                customCss="flex justify-start pl-4"
               >
                 <div className="text-sm items-start py-1 capitalize">
                   <span className="flex items-center space-x-4">
-                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
                     <span>Secure Work</span>
                   </span>
                 </div>
               </SidebarElement>
-            </SidebarExpand> : ""}
+            </SidebarExpand>
+          )}
+
+
 
         </>}
     </div>
