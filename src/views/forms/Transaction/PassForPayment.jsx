@@ -5,12 +5,16 @@ import "react-toastify/dist/ReactToastify.css";
 import Modal from 'react-modal';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetch } from "../../../functions/Fetchfunctions";
-import { getDeductionList, deletePassForPayment, getPassForPaymentById, getPassForPaymentDetails, getParabaithakActivityByScheme, getTenderList, getPartyTypeList, getAcCodeDescList, getContractorList, getEmployeeList, getJobWorkerList, getDepartmentList, getLsgList, getDeductedtAcCodeList, addInsertPassForPayment, verifyPassForPayment, getAccountHeadList } from "../../../Service/Transaction/TransactionService";
+import {
+    getDeductionList, deletePassForPayment, getPassForPaymentById, getPassForPaymentDetails, getParabaithakActivityByScheme, getTenderList, getPartyTypeList, getAcCodeDescList, getContractorList, getEmployeeList, getJobWorkerList, getDepartmentList, getLsgList, getDeductedtAcCodeList, addInsertPassForPayment, verifyPassForPayment, getAccountHeadList,
+    getNextPFPVerify, getGlGroupBalance
+} from "../../../Service/Transaction/TransactionService";
 import { Toast } from "flowbite-react";
 import ColorRingCustomLoader from "../../Loader/Loader";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye } from "@fortawesome/free-solid-svg-icons";
 import { motion } from "framer-motion";
+import { use } from "react";
 
 
 const PassForPayment = () => {
@@ -73,7 +77,7 @@ const PassForPayment = () => {
     const formattedDate = date.toISOString().slice(0, 10);
     const [pageChange, setPageChange] = useState("Add");
     const [modalPassForPaymentId, setModalPassForPaymentId] = useState(false);
-    const [getPassForPaymentDataById, setGetPassForPaymentDataById] = useState();
+    const [getPassForPaymentDataById, setGetPassForPaymentDataById] = useState("");
     const [groupOfContractors, setGroupOfContractors] = useState(false);
     const [groupOfContractorsStartDate, setGroupOfContractorsStartDate] = useState("");
     const [groupOfContractorsEndDate, setGroupOfContractorsEndDate] = useState("");
@@ -97,12 +101,14 @@ const PassForPayment = () => {
     const [deleteFlag, setDeleteFlag] = useState(false);
     const [deleteReason, setDeleteReason] = useState("");
     console.log(selectedData[0]?.partyDetails, acCodeDesc, "acCodeDescacCodeDesc")
-
+    const [showDeduction, setShowDeduction] = useState(false);
     console.log(selectedData, "selectedData")
-    const totalDeductionAmount = selectedData && Array.isArray(selectedData)
-        ? selectedData.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0).toFixed(2)
-        : "0.00";
-
+    const [totalDeductionAmount, setTotalDeductionAmount] = useState(0);
+    const [ids, setIds] = useState(""); // Store all IDs as a comma-separated string
+    const [modalNextVerify, setModalNextVerify] = useState(false)
+    const [modalNextVerifyData, setModalNextVerifyData] = useState()
+    const [glGroupFlag, setGlBalanceFlag] = useState(false);
+    const [glGroupBalanceData, setGlGroupBalanceData] = useState()
     useEffect(() => {
         setHasEditedGross(false); // Reset edit flag when selection changes
     }, [selectedData]);
@@ -115,27 +121,44 @@ const PassForPayment = () => {
     }, [totalDeductionAmount, hasEditedGross]);
 
 
-    const ids = selectedData.map(item => item.id).join(",");
+    // const ids = selectedData.map(item => item.id).join(",");
 
     const firstAccountCode = selectedData.length > 0 ? selectedData[0].accountCode : null;
 
     // Handle individual checkbox selection
     const handleCheckboxChange = ({ id, amount, accountCode, partyDetails }) => {
-        // setPayto(partyDetails); // Set payto from the newly selected item
+        let updatedSelectedData;
+
         if (selectedData.some((item) => item.id === id)) {
-            // Remove the object if it's already selected
+            // Uncheck logic
+            setShowDeduction(false);
+
+            // Remove item
+            updatedSelectedData = selectedData.filter((item) => item.id !== id);
             setSelectedIds(selectedIds.filter((item) => item !== id));
-
-            setSelectedData(selectedData.filter((item) => item.id !== id));
         } else {
-            // Add the new object to the list
-            setSelectedIds([...selectedIds, id]);
+            // Check logic
+            setShowDeduction(true);
 
-            setSelectedData([...selectedData, { id, amount, accountCode, partyDetails }]);
+            // Add item
+            updatedSelectedData = [...selectedData, { id, amount, accountCode, partyDetails }];
+            setSelectedIds([...selectedIds, id]);
         }
+
+        // Update selectedData
+        setSelectedData(updatedSelectedData);
+
+        // Update total deduction
+        const total = updatedSelectedData.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0).toFixed(2);
+        setTotalDeductionAmount(Number(total));
+
+        // Update comma-separated ID string
+        const ids = updatedSelectedData.map(item => item.id).join(",");
+        setIds(ids);
     };
 
-    console.log(payto, "payto")
+
+    console.log(selectedData, "selectedData")
 
 
     // Handle select all
@@ -143,7 +166,12 @@ const PassForPayment = () => {
         if (selectAll) {
             setSelectedIds([]);
             setSelectedData([]);
+            setTotalDeductionAmount("");
+            setIds("");
+            setShowDeduction(false)
+            // Clear IDs when deselecting all
         } else {
+            setShowDeduction(true)
             const allData = groupOfContractorsData.map((item) => ({
                 id: item.voucherId,
                 amount: item.deductionAmount,
@@ -151,11 +179,16 @@ const PassForPayment = () => {
                 partyDetails: item?.partyDetails
 
             }));
+            const total = allData.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0).toFixed(2);
+            setTotalDeductionAmount(total);
+            const ids = allData.map(item => item.id).join(",");
+            setIds(ids); // Store all IDs as a comma-separated string
+
 
             setSelectedIds(allData.map((data) => data.id)); // Store all IDs
-            setSelectedData(allData); // Store all full data
+            { Number(acCodeDesc) === 202601005 ? setSelectedData(allData) : setSelectedData([]) }; // Store all full data
             console.log(allData, "allData")
-            setPayto(allData[0]?.partyDetails || "");
+            // setPayto(allData[0]?.partyDetails || "");
             // Set payto from the first selected item
         }
 
@@ -451,9 +484,10 @@ const PassForPayment = () => {
     }
 
     //Part type api integration
-
+    console.log(acCodeDesc, "acCodeDesc")
     const onPartyType = (e) => {
         const value = e.target.value
+        setAcCodeDesc("")
         setPartyType(value)
         setShowDropdown(true)
         getPartyTypeList(userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : 0 || userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : 0 || userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
@@ -468,6 +502,7 @@ const PassForPayment = () => {
     }
 
     const onSetPartType = (i) => {
+        console.log(i, partyType, "krishna")
         setPartyType(i?.groupName)
         setShowDropdown(false)
         getAcCodeDescList(userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : 0 || userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : 0 || userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
@@ -476,6 +511,14 @@ const PassForPayment = () => {
             const response = result?.data;
             console.log(response, "report")
             setAcCodeDescAllList(response);
+        })
+
+        getGlGroupBalance(userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : 0 || userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : 0 || userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
+            i?.groupId
+        ).then(function (result) {
+            const response = result?.data;
+            console.log(response, "report")
+            setGlGroupBalanceData(response);
         })
     }
 
@@ -678,17 +721,17 @@ const PassForPayment = () => {
         // } else if (!base64String) {
         //     toast.error("Please Select a File")
         // }
-        else if (partyTypes === "GC" && !(netAmount.toFixed(2) === totalDeductionAmount)) {
-            toast.error("Voucher Amount and Deduction Amount are not same")
-        } else {
+        else if (partyTypes === "GC" && !(netAmount.toFixed(2) === Number(totalDeductionAmount).toFixed(2))) {
+            toast.error("Voucher Amount and Deduction Amount are not same");
+        }
+        else {
             setConfirmSubmitFlag(true);
         }
     }
 
     const onPageChange = (e) => {
         setPageChange(e.target.value);
-        console.log(`Selected option: ${e.target.value}`);
-
+        setGetPassForPaymentDataById("");
         // Add additional logic here
     };
 
@@ -714,7 +757,7 @@ const PassForPayment = () => {
 
         } else {
             getPassForPaymentDetails(userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
-                fromDatePassForPayment, toDatePassForPayment, "I", 0,
+                fromDatePassForPayment, toDatePassForPayment, pageChange === "Query" ? "0" : "I", 0,
             ).then(function (result) {
                 const response = result?.data;
                 console.log(response, "report")
@@ -750,6 +793,21 @@ const PassForPayment = () => {
             toast.error("Please Select a Pass for Payment Id")
         } else {
             setVerifyFlag(true);
+        }
+    }
+
+    const onNextVoucherVerify = () => {
+        if (!getPassForPaymentDataById?.basic?.pfpId) {
+            toast.error("Please Select a Pass for Payment Id")
+        } else {
+            setModalNextVerify(true);
+            getNextPFPVerify(userData?.CORE_LGD, getPassForPaymentDataById?.basic?.pfpId,
+            ).then(function (result) {
+                const response = result?.data;
+                setModalNextVerifyData(response?.nextPfpId);
+                console.log(response, "report")
+            })
+
         }
     }
 
@@ -883,7 +941,7 @@ const PassForPayment = () => {
                 if (r.status == 0) {
                     toast.success(r.message);
                     setVerifyFlag(false)
-                    window.location.reload();
+                    // window.location.reload();
 
                 } else if (r.status == 1) {
                     toast.error(r.message);
@@ -907,6 +965,9 @@ const PassForPayment = () => {
         setGroupOfContractorsData([]);
         setSelectedIds([]);
         setSelectedData([]);
+        setIds("");
+        setTotalDeductionAmount("");
+
 
     }
 
@@ -944,9 +1005,151 @@ const PassForPayment = () => {
     const onDeleteClose = () => {
         setDeleteFlag(false)
     }
+
+    const onNextVerifyClose = () => {
+        setModalNextVerify(false)
+    }
+
+    const onNextVerifySubmit = () => {
+        getPassForPaymentById(userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
+            modalNextVerifyData,
+        ).then(function (result) {
+            const response = result?.data;
+            console.log(response, "report")
+            setGetPassForPaymentDataById(response);
+            setModalNextVerify(false)
+            setModalPassForPaymentId(false)
+            setPassForPaymentDetailsById([])
+            setFromDatePassForPayment("");
+            setToDatePassForPayment("");
+            setPassForPaymentStatus("");
+            setPassForPaymentDetailsById([]);
+        })
+    }
+
+
+    const onGlBalance = () => {
+        if (!glGroupBalanceData) {
+            toast.error("Please Select GL Group")
+        } else {
+            setGlBalanceFlag(true);
+
+        }
+
+    }
+
+    const onCloseGlGroupBalance = () => {
+        setGlBalanceFlag(false);
+    }
     return (
         <>
             <ToastContainer />
+            <Modal
+                isOpen={glGroupFlag}
+                onRequestClose={() => setModalPassForPaymentId(false)}
+                shouldCloseOnOverlayClick={false}
+                style={{
+                    content: {
+                        width: "40%",
+                        height: "40%",
+                        margin: "auto",
+                        padding: "20px",
+                        borderRadius: "10px",
+                        display: "flex",
+                        flexDirection: "column",
+                    },
+                    overlay: {
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        backdropFilter: "blur(5px)",
+                    },
+                }}
+            >
+                {/* Title */}
+                <div className="text-center bg-blue-50 p-4 rounded-md shadow-md border border-blue-200 mb-4">
+                    <h1 className="text-blue-700 text-2xl font-bold mb-2">{partyType}</h1>
+
+                    <p className="text-lg font-semibold text-gray-800">
+                        Total Available Balance: <span className="text-green-600">{glGroupBalanceData?.availableFund}</span>
+                    </p>
+
+                    <p className="text-lg font-semibold text-gray-800">
+                        Payment Due (PFP Done): <span className="text-red-600">{glGroupBalanceData?.paymentDue}</span>
+                    </p>
+
+                    <p className="text-lg font-semibold text-gray-800">
+                        Balance for Payment:
+                        <span className="text-blue-700 font-bold ml-2">
+                            {(
+                                (glGroupBalanceData?.availableFund || 0) -
+                                (glGroupBalanceData?.paymentDue || 0)
+                            ).toFixed(2)}
+                        </span>
+                    </p>
+                </div>
+
+
+
+
+                {/* Close Button */}
+                <div className="mt-8 text-center">
+
+
+                    <button
+                        type="button"
+                        className="px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
+                        onClick={onCloseGlGroupBalance}
+                    >
+                        Close
+                    </button>
+                </div>
+            </Modal>
+
+            <Modal
+                isOpen={modalNextVerify}
+                onRequestClose={() => setModalNextVerify(false)}
+                shouldCloseOnOverlayClick={false}
+                style={{
+                    content: {
+                        width: "40%",
+                        height: "30%", // Increased height slightly to accommodate the new field
+                        margin: "auto",
+                        padding: "20px",
+                        borderRadius: "10px",
+                        display: "flex",
+                        flexDirection: "column",
+                    },
+                    overlay: {
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        backdropFilter: "blur(5px)",
+                    },
+                }}
+            >
+
+                <h3 className="text-center text-gray-800 text-xl font-bold mb-1">
+                    Next PFP ID - {modalNextVerifyData} </h3>
+                {/* Reason Input */}
+
+
+                {/* Buttons */}
+                <div className="mt-4 text-center">
+                    {modalNextVerifyData === "No data found" ?
+                        "" : <button
+                            type="button"
+                            className="px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
+                            onClick={onNextVerifySubmit}
+                        >
+                            Proceed
+                        </button>}
+                    &nbsp;&nbsp;
+                    <button
+                        type="button"
+                        className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm"
+                        onClick={onNextVerifyClose}
+                    >
+                        Close
+                    </button>
+                </div>
+            </Modal>
 
             {/* confirmation modal for delete */}.
             <Modal
@@ -1075,7 +1278,8 @@ const PassForPayment = () => {
                 {/* Title */}
                 <h1 className="text-center text-blue-700 text-2xl font-bold mb-1">
                     Pass for Payment ID : {passforPaymentResponse?.paymentId}<br></br>
-                    <span>Pass for Payment Status : {passforPaymentResponse?.sttsVerify}</span>
+                    <span>Pass for Payment Status : {passforPaymentResponse?.sttsVerify}</span><br></br>
+                    <span>Pass for Payment Amount : {passforPaymentResponse?.paymentAmount}</span>
                 </h1>
 
 
@@ -1265,7 +1469,7 @@ const PassForPayment = () => {
                         RETRIEVE
                     </button>
                 </div>
-                {selectedData.length > 0 ?
+                {totalDeductionAmount ?
                     <div>
                         <label htmlFor="scheme" className="block font-semibold mb-1 text-xs">
                             Total Deduction Amount: {totalDeductionAmount}
@@ -1286,6 +1490,7 @@ const PassForPayment = () => {
                                         type="checkbox"
                                         checked={selectAll}
                                         onChange={handleSelectAll}
+
                                     />
                                 </th>
                                 <th className="border px-4 py-2">Account Code </th>
@@ -2243,8 +2448,23 @@ const PassForPayment = () => {
                                                     placeholder="Search GL Group Name..."
                                                     onChange={onPartyType}
                                                     value={partyType}// Call the function when input changes
-
                                                 />
+                                                <button className="px-2 h-8 flex items-center justify-center bg-blue-500 text-white rounded-r" onClick={onGlBalance}>
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        strokeWidth="1.5"
+                                                        stroke="currentColor"
+                                                        className="w-4 h-4"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            d="M21 21l-4.35-4.35M18 10.5a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z"
+                                                        />
+                                                    </svg>
+                                                </button>
                                             </div>
 
                                             {showDropdown && (
@@ -2425,7 +2645,7 @@ const PassForPayment = () => {
 
                                     </div>
                                 </fieldset>
-                                {selectedData.length > 0 ?
+                                {showDeduction ?
                                     <div>
                                         <label htmlFor="scheme" className="block font-semibold mb-1 text-xs">
                                             Total Deduction Amount: {totalDeductionAmount} and Reference Voucher IDs: {ids}
@@ -3052,6 +3272,12 @@ const PassForPayment = () => {
 
                                 <button className="bg-yellow-500 text-white px-4 py-1 text-xs rounded hover:bg-yellow-600 transition duration-200" onClick={onVerifyPop}>
                                     Verify
+                                </button> : ""}
+
+                            {pageChange === "Verify" ?
+
+                                <button className="bg-blue-500 text-white px-4 py-1 text-xs rounded hover:bg-blue-600 transition duration-200" onClick={onNextVoucherVerify}>
+                                    Next Voucher to Verify
                                 </button> : ""}
 
                             {pageChange === "Delete" ?

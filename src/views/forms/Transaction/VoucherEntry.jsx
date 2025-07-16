@@ -6,7 +6,8 @@ import {
     getVoucherDetails, getVoucherById, getAcCodeDescList, getPassForPaymentDetails, getPassForPaymentById, getNominalAccList, getRealAccList,
     getRealAccWithbalance, getPartyTypeList, getChequeNoForVoucher, getContractorList
     , getEmployeeList, getJobWorkerList, getDepartmentList, getLsgList, deleteVoucher,
-    addVoucherEntry, getAccountHeadList, getReferenceOfDetails, getNextPassForPaymentId, getReferenceOfAdvanceAdj, getRealAccAllList, verifyVoucher
+    addVoucherEntry, getAccountHeadList, getReferenceOfDetails, getNextPassForPaymentId, getReferenceOfAdvanceAdj, getRealAccAllList, verifyVoucher,
+    getNextQuery, getNextVerify
 } from "../../../Service/Transaction/TransactionService";
 import Modal from 'react-modal';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -134,6 +135,10 @@ const VoucherEntry = () => {
     const [saveDisabled, setSaveDisabled] = useState(false);
     const [nextPfp, setNextPfp] = useState(false)
     const [nextPfpData, setNextPfpData] = useState(false)
+    const [modalNextQuery, setModalNextQuery] = useState(false)
+    const [modalNextQueryData, setModalNextQueryData] = useState()
+    const [modalNextVerify, setModalNextVerify] = useState(false)
+    const [modalNextVerifyData, setModalNextVerifyData] = useState()
     const printRef = useRef();
 
     const voucherMode = [
@@ -220,6 +225,7 @@ const VoucherEntry = () => {
 
     const onPageChange = (e) => {
         setPageChange(e.target.value);
+        setGetVoucherDataById("")
         console.log(`Selected option: ${e.target.value}`);
 
     };
@@ -1135,7 +1141,8 @@ const VoucherEntry = () => {
                         setDeleteReason("");
                         setGetVoucherDataById("")
                         setDeleteFlag(false)
-                        window.location.reload();
+                        setGetVoucherDataById("")
+
 
 
                     } else if (r.status == 1) {
@@ -1155,7 +1162,8 @@ const VoucherEntry = () => {
                 if (r.status == 0) {
                     toast.success(r.message);
                     setVerifyFlag(false)
-                    window.location.reload();
+                    // setGetVoucherDataById("")
+
 
 
                 } else if (r.status == 1) {
@@ -1164,6 +1172,39 @@ const VoucherEntry = () => {
             }
         );
 
+    }
+
+    const onSubmitQuery = () => {
+
+        getVoucherById(userData?.CORE_LGD, modalNextQueryData,
+        ).then(function (result) {
+            const response = result?.data;
+            console.log(response, "report")
+            setGetVoucherDataById(response);
+            setModalNextQuery(false)
+            // setPaymentDesc(response?.basic?.paymentDesc);
+            // setPassForPaymentDetailsById([])
+            setvoucherStatus("");
+            setvoucherModalType("");
+            setVoucherModalNarration("");
+            setVoucherDetailsById([]);
+        })
+    }
+
+    const onNextVerifySubmit = () => {
+        getVoucherById(userData?.CORE_LGD, modalNextVerifyData,
+        ).then(function (result) {
+            const response = result?.data;
+            console.log(response, "report")
+            setGetVoucherDataById(response);
+            setModalNextVerify(false)
+            // setPaymentDesc(response?.basic?.paymentDesc);
+            // setPassForPaymentDetailsById([])
+            // setvoucherStatus("");
+            // setvoucherModalType("");
+            // setVoucherModalNarration("");
+            // setVoucherDetailsById([]);
+        })
     }
 
     const onCloseConfirmSubmit = () => {
@@ -1177,6 +1218,14 @@ const VoucherEntry = () => {
 
     const onVerifyClose = () => {
         setVerifyFlag(false)
+    }
+
+    const onQueryClose = () => {
+        setModalNextQuery(false)
+    }
+
+    const onNextVerifyClose = () => {
+        setModalNextVerify(false)
     }
 
     const onClosePreview = () => {
@@ -1875,6 +1924,38 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
         myWindow.print();
         myWindow.close();
     };
+
+
+    const onNextQuery = () => {
+        if (!voucherDataById?.basic?.voucherId) {
+            toast.error("Please select Voucher ID")
+        } else {
+            setModalNextQuery(true);
+            getNextQuery(userData?.CORE_LGD, voucherDataById?.basic?.voucherId,
+            ).then(function (result) {
+                const response = result?.data;
+                setModalNextQueryData(response?.nextPfpId);
+                console.log(response, "report")
+
+
+            })
+        }
+    }
+
+    console.log(voucherDataById?.basic?.voucherId,"sasasasa")
+    const onNextVerify = () => {
+        if (!voucherDataById?.basic?.voucherId) {
+            toast.error("Please select Voucher ID")
+        } else {
+            setModalNextVerify(true);
+            getNextVerify(userData?.CORE_LGD, voucherDataById?.basic?.voucherId,
+            ).then(function (result) {
+                const response = result?.data;
+                setModalNextVerifyData(response?.nextPfpId);
+                console.log(response, "report")
+            })
+        }
+    }
 
 
     return (
@@ -3190,6 +3271,100 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                 </div>
             </Modal>
 
+            <Modal
+                isOpen={modalNextQuery}
+                onRequestClose={() => setModalNextQuery(false)}
+                shouldCloseOnOverlayClick={false}
+                style={{
+                    content: {
+                        width: "40%",
+                        height: "30%", // Increased height slightly to accommodate the new field
+                        margin: "auto",
+                        padding: "20px",
+                        borderRadius: "10px",
+                        display: "flex",
+                        flexDirection: "column",
+                    },
+                    overlay: {
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        backdropFilter: "blur(5px)",
+                    },
+                }}
+            >
+
+                <h3 className="text-center text-gray-800 text-xl font-bold mb-1">
+                    Next voucher no - {modalNextQueryData} </h3>
+                {/* Reason Input */}
+
+
+                {/* Buttons */}
+                {modalNextQueryData === "No next voucher found." ?
+                    "" : <div className="mt-4 text-center">
+                        <button
+                            type="button"
+                            className="px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
+                            onClick={onSubmitQuery}
+                        >
+                            Proceed
+                        </button>
+                        &nbsp;&nbsp;
+                        <button
+                            type="button"
+                            className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm"
+                            onClick={onQueryClose}
+                        >
+                            Close
+                        </button>
+                    </div>}
+            </Modal>
+
+            <Modal
+                isOpen={modalNextVerify}
+                onRequestClose={() => setModalNextVerify(false)}
+                shouldCloseOnOverlayClick={false}
+                style={{
+                    content: {
+                        width: "40%",
+                        height: "30%", // Increased height slightly to accommodate the new field
+                        margin: "auto",
+                        padding: "20px",
+                        borderRadius: "10px",
+                        display: "flex",
+                        flexDirection: "column",
+                    },
+                    overlay: {
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        backdropFilter: "blur(5px)",
+                    },
+                }}
+            >
+
+                <h3 className="text-center text-gray-800 text-xl font-bold mb-1">
+                    Next voucher no - {modalNextVerifyData} </h3>
+                {/* Reason Input */}
+
+
+                {/* Buttons */}
+                <div className="mt-4 text-center">
+                    {modalNextVerifyData === "No next voucher found." ?
+                        "" : <button
+                            type="button"
+                            className="px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
+                            onClick={onNextVerifySubmit}
+                        >
+                            Proceed
+                        </button>}
+                    &nbsp;&nbsp;
+                    <button
+                        type="button"
+                        className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm"
+                        onClick={onNextVerifyClose}
+                    >
+                        Close
+                    </button>
+                </div>
+            </Modal>
+
             {/* for pass for payment id */}
             <Modal
                 isOpen={modalPassForPaymentId}
@@ -4272,7 +4447,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                                                 </div> :
                                                     <div class="flex items-center bg-gray-200 rounded h-7">
                                                         <span class="px-2 bg-gray-200 text-xs">A/C Code Desc<span className="text-red-500 "> * </span></span>
-                                                        <select id="DISTRICT" class="flex-grow text-xs px-2 py-1 h-7 outline-none rounded" onChange={onAcCode}>
+                                                        <select value={accCode} id="DISTRICT" class="flex-grow text-xs px-2 py-1 h-7 outline-none rounded" onChange={onAcCode}>
                                                             <option value="">--Select A/C Code Desc--</option>
                                                             {acCodeDescAllList.map((d, i) => (
 
@@ -7296,8 +7471,8 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                             </button> : ""}
 
                         {pageChange === "Query" ?
-                            < button className="bg-blue-500 text-white px-4 py-1 text-xs rounded hover:bg-blue-600 transition duration-200">
-                                Next Query
+                            < button className="bg-blue-500 text-white px-4 py-1 text-xs rounded hover:bg-blue-600 transition duration-200" onClick={onNextQuery}>
+                                Next Voucher to Query
                             </button> : ""}
 
                         {pageChange === "Verify" ?
@@ -7306,8 +7481,8 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                             </button> : ""}
 
                         {pageChange === "Verify" ?
-                            < button className="bg-blue-500 text-white px-4 py-1 text-xs rounded hover:bg-blue-600 transition duration-200">
-                                Next Verify
+                            < button className="bg-blue-500 text-white px-4 py-1 text-xs rounded hover:bg-blue-600 transition duration-200" onClick={onNextVerify}>
+                                Next Voucher to Verify
                             </button> : ""}
 
                         {pageChange === "Delete" ?

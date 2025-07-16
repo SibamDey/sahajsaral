@@ -1394,16 +1394,16 @@ export const Sidebar = () => {
             </SidebarElement>
 
             <SidebarElement
-              to="/reconciliation-statement"
-              customCss={"flex justify-start pl-4 "}
-            >
-              <div className="text-sm  items-start py-1 capitalize">
-                <span className="flex items-center space-x-4">
-                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                  <span>Reconciliation Statement</span>
-                </span>
-              </div>
-            </SidebarElement>
+                to="/bank-try-reconciliation"
+                customCss={"flex justify-start pl-4 "}
+              >
+                <div className="text-sm items-start py-1 capitalize">
+                  <span className="flex items-center space-x-4">
+                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                    <span>Bank/Try Reconciliation</span>
+                  </span>
+                </div>
+              </SidebarElement>
 
             <SidebarElement
               to="/bank-try-passbook"
@@ -1464,17 +1464,7 @@ export const Sidebar = () => {
               </SidebarElement>
 
 
-              <SidebarElement
-                to="/bank-try-reconciliation"
-                customCss={"flex justify-start pl-4 "}
-              >
-                <div className="text-sm items-start py-1 capitalize">
-                  <span className="flex items-center space-x-4">
-                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                    <span>Bank/Try Reconciliation</span>
-                  </span>
-                </div>
-              </SidebarElement>
+              
 
 
               {/* : */}

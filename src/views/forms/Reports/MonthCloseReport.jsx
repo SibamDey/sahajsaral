@@ -29,6 +29,7 @@ const MonthClosingModule = () => {
     const [cashAnalysisUtilization, setCashAnalysisUtilization] = useState();
     const [cashAnalysisSummaryDtls, setCashAnalysisSummaryDtls] = useState([]);
     const [cashAnalysisSummaryCB, setCashAnalysisSummaryCB] = useState();
+    const [tier, setTier] = useState("")
     const userData = JSON.parse(sessionStorage.getItem('SAHAJ_SARAL_USER'));
     const printRef = useRef();
     const formatDate = (date) =>
@@ -51,7 +52,7 @@ const MonthClosingModule = () => {
                 }
             });
 
-            getCashAnalysisSummaryCB(district != 0 && block != 0 && gp != 0 ? gp : district != 0 && block != 0 && gp == 0 ? block : district != 0 && block == 0 && gp == 0 ? district : 0, financialYear, popupData.fromDate, popupData.toDate,).then((response) => {
+            getCashAnalysisSummaryCB(popupData?.lgdCode, financialYear, popupData.fromDate, popupData.toDate,).then((response) => {
                 if (response.status === 200) {
                     setCashAnalysisSummaryCB(response.data);
                 } else {
@@ -59,7 +60,7 @@ const MonthClosingModule = () => {
                 }
             });
 
-            getCashAnalysisSummaryDtls(district != 0 && block != 0 && gp != 0 ? gp : district != 0 && block != 0 && gp == 0 ? block : district != 0 && block == 0 && gp == 0 ? district : 0, popupData.fromDate, popupData.toDate,).then((response) => {
+            getCashAnalysisSummaryDtls(popupData?.lgdCode, popupData.fromDate, popupData.toDate,).then((response) => {
                 if (response.status === 200) {
                     setCashAnalysisSummaryDtls(response.data);
                 } else {
@@ -77,7 +78,7 @@ const MonthClosingModule = () => {
                 }
             });
 
-            getCashAnalysisSummaryOB(district != 0 && block != 0 && gp != 0 ? gp : district != 0 && block != 0 && gp == 0 ? block : district != 0 && block == 0 && gp == 0 ? district : 0, financialYear, popupData.fromDate, popupData.toDate,).then((response) => {
+            getCashAnalysisSummaryOB(popupData?.lgdCode, financialYear, popupData.fromDate, popupData.toDate,).then((response) => {
                 if (response.status === 200) {
                     setCashAnalysisSummaryOB(response.data);
                 } else {
@@ -85,7 +86,7 @@ const MonthClosingModule = () => {
                 }
             });
 
-            getCashAnalysisUtilization(district != 0 && block != 0 && gp != 0 ? gp : district != 0 && block != 0 && gp == 0 ? block : district != 0 && block == 0 && gp == 0 ? district : 0, popupData.fromDate, popupData.toDate,).then((response) => {
+            getCashAnalysisUtilization(popupData?.lgdCode, popupData.fromDate, popupData.toDate,).then((response) => {
                 if (response.status === 200) {
                     setCashAnalysisUtilization(response.data);
                 } else {
@@ -264,7 +265,9 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
     });
 
     const fetchData = async () => {
-        if (!financialYear) {
+        if (!tier) {
+            toast.error("Please select a Tier")
+        } else if (!financialYear) {
             toast.error('Please select a financial year');
             return;
         }
@@ -275,13 +278,14 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                     distLgd: district || 0,
                     blkLgd: block || 0,
                     gpLgd: gp || 0,
-                    finYear: financialYear
+                    finYear: financialYear,
+                    lgdType: tier
                 }
             });
             setData(res.data);
         } catch (error) {
             console.error(error);
-            alert('Error fetching data');
+            toast.error('Error fetching data');
         }
     };
 
@@ -354,6 +358,17 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                     </select>
                 </div>
                 <div>
+                    <label className="text-sm font-medium">Tier<span className="text-red-500">*</span></label>
+                    <select className="text-sm block w-full p-1 h-9 border border-gray-300 rounded-md" value={tier} onChange={e => setTier(e.target.value)}>
+                        <option value="">--Select Tier--</option>
+                        <option value="1">Zilla Parishad</option>
+                        <option value="2">Panchayat Samiti</option>
+                        <option value="3">Gram Panchayat</option>
+                        <option value="0">ALL</option>
+
+                    </select>
+                </div>
+                <div>
                     <label className="text-sm font-medium">Financial Year<span className="text-red-500">*</span></label>
                     <select className="text-sm block w-full p-1 h-9 border border-gray-300 rounded-md" value={financialYear} onChange={e => setFinancialYear(e.target.value)}>
                         <option value="">--Select Year--</option>
@@ -362,11 +377,14 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                         ))}
                     </select>
                 </div>
-                <div className="flex items-end">
-                    <button onClick={fetchData} className="bg-cyan-600 text-white px-4 py-2 rounded hover:bg-cyan-700">
-                        Search
-                    </button>
-                </div>
+
+
+
+            </div>
+            <div className="flex justify-center items-end mb-4">
+                <button onClick={fetchData} className="bg-cyan-600 text-white px-2 py-2 rounded hover:bg-cyan-700">
+                    Search
+                </button>
             </div>
 
             {/* Table */}

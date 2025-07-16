@@ -32,6 +32,10 @@ export const getAcCodeDescList = async (lgd, grpid, flag) => {
     return await webApi.get(`/GlGroup/GetAccountCodeFromGlGroupId?lgdCode=${lgd}&groupId=${grpid}&rcptpmntFlag=${flag}`,);
 }
 
+export const getGlGroupBalance = async (lgd, grpid) => {
+    return await webApi.get(`/GlGroup/AvailableLedgerBalance?lgdCode=${lgd}&groupId=${grpid}`,);
+}
+
 
 export const getDeductedtAcCodeList = async (lgd, receiptGroup, flag) => {
     return await webApi.get(`/GlGroup/GetAccountCodeFromReceiptGroup?lgdCode=${lgd}&receiptGroup=${receiptGroup}&rcptpmntFlag=${flag}`,);
@@ -60,7 +64,7 @@ export const getLsgList = async (lsgName) => {
 }
 
 
-export const getAllGlGroupList = async (lgd,value) => {
+export const getAllGlGroupList = async (lgd, value) => {
     return await webApi.get(`/GlGroup/GetGlgroupByLgd?lgdCode=${lgd}&&groupName=${value}`);
 }
 
@@ -393,7 +397,7 @@ export const getReferenceOfAdvanceAdj = async (lgd, glGroup, partyCode) => {
     return await webApi.get(`/Voucher/GetAdvanceVoucherPopup?lgdCode=${lgd}&glGroup=${glGroup}&partyCode=${partyCode}`,);
 }
 
-export const getDeductionList = async (lgd, gl, mainGlGroup, from, to,contractorName) => {
+export const getDeductionList = async (lgd, gl, mainGlGroup, from, to, contractorName) => {
     return await webApi.get(`/Deduction/DeductionListPFPModal?lgdCode=${lgd}&glGroup=${gl}&mainGlGroup=${mainGlGroup}&frmDate=${from}&toDate=${to}&srchByName=${contractorName}`,);
 }
 
@@ -412,7 +416,7 @@ export const addDeleteChequeId = async (lgdCode, chequeBookId, onSuccess, onFail
             {
                 "lgdCode": lgdCode,
                 "chequeBookId": chequeBookId,
-            
+
             },
 
 
@@ -438,3 +442,18 @@ export const addDeleteChequeId = async (lgdCode, chequeBookId, onSuccess, onFail
         console.log("fdgdf")
     }
 };
+
+
+export const getNextQuery = async (lgd, voucherId) => {
+    return await webApi.get(`/Voucher/QueryNextVoucherId?lgdCode=${lgd}&voucherId=${voucherId}`,);
+}
+
+
+export const getNextVerify = async (lgd, voucherId) => {
+    return await webApi.get(`/Voucher/VerifyNextVoucherId?lgdCode=${lgd}&voucherId=${voucherId}`,);
+}
+
+
+export const getNextPFPVerify = async (lgd, voucherId) => {
+    return await webApi.get(`/PassForPayment/NextPfpIdQuery?lgdCode=${lgd}&pfpId=${voucherId}`,);
+}
