@@ -123,8 +123,8 @@ const PassForPayment = () => {
 
     // const ids = selectedData.map(item => item.id).join(",");
 
-    const firstAccountCode = selectedData.length > 0 ? selectedData[0].accountCode : null;
-
+    const firstAccountCode = groupOfContractorsData.length > 0 ? groupOfContractorsData[0]?.accountCode : null;
+    console.log(firstAccountCode, "firstAccountCode")
     // Handle individual checkbox selection
     const handleCheckboxChange = ({ id, amount, accountCode, partyDetails }) => {
         let updatedSelectedData;
@@ -179,6 +179,8 @@ const PassForPayment = () => {
                 partyDetails: item?.partyDetails
 
             }));
+            console.log(allData, "allData")
+  
             const total = allData.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0).toFixed(2);
             setTotalDeductionAmount(total);
             const ids = allData.map(item => item.id).join(",");

@@ -42,7 +42,7 @@ export const getChallanVoucher = async (lgd, voucherId) => {
 
 
 export const getChequeIssue = async (lgd, acc, voucher, from, to) => {
-    return await webApi.get(`/Register/ChequeIssue?lgdCode=${lgd}&accountCode=${acc}&voucherMode=${voucher}&frmDate=${from}&toDate=${to}`);
+    return await webApi.get(`/Register/ReportChequeIssueRegister?lgdCode=${lgd}&accountCode=${acc}&voucherMode=${voucher}&fromDate=${from}&toDate=${to}`);
 }
 
 

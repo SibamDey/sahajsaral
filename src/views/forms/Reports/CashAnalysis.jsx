@@ -38,6 +38,7 @@ const CashAnalysis = () => {
     const [cashAnalysisSummaryCB, setCashAnalysisSummaryCB] = useState();
     const [reportType, setReportType] = useState();
     const [lgd, setLgd] = useState([]);
+    
     const formatDate = (date) =>
         date ? new Date(date).toLocaleDateString("en-GB").replace(/\//g, '.') : "Invalid Date";
 
