@@ -180,7 +180,7 @@ const PassForPayment = () => {
 
             }));
             console.log(allData, "allData")
-  
+
             const total = allData.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0).toFixed(2);
             setTotalDeductionAmount(total);
             const ids = allData.map(item => item.id).join(",");
@@ -3005,7 +3005,14 @@ const PassForPayment = () => {
                                                         placeholder="Bill Type"
                                                         className="text-xs w-full px-3 py-2 border border-gray-300 rounded-md"
                                                         disabled
-                                                        value={getPassForPaymentDataById?.basic?.billType == 1 ? "RA-1" : getPassForPaymentDataById?.basic?.billType == 2 ? "RA-2" : "Final"}
+                                                        value={
+                                                            `${getPassForPaymentDataById?.basic?.billType === "1"
+                                                                ? "RA"
+                                                                : getPassForPaymentDataById?.basic?.billType === "2"
+                                                                    ? "Restricted"
+                                                                    : "Final"}${getPassForPaymentDataById?.basic?.billTypeDesc ? ` - ${getPassForPaymentDataById.basic.billTypeDesc}` : ''}`
+                                                        }
+
                                                     />
                                                 </div>
                                             </div>

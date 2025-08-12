@@ -2,13 +2,15 @@ import React from "react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { addMonthlyAccClosing, getLastMonthCLose } from "../../../Service/Utility/UtilityService";
-
+import Modal from 'react-modal';
+import 'react-toastify/dist/ReactToastify.css';
 
 const MonthlyAccountingClosing = () => {
     const jsonString = sessionStorage.getItem("SAHAJ_SARAL_USER");
     const userData = JSON.parse(jsonString);
     const [lastMonthData, setLastMonthData] = useState([]);
     const [currentFinancialYear, setCurrentFinancialYear] = useState("");
+    const [submitFlag, setSubmitFlag] = useState(false);
 
     // Calculate the current financial year dynamically
     useEffect(() => {
@@ -63,27 +65,82 @@ const MonthlyAccountingClosing = () => {
         if (!selectedMonth) {
             toast.error("Please select month");
         } else {
-            addMonthlyAccClosing(userData?.CORE_LGD, currentFinancialYear, selectedMonth, userData?.USER_INDEX,
-                (r) => {
-                    console.log(r, "asssa")
-                    if (r.status == 0) {
-                        toast.success(r.message);
-                        // setData(response.data);
-                    } else if (r.status == 1) {
-                        toast.error(r.message);
-                    } else {
-                        toast.error("Something went wrong");
-                    }
-                });
+            setSubmitFlag(true);
         }
     }
     console.log(data, "data")
 
+    const onMonthSubmit = () => {
+        addMonthlyAccClosing(userData?.CORE_LGD, currentFinancialYear, selectedMonth, userData?.USER_INDEX,
+            (r) => {
+                console.log(r, "asssa")
+                if (r.status == 0) {
+                    toast.success(r.message);
+                    setSubmitFlag(false);
+                    // setData(response.data);
+                } else if (r.status == 1) {
+                    toast.error(r.message);
+                } else {
+                    toast.error("Something went wrong");
+                }
+            });
 
+
+    }
+
+    const onMonthClose = () => {
+        setSubmitFlag(false)
+    }
 
     return (
         <>
             <ToastContainer />
+            <Modal
+                isOpen={submitFlag}
+                onRequestClose={() => setSubmitFlag(false)}
+                shouldCloseOnOverlayClick={false}
+                style={{
+                    content: {
+                        width: "40%",
+                        height: "30%", // Increased height slightly to accommodate the new field
+                        margin: "auto",
+                        padding: "20px",
+                        borderRadius: "10px",
+                        display: "flex",
+                        flexDirection: "column",
+                    },
+                    overlay: {
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        backdropFilter: "blur(5px)",
+                    },
+                }}
+            >
+
+                <h3 className="text-center text-gray-800 text-xl font-bold mb-1">
+                    Are you sure you want to close the month of {months.filter(m => m.value === selectedMonth).map(m => m.label)} ?
+                </h3>
+                {/* Reason Input */}
+
+
+                {/* Buttons */}
+                <div className="mt-4 text-center">
+                    <button
+                        type="button"
+                        className="px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
+                        onClick={onMonthSubmit}
+                    >
+                        Yes
+                    </button>
+                    &nbsp;&nbsp;
+                    <button
+                        type="button"
+                        className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm"
+                        onClick={onMonthClose}
+                    >
+                        No
+                    </button>
+                </div>
+            </Modal>
 
             <div className="bg-white rounded-lg p-2 flex flex-col flex-grow" style={{ marginTop: "-40px" }}>
                 <legend className="text-lg font-semibold text-cyan-700">Monthly Accounting Closing</legend>
@@ -137,7 +194,7 @@ const MonthlyAccountingClosing = () => {
 
 
                         </div>
-                <h3 className="text-sm font-semibold text-gray-700">Last Month Closed: {lastMonthData?.message}</h3>
+                        <h3 className="text-sm font-semibold text-gray-700">Last Month Closed: {lastMonthData?.message}</h3>
 
                     </div>
                 </div>

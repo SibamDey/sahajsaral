@@ -201,7 +201,7 @@ const ObForNominal = () => {
                         </tbody>
                     </table>
 
-                    {["2858", "2860", "2864", "2866", "2869"].includes(userData?.BLOCK_LGD) ? (
+                    {/* {["2858", "2860", "2864", "2866", "2869"].includes(userData?.BLOCK_LGD) ? (
                         <div className="w-1/2 flex justify-end">
                             <button
                                 type="button"
@@ -211,7 +211,7 @@ const ObForNominal = () => {
                                 Save
                             </button>
                         </div>
-                    ) : null}
+                    ) : null} */}
 
                 </> : ""}
 

@@ -80,7 +80,7 @@ const ChequeReceiptIssueRegister = () => {
 
             transactions.forEach((trx) => {
                 exportData.push({
-                    "A/C Head": accountHead,
+                    // "A/C Head": accountHead,
                     "GL Group Name": trx.glGroupName,
                     "Bank A/C": trx.accountHead,
                     "Cheque No": trx.chequeNo,
@@ -173,7 +173,7 @@ const ChequeReceiptIssueRegister = () => {
                 autoTable(doc, {
                     startY,
                     head: [[
-                        "Bank A/C",
+                        "GL Group Name",
                         "Instrument Type",
                         "Instrument No",
                         "Instrument Date",
@@ -185,7 +185,7 @@ const ChequeReceiptIssueRegister = () => {
                         "Encashed On"
                     ]],
                     body: transactions.map(trx => [
-                        trx.accountHead,
+                        trx.glGroupName,
                         trx.instrumentType,
                         trx.chequeNo,
                         trx.chequeDate,
@@ -434,7 +434,7 @@ const ChequeReceiptIssueRegister = () => {
                                 <table className="w-full border-collapse border text-xs">
                                     <thead>
                                         <tr className="bg-cyan-500 text-black-700">
-                                            <th className="border border-gray-400 p-2">Bank A/C</th>
+                                            <th className="border border-gray-400 p-2">Gl Group Name</th>
                                             <th className="border border-gray-400 p-2">Instrument Type</th>
                                             <th className="border border-gray-400 p-2">Instrument No</th>
                                             <th className="border border-gray-400 p-2">Instrument Date</th>
@@ -452,14 +452,14 @@ const ChequeReceiptIssueRegister = () => {
                                                 {/* A/C Head Section Row */}
                                                 <tr className="bg-yellow-100 font-semibold">
                                                     <td colSpan="10" className="border p-2 text-center">
-                                                        A/C HEAD: {group.accountHead}
+                                                        Bank A/C: {group.accountHead}
                                                     </td>
                                                 </tr>
 
                                                 {/* Transactions under this account head */}
                                                 {group.transactions?.map((entry, index) => (
                                                     <tr key={index} className="text-center">
-                                                        <td className="border p-2">{entry?.accountHead}</td>
+                                                        <td className="border p-2">{entry?.glGroupName}</td>
                                                         <td className="border p-2">{entry?.instrumentType}</td>
                                                         <td className="border p-2">{entry?.chequeNo}</td>
                                                         <td className="border p-2">{entry?.chequeDate}</td>
