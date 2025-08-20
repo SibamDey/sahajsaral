@@ -1942,7 +1942,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
         }
     }
 
-    console.log(voucherDataById?.basic?.voucherId,"sasasasa")
+    console.log(voucherDataById?.basic?.voucherId, "sasasasa")
     const onNextVerify = () => {
         if (!voucherDataById?.basic?.voucherId) {
             toast.error("Please select Voucher ID")
@@ -5053,13 +5053,11 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                                                         placeholder="Bill Type"
                                                         disabled
                                                         value={
-                                                            getPassForPaymentDataById?.basic?.billType == 1
-                                                                ? "RA-1"
-                                                                : getPassForPaymentDataById?.basic?.billType == 2
-                                                                    ? "RA-2"
-                                                                    : getPassForPaymentDataById?.basic?.billType == 3
-                                                                        ? "Final"
-                                                                        : ""
+                                                            `${getPassForPaymentDataById?.basic?.billType === "1"
+                                                                ? "RA"
+                                                                : getPassForPaymentDataById?.basic?.billType === "2"
+                                                                    ? "Restricted"
+                                                                    : "Final"}${getPassForPaymentDataById?.basic?.billTypeDesc ? ` - ${getPassForPaymentDataById.basic.billTypeDesc}` : ''}`
                                                         }
                                                     />
                                                 </div>

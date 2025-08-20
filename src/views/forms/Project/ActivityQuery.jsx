@@ -1,388 +1,293 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-
-import { Icon } from "@iconify/react/dist/iconify.js";
-import { Table } from "flowbite-react";
-// import { devApi } from "../../WebApi/WebApi";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
-import { fetch } from "../../../functions/Fetchfunctions";
-import SuccessModal from "../../../components/SuccessModal";
-import {
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useReactTable,
-} from "@tanstack/react-table";
-import { Pagination } from "../../../components/Pagination";
-import classNames from "classnames";
-import { SortIcon } from "../../../components/SortIcon";
+import { getDistrictListforEvent, getBlockList, getGpList, getParabaithakActivity } from "../../../Service/Project/ActivityDetailsService";
 import { ToastContainer, toast } from "react-toastify";
 import * as XLSX from "xlsx";
-
+import { getAllScheme, getPlanYear, getAllComponent, getAllUpaSamity, getAllSector, getFocusAreaMgnrega, getFocusArea, getCategoryMgnrega, getCategory, getSDGCategory, getDetailsReport, getActivitySummaryReport } from "../../../Service/Project/ActivityDetailsService";
 const ActivityQuery = () => {
-    const [mutationId, setMutationId] = useState(null);
-    const [openModal, setOpenModal] = useState(false);
+    const jsonString = sessionStorage.getItem("SAHAJ_SARAL_USER");
+    const userData = JSON.parse(jsonString);
+    const [district, setDistrict] = useState();
+    const [block, setBlock] = useState();
+    const [gp, setGp] = useState();
+    const [getDistrictDataList, setDistrictDataList] = useState([]);
+    const [getBlockDataList, setBlockDataList] = useState([]);
+    const [getGpDataList, setGpDataList] = useState([]);
+    const [planYear, setPlanYear] = useState([]);
+    const [allScheme, setAllScheme] = useState([]);
+    const [schemeName, setSchemeName] = useState("");
+    const [allComponent, setAllComponent] = useState([]);
+    const [component, setComponent] = useState("");
+    const [allUpaSamity, setAllUpaSamity] = useState([]);
+    const [upaSamity, setUpaSamity] = useState("");
+    const [allSector, setAllSector] = useState([]);
+    const [sector, setSector] = useState("");
+    const [allFocusArea, setAllFocusArea] = useState([]);
+    const [focusArea, setFocusArea] = useState("");
+    const [allCategory, setAllCategory] = useState([]);
+    const [category, setCategory] = useState("");
+    const [sdgCategory, setSDGCategory] = useState([]);
+    const [sdgId, setSDGId] = useState("");
+    const [convergence, setConvergence] = useState("");
+    const [status, setStatus] = useState("");
+    const [activityName, setActivityName] = useState("");
+    const [activityOutput, setActivityOutput] = useState("");
+    const [activityIs, setActivityIs] = useState("");
+    const [detailsReportList, setDetailsReportList] = useState([]);
+    const [selectedPlanYear, setSelectedPlanYear] = useState("");
+    const [activitySummaryReportList, setActivitySummaryReportList] = useState([]);
 
 
-    const receiptPayment = useRef(null);
-    const department = useRef(null);
-    const scheme = useRef(null);
-    const accountCodeDesc = useRef(null);
-    const receiptPaymentNature = useRef(null);
-    const fundType = useRef(null);
-    const glGroup = useRef(null);
-    const receiptPaymentGroup = useRef(null);
-    const receiptPaymentGp = useRef(null);
-    const majorCode = useRef(null);
-    const minorCode = useRef(null);
-    const subGroup = useRef(null);
-    const objCode = useRef(null);
-    const schemeUid = useRef(null);
-    const schemeChildUid = useRef(null);
-    const queryClient = useQueryClient();
+    console.log(detailsReportList, "detailsReportList")
+    useEffect(() => {
+        const jsonString = sessionStorage.getItem("SAHAJ_SARAL_USER");
+        const data = JSON.parse(jsonString);
+
+        getDistrictListforEvent(data?.USER_LEVEL == "DIST" || data?.USER_LEVEL == "BLOCK" || data?.USER_LEVEL == "GP" ? data?.DIST_LGD : 0).then(function (result) {
+            const response = result?.data;
+            console.log(response, "resresres")
+            setDistrictDataList(response);
+        });
+
+        getBlockList(data?.USER_LEVEL == "DIST" || data?.USER_LEVEL == "BLOCK" || data?.USER_LEVEL == "GP" ? data?.DIST_LGD : 0, data?.USER_LEVEL == "DIST" || data?.USER_LEVEL == "BLOCK" || data?.USER_LEVEL == "GP" ? data?.BLOCK_LGD : 0).then(function (result) {
+            const response = result?.data;
+            console.log(response, "resresres")
+            setBlockDataList(response);
+        });
+
+        getGpList(data?.USER_LEVEL == "DIST" || data?.USER_LEVEL == "BLOCK" || data?.USER_LEVEL == "GP" ? data?.DIST_LGD : 0, data?.USER_LEVEL == "DIST" || data?.USER_LEVEL == "BLOCK" || data?.USER_LEVEL == "GP" ? data?.BLOCK_LGD : 0,
+            data?.USER_LEVEL == "DIST" || data?.USER_LEVEL == "BLOCK" || data?.USER_LEVEL == "GP" ? data?.GP_LGD : 0,
+        ).then(function (result) {
+            const response = result?.data;
+            console.log(response, "resresres")
+            setGpDataList(response);
+        });
+
+    }, []);
 
 
-    const { data: nominalAccList } = useQuery({
-        queryKey: ["nominalAccList"],
-        queryFn: async () => {
-            const data = await fetch.get("/StateAccountCode/Get");
-            return data?.data;
-        },
-    });
-
-    const { mutate: addPed, isPending: addPending } = useMutation({
-        mutationFn: (newTodo) => {
-            return fetch.post(newTodo, "/StateAccountCode/Insert");
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries("nominalAccList");
-            receiptPayment.current.value = "";
-            department.current.value = "";
-            scheme.current.value = "";
-            accountCodeDesc.current.value = "";
-            receiptPaymentNature.current.value = "";
-            fundType.current.value = "";
-            glGroup.current.value = "";
-            receiptPaymentGroup.current.value = "";
-            receiptPaymentGp.current.value = "";
-            majorCode.current.value = "";
-            minorCode.current.value = "";
-            subGroup.current.value = "";
-            objCode.current.value = "";
-            schemeUid.current.value = "";
-            schemeChildUid.current.value = "";
-        },
-        mutationKey: ["adddesignation"],
-    });
-    console.log(mutationId, "mutationId")
-    const { mutate: updatePed, isPending: updatePending } = useMutation({
-        mutationFn: (newTodo) => {
-            return fetch.post(
-                newTodo,
-                "/contractor/update/" + mutationId
-            );
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries("nominalAccList");
-            receiptPayment.current.value = "";
-            department.current.value = "";
-            scheme.current.value = "";
-            accountCodeDesc.current.value = "";
-            receiptPaymentNature.current.value = "";
-            fundType.current.value = "";
-            glGroup.current.value = "";
-            receiptPaymentGroup.current.value = "";
-            receiptPaymentGp.current.value = "";
-            majorCode.current.value = "";
-            minorCode.current.value = "";
-            subGroup.current.value = "";
-            objCode.current.value = "";
-            schemeUid.current.value = "";
-            schemeChildUid.current.value = "";
-            setMutationId(null);
-        },
-        mutationKey: ["updatedesignation"],
-    });
-
-    function performMutation() {
-        if (receiptPayment.current.value === "") {
-            toast.error("Please Select Receipt/Payment")
-
-        } else if (department.current.value === "") {
-            toast.error("Please Select Department")
-
-        } else if (scheme.current.value === "") {
-            toast.error("Please Select Scheme")
-
-        } else if (receiptPaymentNature.current.value === "") {
-            toast.error("Please Select Receipt/Payment Nature")
-
-        } else if (fundType.current.value === "") {
-            toast.error("Please Select Fund Type")
-
-        } else if (glGroup.current.value === "") {
-            toast.error("Please Select GL Group")
-
-        } else if (receiptPaymentGroup.current.value === "") {
-            toast.error("Please Select Receipt/Payment Group")
-
-        } else if (receiptPaymentGp.current.value === "") {
-            toast.error("Please Select Head Classification")
-
-        } else if (majorCode.current.value === "") {
-            toast.error("Please Type Major Code")
-
-        } else if (majorCode.current.value.length != 4) {
-            toast.error("Major code should be 4 Digit")
-
-        } else if (minorCode.current.value === "") {
-            toast.error("Please Type Minor Code")
-
-        } else if (minorCode.current.value.length != 3) {
-            toast.error("Minor code should be 3 Digit")
-
-        } else if (subGroup.current.value === "") {
-            toast.error("Please Type Sub Group")
-
-        } else if (subGroup.current.value.length != 4) {
-            toast.error("Sub Group should be 4 Digit")
-
-        } else if (objCode.current.value === "") {
-            toast.error("Please Type Object Code")
-
-        } else if (objCode.current.value.length != 2) {
-            toast.error("object Code should be 2 Digit")
-
-        } else if (schemeUid.current.value === "") {
-            toast.error("Please Type Scheme Uid")
-
-        } else if (schemeUid.current.value.length != 4) {
-            toast.error("Scheme Uid should be 4 Digit")
-
-        } else if (schemeChildUid.current.value === "") {
-            toast.error("Please Type Scheme Child Uid")
-
-        } else if (schemeChildUid.current.value.length != 4) {
-            toast.error("Scheme Child Uid should be 4 Digit")
-
+    const onDetailsReport = () => {
+        setActivitySummaryReportList([]);
+        if (!selectedPlanYear) {
+            toast.error("Please select Plan Year");
+        } else if (!activityOutput) {
+            toast.error("Please select Activity Output");
+            return;
         } else {
-            if (mutationId === null)
-                addPed({
-                    "accountCodeDesc": accountCodeDesc.current.value,
-                    "deptId": department.current.value,
-                    "schemeId": scheme.current.value,
-                    "rcptpmntFlag": receiptPayment.current.value,
-                    "rcptpmntNature": receiptPaymentNature.current.value,
-                    "fundType": fundType.current.value,
-                    "rcptGroup": receiptPaymentGroup.current.value,
-                    "rcptGroupGP": receiptPaymentGp.current.value,
-                    "glGroup": glGroup.current.value,
-                    "majorCode": majorCode.current.value,
-                    "minorCode": minorCode.current.value,
-                    "subCode": subGroup.current.value,
-                    "objectCode": objCode.current.value,
-                    "schemeUid": schemeUid.current.value,
-                    "schemechildUid": schemeChildUid.current.value,
-                });
-            else
-                updatePed({
-                    "accountCodeDesc": accountCodeDesc.current.value,
-                    "deptId": department.current.value,
-                    "schemeId": scheme.current.value,
-                    "rcptpmntFlag": receiptPayment.current.value,
-                    "rcptpmntNature": receiptPaymentNature.current.value,
-                    "fundType": fundType.current.value,
-                    "rcptGroup": receiptPaymentGroup.current.value,
-                    "rcptGroupGP": receiptPaymentGp.current.value,
-                    "glGroup": glGroup.current.value,
-                    "majorCode": majorCode.current.value,
-                    "minorCode": minorCode.current.value,
-                    "subCode": subGroup.current.value,
-                    "objectCode": objCode.current.value,
-                    "schemeUid": schemeUid.current.value,
-                    "schemechildUid": schemeChildUid.current.value,
-                });
+            getDetailsReport(district ? district : userData?.USER_LEVEL == "DIST" || userData?.USER_LEVEL == "BLOCK" || userData?.USER_LEVEL == "GP" ? userData?.DIST_LGD : 0,
+                block ? block : userData?.BLOCK_LGD, gp ? gp : 0, selectedPlanYear, activityOutput, schemeName ? schemeName : 0, component ? component : 0, focusArea ? focusArea : 0, upaSamity ? upaSamity : 0, sector ? sector : 0, sdgId ? sdgId : 0
+                , status ? status : "N", category ? category : 0, activityIs ? activityIs : "N", convergence ? convergence : 0, activityName ? activityName : "N"
+            ).then(function (result) {
+                const response = result?.data;
+                console.log(response, "resresres")
+                setDetailsReportList(response);
+            });
         }
     }
-    useEffect(() => {
-        const preventScroll = () => {
-            document.body.style.overflow = "hidden";
-        };
 
-        const allowScroll = () => {
-            document.body.style.overflow = "auto";
-        };
 
-        if (addPending || updatePending) {
-            preventScroll();
+    const onActivitySummaryReport = () => {
+        setDetailsReportList([]);
+        if (!selectedPlanYear) {
+            toast.error("Please select Plan Year");
+        } else if (!activityOutput) {
+            toast.error("Please select Activity Output");
+            return;
         } else {
-            allowScroll();
+            getActivitySummaryReport(district ? district : userData?.USER_LEVEL == "DIST" || userData?.USER_LEVEL == "BLOCK" || userData?.USER_LEVEL == "GP" ? userData?.DIST_LGD : 0,
+                block ? block : userData?.BLOCK_LGD, gp ? gp : 0, selectedPlanYear, activityOutput, schemeName ? schemeName : 0, component ? component : 0, focusArea ? focusArea : 0, upaSamity ? upaSamity : 0, sector ? sector : 0, sdgId ? sdgId : 0
+                , status ? status : "N", category ? category : 0, activityIs ? activityIs : "N", convergence ? convergence : 0, activityName ? activityName : "N"
+            ).then(function (result) {
+                const response = result?.data;
+                console.log(response, "resresres")
+                setActivitySummaryReportList(response);
+            });
+        }
+    }
+
+    useEffect(() => {
+        getPlanYear().then(function (result) {
+            const response = result?.data;
+            setPlanYear(response);
+        });
+
+        getAllScheme().then(function (result) {
+            const response = result?.data;
+            setAllScheme(response);
+        });
+
+        getAllUpaSamity().then(function (result) {
+            const response = result?.data;
+            setAllUpaSamity(response);
+        });
+
+        getAllSector().then(function (result) {
+            const response = result?.data;
+            setAllSector(response);
+        });
+
+        getSDGCategory().then(function (result) {
+            const response = result?.data;
+            setSDGCategory(response);
+        });
+
+
+
+    }, []); // empty array to run only once
+
+    const onSchemeName = (e) => {
+        const schemeName = e.target.value;
+        setSchemeName(schemeName);
+        getAllComponent(e.target.value).then(function (result) {
+            const response = result?.data;
+            setAllComponent(response);
+        });
+        {
+            schemeName === "003" ?
+                getFocusAreaMgnrega().then(function (result) {
+                    const response = result?.data;
+                    setAllFocusArea(response);
+                })
+                :
+                getFocusArea().then(function (result) {
+                    const response = result?.data;
+                    setAllFocusArea(response);
+                })
         }
 
-        return () => {
-            allowScroll();
-        };
-    }, [addPending, updatePending]);
 
-    const ListOptions = [10, 20, 50, "all"];
-    const [items, setItems] = useState(ListOptions[0]);
-
-    const data = useMemo(() => {
-        const sortedList = [...(nominalAccList ?? [])];
-        sortedList.sort((a, b) => b.designationId - a.designationId);
-        return sortedList;
-    }, [nominalAccList]);
-
-    const list = [
         {
-            header: "Acc Code",
-            accessorKey: "accountCode",
-            className: "text-left cursor-pointer px-2",
-        },
-        // {
-        //     header: "Recpt/Pay",
-        //     accessorKey: "rcptpmntFlag",
-        //     className: "text-left cursor-pointer px-2",
-
-        // },
-        // {
-        //     header: "Dept",
-        //     accessorKey: "deptName",
-        //     className: "text-left cursor-pointer px-2",
-
-        // },
-
-        // {
-        //     header: "Scheme",
-        //     accessorKey: "schemeName",
-        //     className: "text-left cursor-pointer px-2",
-
-        // },
-        {
-            header: "Account Code Desc",
-            accessorKey: "accountCodeDesc",
-            className: "text-left cursor-pointer px-2",
-
-        },
-        // {
-        //     header: "Recpt Pay Nature",
-        //     accessorKey: "rcptpmntNatureName",
-        //     className: "text-left cursor-pointer px-2",
-        // },
-        // {
-        //     header: "Fund Type",
-        //     accessorKey: "fundTypeName",
-        //     className: "text-left cursor-pointer px-2",
-        // },
-        {
-            header: "GL Group",
-            accessorKey: "glGroupName",
-            className: "text-left cursor-pointer px-2",
-        },
-        {
-            header: "Receipt Pay Group",
-            accessorKey: "rcptGroupPSName",
-            className: "text-left cursor-pointer px-2",
-        },
-        {
-            header: "Head Classification",
-            accessorKey: "rcptGroupGPName",
-            className: "text-left cursor-pointer px-2",
-        },
-    ];
-
-    const [sorting, setSorting] = useState([]);
-    const [filtering, setFiltering] = useState("");
-
-    const table = useReactTable({
-        data,
-        columns: list,
-        getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
-        state: {
-            sorting: sorting,
-            globalFilter: filtering,
-        },
-        initialState: {
-            pagination: {
-                pageSize: parseInt(items),
-            },
-        },
-        onSortingChange: setSorting,
-        onGlobalFilterChange: setFiltering,
-    });
-
-    useEffect(() => {
-        if (items == "all") table.setPageSize(9999);
-        else table.setPageSize(parseInt(items));
-    }, [items]);
-
-    //department list
-    const { data: departmentList } = useQuery({
-        queryKey: ["departmentList"],
-        queryFn: async () => {
-            const data = await fetch.get("/Department/Get");
-            return data?.data;
-        },
-    });
-
-
-    const { data: schemeList } = useQuery({
-        queryKey: ["schemeList"],
-        queryFn: async () => {
-            const data = await fetch.get("/scheme/Get");
-            return data?.data;
-        },
-    });
-
-
-    const { data: glGroupList } = useQuery({
-        queryKey: ["glGroupList"],
-        queryFn: async () => {
-            const data = await fetch.get("/GlGroup/Get");
-            return data?.data;
-        },
-    });
-
-
-    const { data: receipt_payment_group_lIST } = useQuery({
-        queryKey: ["receipt_payment_group_lIST"],
-        queryFn: async () => {
-            const data = await fetch.get("/ReceiptGroup/Get");
-            return data?.data;
-        },
-    });
-
-
-    const { data: receipt_payment_group_gpLIST } = useQuery({
-        queryKey: ["receipt_payment_group_gpLIST"],
-        queryFn: async () => {
-            const data = await fetch.get("/ReceiptGroupGP/Get");
-            return data?.data;
-        },
-    });
-
-    const exportToExcel = (tableData, fileName) => {
-        const ws = XLSX.utils.json_to_sheet(tableData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-        XLSX.writeFile(wb, `${fileName}.xlsx`);
+            schemeName === "003" ?
+                getCategoryMgnrega().then(function (result) {
+                    const response = result?.data;
+                    setAllCategory(response);
+                })
+                :
+                getCategory().then(function (result) {
+                    const response = result?.data;
+                    setAllCategory(response);
+                })
+        }
     };
+
+    const onDistrict = (e) => {
+        setDistrict(e.target.value)
+        setBlock('')
+        setGp('')
+        getBlockList(e.target.value, 0).then(function (result) {
+            const response = result?.data;
+            console.log(response, "resresres")
+            setBlockDataList(response);
+        });
+    }
+    let BlockListDropDown = <option>Loading...</option>;
+    if (getBlockDataList && getBlockDataList.length > 0) {
+        BlockListDropDown = getBlockDataList.map((blRow, index) => (
+            <option value={blRow.BLOCK_LGD}>{blRow.BLOCK_NAME}</option>
+        ));
+    }
+
+    const onBlock = (e) => {
+        setBlock(e.target.value)
+        setGp('')
+
+        getGpList(district ? district : userData?.DIST_LGD, e.target.value, 0).then(function (result) {
+            const response = result?.data;
+            console.log(response, "resresres")
+            setGpDataList(response);
+        });
+    }
+    let GpListDropDown = <option>Loading...</option>;
+    if (getGpDataList && getGpDataList.length > 0) {
+        GpListDropDown = getGpDataList.map((gpRow, index) => (
+            <option value={gpRow.GP_LGD}>{gpRow.GP_NAME}</option>
+        ));
+    }
+
+    const onGp = (e) => {
+        setGp(e.target.value)
+    }
+    const onActivityOutput = (e) => {
+        const activityOutput = e.target.value;
+        setActivityOutput(activityOutput)
+    }
+
+    const onActivityIs = (e) => {
+        const activityIs = e.target.value;
+        setActivityIs(activityIs)
+    }
+
+    const onComponent = (e) => {
+        const componentId = e.target.value;
+        setComponent(componentId)
+    }
+
+    const onUpaSamity = (e) => {
+        const upaSamityId = e.target.value;
+        setUpaSamity(upaSamityId)
+    }
+
+    const onSector = (e) => {
+        const sectorId = e.target.value;
+        setSector(sectorId)
+    }
+
+    const onfocusArea = (e) => {
+        const focusAreaId = e.target.value;
+        setFocusArea(focusAreaId)
+    }
+
+    const onCategory = (e) => {
+        const categoryId = e.target.value;
+        setCategory(categoryId)
+    }
+
+    const onSDGCategory = (e) => {
+        const sdgId = e.target.value;
+        setSDGId(sdgId)
+    }
+
+    const onConvergence = (e) => {
+        const convergenceValue = e.target.value;
+        setConvergence(convergenceValue);
+    };
+
+    const onStatus = (e) => {
+        const statusValue = e.target.value;
+        setStatus(statusValue);
+    }
+
+
+    const totals = activitySummaryReportList.reduce(
+        (acc, row) => {
+            acc.assetActivityNo += Number(row.assetActivityNo || 0);
+            acc.assetEstimatedCost += Number(row.assetEstimatedCost || 0);
+            acc.serviceActivityNo += Number(row.serviceActivityNo || 0);
+            acc.serviceEstimatedCost += Number(row.serviceEstimatedCost || 0);
+            acc.traningActivityNo += Number(row.traningActivityNo || 0);
+            acc.traningEstimatedCost += Number(row.traningEstimatedCost || 0);
+            acc.othersActivityNo += Number(row.othersActivityNo || 0);
+            acc.otherEstimatedCost += Number(row.otherEstimatedCost || 0);
+            acc.totalActivityNo += Number(row.totalActivityNo || 0);
+            acc.totalEstimatedCost += Number(row.totalEstimatedCost || 0);
+            return acc;
+        },
+        {
+            assetActivityNo: 0,
+            assetEstimatedCost: 0,
+            serviceActivityNo: 0,
+            serviceEstimatedCost: 0,
+            traningActivityNo: 0,
+            traningEstimatedCost: 0,
+            othersActivityNo: 0,
+            otherEstimatedCost: 0,
+            totalActivityNo: 0,
+            totalEstimatedCost: 0,
+        }
+    );
 
     return (
         <>
-            <SuccessModal
-                openModal={openModal}
-                setOpenModal={setOpenModal}
-                message={"Contractor Created Successfully"}
-                to="contractor-master"
-                // resetData={resetData}
-                isSuccess={true}
-            />
+
             <ToastContainer />
 
             <div className="bg-white rounded-lg p-2 flex flex-col flex-grow" style={{ marginTop: "-40px" }}>
@@ -403,14 +308,21 @@ const ActivityQuery = () => {
                                     id="receipt_name"
                                     name="receipt_name"
                                     autoComplete="off"
-                                    className="block w-full p-1 h-9 border border-gray-300 "
-                                    ref={receiptPayment}
+                                    className="text-sm block w-full p-1 h-9 border border-gray-300 "
+                                    value={district}
+                                    onChange={onDistrict}
+                                    disabled={userData?.USER_LEVEL == "DIST" || userData?.USER_LEVEL == "BLOCK" || userData?.USER_LEVEL == "GP" ? true : false}
+
                                 >
-                                    <option value="" selected hidden>
-                                        Select District
-                                    </option>
-                                    <option value="R">Receipt</option>
-                                    <option value="P">Payment</option>
+                                    {userData?.USER_LEVEL == "DIST" || userData?.USER_LEVEL == "BLOCK" || userData?.USER_LEVEL == "GP" ? "" :
+                                        <option value="0" selected >
+                                            Select District
+                                        </option>}
+
+                                    {getDistrictDataList.map((distRow, index) => (
+                                        <option value={distRow.DistLgd}>{distRow.DistName}</option>
+                                    ))}
+
                                 </select>
                             </div>
 
@@ -426,23 +338,24 @@ const ActivityQuery = () => {
                                     id="department_name"
                                     name="department_name"
                                     autoComplete="off"
-                                    className="block w-full p-1 h-9 border border-gray-300 "
-                                    ref={department}
+                                    className="block text-sm w-full p-1 h-9 border border-gray-300 "
+                                    onChange={onBlock}
+                                    value={block}
+                                    disabled={userData?.USER_LEVEL == "BLOCK" || userData?.USER_LEVEL == "GP" ? true : false}
                                 >
-                                    <option value="" selected hidden>
-                                        Select Block
-                                    </option>
-                                    {departmentList?.map((d) => (
-                                        <option value={d?.deptId}>
-                                            {d?.deptName}
-                                        </option>
+                                    {userData?.USER_LEVEL == "BLOCK" || userData?.USER_LEVEL == "GP" ? "" :
+                                        <option value="0" selected >
+                                            Select Block
+                                        </option>}
+                                    {getBlockDataList.map((blRow, index) => (
+                                        <option value={blRow.BlockLgd}>{blRow.BlockName}</option>
                                     ))}
                                 </select>
                             </div>
 
                             <div className="w-1/3">
                                 <label
-                                    htmlFor="scheme_name"
+
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     GP
@@ -452,23 +365,24 @@ const ActivityQuery = () => {
                                     id="scheme_name"
                                     name="scheme_name"
                                     autoComplete="off"
-                                    className="block w-full p-1 h-9 border border-gray-300 "
-                                    ref={scheme}
+                                    className="block text-sm w-full p-1 h-9 border border-gray-300 "
+                                    onChange={onGp}
+                                    value={gp}
+                                    disabled={userData?.USER_LEVEL == "GP" ? true : false}
                                 >
-                                    <option value="" selected hidden>
-                                        Select GP
-                                    </option>
-                                    {schemeList?.map((d) => (
-                                        <option value={d?.schemeId}>
-                                            {d?.schemeName}
-                                        </option>
+                                    {userData?.USER_LEVEL == "GP" ? "" :
+                                        <option value="0" selected >
+                                            Select Gram Panchayat
+                                        </option>}
+                                    {getGpDataList.map((gpRow, index) => (
+                                        <option value={gpRow.GPLgd}>{gpRow.GPName}</option>
                                     ))}
                                 </select>
                             </div>
 
                             <div className="w-1/3">
                                 <label
-                                    htmlFor="scheme_name"
+
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     Plan Year
@@ -479,16 +393,18 @@ const ActivityQuery = () => {
                                     name="scheme_name"
                                     autoComplete="off"
                                     className="block w-full p-1 h-9 border border-gray-300 "
-                                    ref={scheme}
+                                    onChange={(e) => setSelectedPlanYear(e.target.value)}
+
                                 >
                                     <option value="" selected hidden>
                                         Select Plan Year
                                     </option>
-                                    {schemeList?.map((d) => (
-                                        <option value={d?.schemeId}>
-                                            {d?.schemeName}
+                                    {planYear.map((i) => (
+                                        <option key={i?.planYear} value={i?.planYear}>
+                                            {i?.planYear}
                                         </option>
                                     ))}
+
                                 </select>
                             </div>
                         </div>
@@ -507,13 +423,24 @@ const ActivityQuery = () => {
                                     name="receipt_name"
                                     autoComplete="off"
                                     className="block w-full p-1 h-9 border border-gray-300 "
-                                    ref={receiptPayment}
+                                    onChange={onActivityOutput}
+                                // 
                                 >
                                     <option value="" selected hidden>
-                                        Select Output
+                                        Select Activity Output
                                     </option>
-                                    <option value="R">Receipt</option>
-                                    <option value="P">Payment</option>
+                                    <option value="A" >
+                                        Assets
+                                    </option>
+                                    <option value="S" >
+                                        Service
+                                    </option>
+                                    <option value="T" >
+                                        Training-CB
+                                    </option>
+                                    <option value="O" >
+                                        Others
+                                    </option>
                                 </select>
                             </div>
 
@@ -530,22 +457,34 @@ const ActivityQuery = () => {
                                     name="department_name"
                                     autoComplete="off"
                                     className="block w-full p-1 h-9 border border-gray-300 "
-                                    ref={department}
+                                    onChange={onActivityIs}
+
                                 >
                                     <option value="" selected hidden>
                                         Select Activity Is
                                     </option>
-                                    {departmentList?.map((d) => (
-                                        <option value={d?.deptId}>
-                                            {d?.deptName}
-                                        </option>
-                                    ))}
+                                    <option value="Fresh" >
+                                        Fresh
+                                    </option>
+                                    <option value="Operational">
+                                        Operational
+                                    </option>
+                                    <option value="Maintenance">
+                                        Maintenance
+                                    </option>
+                                    <option value="Upgradation">
+                                        Upgradation
+                                    </option>
+                                    <option value="On Going">
+                                        On Going
+                                    </option>
+
                                 </select>
                             </div>
 
                             <div className="w-1/3">
                                 <label
-                                    htmlFor="scheme_name"
+
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     Scheme Name
@@ -556,22 +495,24 @@ const ActivityQuery = () => {
                                     name="scheme_name"
                                     autoComplete="off"
                                     className="block w-full p-1 h-9 border border-gray-300 "
-                                    ref={scheme}
+                                    onChange={onSchemeName}
+
                                 >
                                     <option value="" selected hidden>
                                         Select Scheme
                                     </option>
-                                    {schemeList?.map((d) => (
-                                        <option value={d?.schemeId}>
-                                            {d?.schemeName}
+                                    {allScheme.map((i) => (
+                                        <option className="text-sm" key={i?.schemeId} value={i?.schemeId}>
+                                            {i?.schemeName}
                                         </option>
                                     ))}
+
                                 </select>
                             </div>
 
                             <div className="w-1/3">
                                 <label
-                                    htmlFor="scheme_name"
+
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     Component
@@ -582,16 +523,18 @@ const ActivityQuery = () => {
                                     name="scheme_name"
                                     autoComplete="off"
                                     className="block w-full p-1 h-9 border border-gray-300 "
-                                    ref={scheme}
+                                    onChange={onComponent}
+
                                 >
                                     <option value="" selected hidden>
                                         Select Component
                                     </option>
-                                    {schemeList?.map((d) => (
-                                        <option value={d?.schemeId}>
-                                            {d?.schemeName}
+                                    {allComponent.map((i) => (
+                                        <option className="text-sm" key={i?.componentId} value={i?.componentId}>
+                                            {i?.componentName}
                                         </option>
                                     ))}
+
                                 </select>
                             </div>
                         </div>
@@ -614,11 +557,17 @@ const ActivityQuery = () => {
                                     name="receipt_payment_nature"
                                     autoComplete="off"
                                     className="block w-full p-1 h-9 border border-gray-300 "
-                                    ref={receiptPaymentNature}
+                                    onChange={onUpaSamity}
+
                                 >
                                     <option value="" selected hidden>
                                         Select Upa Samiti
                                     </option>
+                                    {allUpaSamity.map((i) => (
+                                        <option className="text-sm" key={i?.upaSamityId} value={i?.upaSamityId}>
+                                            {i?.upaSamityName}
+                                        </option>
+                                    ))}
 
                                 </select>
                             </div>
@@ -637,11 +586,17 @@ const ActivityQuery = () => {
                                     name="fund_type"
                                     autoComplete="off"
                                     className="block w-full p-1 h-9 border border-gray-300 "
-                                    ref={fundType}
+                                    onChange={onSector}
+
                                 >
                                     <option value="" selected hidden>
                                         Select Sector
                                     </option>
+                                    {allSector.map((i) => (
+                                        <option className="text-sm" key={i?.sectorId} value={i?.sectorId}>
+                                            {i?.sectorName}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
@@ -663,11 +618,17 @@ const ActivityQuery = () => {
                                     name="receipt_payment_nature"
                                     autoComplete="off"
                                     className="block w-full p-1 h-9 border border-gray-300 "
-                                    ref={receiptPaymentNature}
+                                    onChange={onfocusArea}
                                 >
                                     <option value="" selected hidden>
                                         Select Focus Area
                                     </option>
+                                    {allFocusArea.map((i) => (
+                                        <option className="text-sm" key={i?.focusAreaId}
+                                            value={i?.focusAreaId}>
+                                            {i?.focusAreaName}
+                                        </option>
+                                    ))}
 
                                 </select>
                             </div>
@@ -686,11 +647,17 @@ const ActivityQuery = () => {
                                     name="fund_type"
                                     autoComplete="off"
                                     className="block w-full p-1 h-9 border border-gray-300 "
-                                    ref={fundType}
+                                    onChange={onCategory}
+
                                 >
                                     <option value="" selected hidden>
                                         Select Category
                                     </option>
+                                    {allCategory.map((i) => (
+                                        <option className="text-sm" key={i?.categoryId} value={i?.categoryId}>
+                                            {i?.categoryName}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
@@ -710,18 +677,19 @@ const ActivityQuery = () => {
                                     id="gl_group"
                                     name="gl_group"
                                     autoComplete="off"
-                                    className="block w-full p-1 h-9 border border-gray-300 "
-                                    ref={glGroup}
+                                    className="block w-full text-sm p-1 h-9 border border-gray-300 "
+                                    onChange={onSDGCategory}
                                 >
                                     <option value="" selected hidden>
                                         Select SDG Category
                                     </option>
-
-                                    {glGroupList?.map((d) => (
-                                        <option value={d?.groupId}>
-                                            {d?.groupName}
+                                    {sdgCategory.map((i) => (
+                                        <option className="text-sm" key={i?.sdgId} value={i?.sdgId}>
+                                            {i?.sdgName}
                                         </option>
                                     ))}
+
+
                                 </select>
                             </div>
 
@@ -738,17 +706,29 @@ const ActivityQuery = () => {
                                     id="receipt_payment_group"
                                     name="receipt_payment_group"
                                     autoComplete="off"
-                                    className="block w-full p-1 h-9 border border-gray-300 "
-                                    ref={receiptPaymentGroup}
+                                    className="block text-sm w-full p-1 h-9 border border-gray-300 "
+                                    onChange={onConvergence}
                                 >
                                     <option value="" selected hidden>
                                         Select Convergence
                                     </option>
-                                    {receipt_payment_group_lIST?.map((d) => (
-                                        <option value={d?.groupId}>
-                                            {d?.groupName}
-                                        </option>
-                                    ))}
+                                    <option value="4" >
+                                        Yes
+                                    </option>
+                                    <option value="0" >
+                                        No
+                                    </option>
+                                    <option value="1" >
+                                        Yes-With SHG
+                                    </option>
+                                    <option value="2" >
+                                        Yes-With Oth Dept
+                                    </option>
+                                    <option value="3" >
+                                        Yes-With Oth Activity
+                                    </option>
+
+
                                 </select>
                             </div>
 
@@ -765,18 +745,17 @@ const ActivityQuery = () => {
                                     id="head_classification"
                                     name="head_classification"
                                     autoComplete="off"
-                                    className="block w-full p-1 h-9 border border-gray-300 "
-                                    ref={receiptPaymentGp}
+                                    className="block text-sm w-full p-1 h-9 border border-gray-300 "
+                                    onChange={onStatus}
                                 >
                                     <option value="" selected hidden>
                                         Select Status
                                     </option>
+                                    <option value="0" >All</option>
+                                    <option value="Y" >VERIFIED</option>
+                                    <option value="N" >UNVERIFIED</option>
 
-                                    {receipt_payment_group_gpLIST?.map((d) => (
-                                        <option value={d?.groupId}>
-                                            {d?.groupName}
-                                        </option>
-                                    ))}
+
                                 </select>
                             </div>
 
@@ -796,7 +775,9 @@ const ActivityQuery = () => {
                                     autoComplete="off"
                                     placeholder="Activity Name"
                                     className="p-2 block w-full h-9 border border-gray-300 "
-                                    ref={majorCode}
+                                    onChange={(e) => setActivityName(e.target.value)}
+                                    value={activityName}
+                                    maxLength={100}
                                 // maxLength={4}
                                 />
                             </div>
@@ -805,22 +786,17 @@ const ActivityQuery = () => {
 
                         <div className="col-span-2 flex justify-center items-center mt-4 px-32 gap-4">
 
-
                             <button
                                 type="button"
-                                className={classNames(
-                                    "bg-yellow-500 hover:bg-orange-400 text-white font-bold py-1 px-2 rounded",
-                                    mutationId
-                                        ? "bg-orange-300 hover:bg-orange-400 text-white font-bold py-1 px-2 rounded"
-                                        : "bg-orange-300 hover:bg-orange-400 text-white font-bold py-1 px-2 rounded"
-                                )}
-                            // onClick={performMutation}
+                                className="bg-yellow-500 hover:bg-orange-400 text-white font-bold py-1 px-2 rounded"
+                                onClick={onDetailsReport}
                             >
                                 Details Report
                             </button>
                             <button
                                 type="button"
                                 className="bg-orange-500 hover:bg-red-600 text-white font-bold py-1 px-4 rounded"
+                                onClick={onActivitySummaryReport}
                             >
                                 Show Summary
                             </button>
@@ -835,130 +811,197 @@ const ActivityQuery = () => {
                     </div>
                 </div>
 
-                <div className=" flex justify-between items-center h-12">
-                    <div className="flex items-center space-x-0">
-                        <select
-                            className="rounded-lg "
-                            name=""
-                            id=""
-                            value={items}
-                            onChange={(e) => setItems(e.target.value)}
-                        >
-                            {ListOptions.map((e) => (
-                                <option key={e} value={e}>
-                                    {e}
-                                </option>
-                            ))}
-                        </select>
-                        &nbsp;
-
-                        <button
-                            className="bg-cyan-700 text-white px-2 py-2 rounded text-sm "
-                            onClick={() => exportToExcel(data, "Activity_Query")}
-
-                        >
-                            Download Excel
-                        </button>
-                    </div>
-
-
-                    <input
-                        type="text"
-                        value={filtering}
-                        placeholder="search..."
-                        className="border-2 rounded-lg border-zinc-400"
-                        onChange={(e) => setFiltering(e.target.value)}
-                    />
-
-                </div>
-                <div className="px-2 flex flex-col ">
-                    <Table style={{ border: "1px solid #444 " }}>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <Table.Head key={headerGroup.id}>
-
-                                {headerGroup.headers.map((header) => (
-                                    <Table.HeadCell
-                                        key={header.id}
-                                        className="p-2 bg-cyan-400/100 btn-blue text-xs"
-                                        style={{ border: "1px solid #444" }} // Keep borders
-                                        onClick={header.column.getToggleSortingHandler()}
-                                    >
-                                        {header.isPlaceholder ? null : (
-                                            <div className="flex items-center space-x-2 justify-between">
-                                                <span className="normal-case">
-                                                    {flexRender(
-                                                        header.column.columnDef.header,
-                                                        header.getContext()
-                                                    )}
-                                                </span>
-                                                <SortIcon sort={header.column.getIsSorted()} />
-                                            </div>
-                                        )}
-                                    </Table.HeadCell>
-                                ))}
-                                <Table.HeadCell className="normal-case bg-cyan-400/90 btn-blue">
-                                    Actions
-                                </Table.HeadCell>
-                            </Table.Head>
-                        ))}
-
-                        <Table.Body className="divide-y" style={{ border: "1px solid #444 " }}>
-                            {table.getRowModel().rows.map((row) => (
-                                <Table.Row key={row.id} style={{ border: "1px solid #444 " }}>
-                                    {row.getVisibleCells().map((cell) => (
-                                        <Table.Cell
-                                            style={{ border: "1px solid #444 " }}
-                                            key={cell.id}
-                                            className="p-1 text-xs"
-
-                                        >
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
-                                            )}
-                                        </Table.Cell>
-                                    ))}
-
-                                    <Table.Cell className="flex items-center justify-center space-x-8">
-                                        <button
-                                            onClick={() => {
-                                                // designation.current.value = row.original.designation;
-                                                accountCodeDesc.current.value = row.original.accountCodeDesc;
-                                                department.current.value = row.original.deptId;
-                                                scheme.current.value = row.original.schemeId;
-                                                receiptPayment.current.value = row.original.rcptpmntFlag;
-                                                receiptPaymentNature.current.value = row.original.rcptpmntNature;
-                                                fundType.current.value = row.original.fundType;
-                                                receiptPaymentGroup.current.value = row.original.rcptGroup;
-                                                receiptPaymentGp.current.value = row.original.rcptGroupGP;
-                                                glGroup.current.value = row.original.glGroup;
-                                                majorCode.current.value = row.original.majorCode;
-                                                minorCode.current.value = row.original.minorCode;
-                                                subGroup.current.value = row.original.subCode;
-                                                objCode.current.value = row.original.objectCode;
-                                                schemeUid.current.value = row.original.schemeUid;
-                                                schemeChildUid.current.value = row.original.schemechildUid;
-
-                                                setMutationId(row.original.accountCodeDesc);
-                                                window.scrollTo({
-                                                    top: 0,
-                                                    behavior: "smooth",
-                                                });
-                                            }}
-                                        >
-                                            <Icon
-                                                icon={"mingcute:edit-line"}
-                                                className="font-medium text-cyan-600 hover:underline text-2xl cursor-pointer"
-                                            />
-                                        </button>
-                                    </Table.Cell>
-                                </Table.Row>
-                            ))}
-                        </Table.Body>
-                    </Table>
-                    <Pagination data={data} table={table} />
-                </div>
             </div>
+            {detailsReportList.length > 0 ?
+                <div className="h-[600px] overflow-y-auto border rounded-lg">
+
+                    {detailsReportList.map((item, index) => (
+                        <div className="p-6 bg-white text-sm">
+                            {/* Header */}
+                            <div className="text-center border-b border-black pb-2 mb-4">
+                                <h2 className="font-bold">{item?.gpName}</h2>
+                                <h2 className="font-bold">{item?.distName} {item?.blockName}</h2>
+                                <h3 className="font-bold underline">
+                                    DETAILS REPORT OF ACTIVITY LIST : {item?.planYear}
+                                </h3>
+                            </div>
+
+                            {/* Entry + Approval */}
+                            <div className="flex justify-between text-xs font-semibold mb-2">
+                                <span>{item?.enteredBy}</span>
+                                <span>{item?.verifiedBy}</span>
+                            </div>
+
+                            {/* Upa-Samiti */}
+                            <div className="mb-3 font-semibold">
+                                {item?.upaSamitiName}
+                            </div>
+
+                            {/* Grid Section */}
+                            <div className="border border-black text-xs">
+                                {/* Row 1 */}
+                                <div className="grid grid-cols-4 border-b border-black">
+                                    <div className="p-2 border-r border-black">Activity Output: {item?.acvitityOutput}</div>
+                                    <div className="p-2 border-r border-black">Scheme:  {item?.schemeName}</div>
+                                    <div className="p-2 border-r border-black">Component: {item?.componentName}</div>
+                                    <div className="p-2">Implementing Agency: {item?.implementAgency}</div>
+                                </div>
+
+                                {/* Row 2 */}
+                                <div className="grid grid-cols-4 border-b border-black">
+                                    <div className="p-2 border-r border-black">Activity Type: {item?.type}</div>
+                                    <div className="p-2 border-r border-black">Category: {item?.categoryName}</div>
+                                    <div className="p-2 border-r border-black">Sector: {item?.sector}</div>
+                                    <div className="p-2">Subject: {item?.subject}</div>
+                                </div>
+
+                                {/* Row 3: Highlighted Activity Name */}
+                                <div className="col-span-4 p-2 border-b border-black font-bold bg-gray-100">
+                                    Activity Name: 1 - {item?.activityName}
+                                </div>
+
+                                {/* Row 4: Activity Desc */}
+                                <div className="grid grid-cols-2 border-b border-black">
+                                    <div className="p-2 border-r border-black">
+                                        Activity Desc: {item?.activityDesc}
+                                    </div>
+                                    <div className="p-2">Gram Sansad: {item?.sansad}</div>
+                                </div>
+
+                                {/* Row 5 */}
+                                <div className="grid grid-cols-2 border-b border-black">
+                                    <div className="p-2 border-r border-black">Focus Area: {item?.focusArea}</div>
+                                    <div className="p-2">Mission Antyodaya Gap: {item?.gapMA}</div>
+                                </div>
+
+                                {/* Row 6 */}
+                                <div className="grid grid-cols-3 border-b border-black">
+                                    <div className="p-2 border-r border-black">Caste Group: {item?.caste}</div>
+                                    <div className="p-2 border-r border-black">Activity For: {item?.activityForAll}</div>
+                                    <div className="p-2">PB Sector Gap: {item?.gapPB}</div>
+                                </div>
+
+                                {/* Row 7 */}
+                                <div className="grid grid-cols-4 border-b border-black">
+                                    <div className="p-2 border-r border-black">Activity Status: {item?.operationType}</div>
+                                    <div className="p-2 border-r border-black">Whether Costless: {item?.costlessActivity}</div>
+                                    <div className="p-2 border-r border-black">Estimated Total Cost: {item?.estimatedCost}</div>
+                                    <div className="p-2">Estimated Man Days: {item?.estimatedMandays}</div>
+                                </div>
+
+                                {/* Row 8 */}
+                                <div className="grid grid-cols-4 border-b border-black">
+                                    <div className="p-2 border-r border-black">Starting Time: {item?.startTime}</div>
+                                    <div className="p-2 border-r border-black">Duration: {item?.duration}</div>
+                                    <div className="p-2 border-r border-black">SC: {item?.sc} ST: {item?.st}</div>
+                                    <div className="p-2">Others: {item?.gen} | Total: {item?.total}</div>
+                                </div>
+
+                                {/* Row 9 */}
+                                <div className="grid grid-cols-3 border-b border-black">
+                                    <div className="p-2 border-r border-black">Activity Type: {item?.assetActivityName}</div>
+                                    <div className="p-2 border-r border-black">Asset Category: {item?.assetCategory}</div>
+                                    <div className="p-2">Sub Category: {item?.assetSubCategory}</div>
+                                </div>
+
+                                {/* Row 10 */}
+                                <div className="grid grid-cols-4 border-b border-black">
+                                    <div className="p-2 border-r border-black">Unit of Measurement: {item?.assetUnitType}</div>
+                                    <div className="p-2 border-r border-black">Total Unit: {item?.assetTotUnit}</div>
+                                    <div className="p-2 border-r border-black">Latitude: {item?.latitude}</div>
+                                    <div className="p-2">Longitude: {item?.longitude}</div>
+                                </div>
+
+                                {/* Row 11 */}
+                                <div className="grid grid-cols-3 border-b border-black">
+                                    <div className="p-2 border-r border-black">Census Village: {item?.vill2}</div>
+                                    <div className="p-2 border-r border-black">Census Village: {item?.vill3}</div>
+                                    <div className="p-2">Census Village: {item?.vill4}</div>
+                                </div>
+
+                                {/* Row 12 */}
+                                <div className="grid grid-cols-3 border-b border-black">
+                                    <div className="p-2 border-r border-black">Convergence Type: {item?.convergenceActivity}</div>
+                                    <div className="p-2 border-r border-black">Department: {item?.deptName}</div>
+                                    <div className="p-2">Activity: {item?.convergence}</div>
+                                </div>
+
+                                {/* Row 13 */}
+                                <div className="grid grid-cols-3">
+                                    <div className="p-2 border-r border-black">
+                                        Related SDG: {item?.sdg1}
+                                    </div>
+                                    <div className="p-2 border-r border-black">Related SDG: {item?.sdg2}</div>
+                                    <div className="p-2">Recommended By: {item?.recomend} | Remarks (If Any): {item?.remarks}</div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div> : ""}
+
+            {activitySummaryReportList.length > 0 ?
+                <div className="p-6">
+                    <h2 className="text-center font-bold text-blue-700 text-lg mb-4">
+                        ACTIVITY SUMMARY
+                    </h2>
+
+                    <div className="overflow-x-auto">
+                        <table className="border border-gray-400 w-full text-sm text-center">
+                            <thead className="text-sm">
+                                <tr className="bg-blue-200 text-xs">
+                                    <th className="border border-gray-400 p-2">SL NO</th>
+                                    <th className="border border-gray-400 p-2">SCHEME & COMPONENT</th>
+                                    <th className="border border-gray-400 p-2">ASSET - NO. OF ACTIVITY</th>
+                                    <th className="border border-gray-400 p-2">ASSET - ESTIMATED COST</th>
+                                    <th className="border border-gray-400 p-2">SERVICE - NO. OF ACTIVITY</th>
+                                    <th className="border border-gray-400 p-2">SERVICE - ESTIMATED COST</th>
+                                    <th className="border border-gray-400 p-2">TRAINING - NO. OF ACTIVITY</th>
+                                    <th className="border border-gray-400 p-2">TRAINING - ESTIMATED COST</th>
+                                    <th className="border border-gray-400 p-2">OTHERS - NO. OF ACTIVITY</th>
+                                    <th className="border border-gray-400 p-2">OTHERS - ESTIMATED COST</th>
+                                    <th className="border border-gray-400 p-2">TOTAL - NO. OF ACTIVITY</th>
+                                    <th className="border border-gray-400 p-2">TOTAL - ESTIMATED COST</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {activitySummaryReportList.map((row, index) => (
+                                    <tr key={index} className="odd:bg-white even:bg-gray-50 text-xs">
+                                        <td className="border border-gray-400 p-2">{row.slNo}</td>
+                                        <td className="border border-gray-400 p-2">{row.schemeComponent}</td>
+                                        <td className="border border-gray-400 p-2">{row.assetActivityNo}</td>
+                                        <td className="border border-gray-400 p-2">{row.assetEstimatedCost}</td>
+                                        <td className="border border-gray-400 p-2">{row.serviceActivityNo}</td>
+                                        <td className="border border-gray-400 p-2">{row.serviceEstimatedCost}</td>
+                                        <td className="border border-gray-400 p-2">{row.traningActivityNo}</td>
+                                        <td className="border border-gray-400 p-2">{row.traningEstimatedCost}</td>
+                                        <td className="border border-gray-400 p-2">{row.othersActivityNo}</td>
+                                        <td className="border border-gray-400 p-2">{row.otherEstimatedCost}</td>
+                                        <td className="border border-gray-400 p-2">{row.totalActivityNo}</td>
+                                        <td className="border border-gray-400 p-2">{row.totalEstimatedCost}</td>
+                                    </tr>
+                                ))}
+
+                                {/* Total Row */}
+                                <tr className="bg-blue-400 font-bold text-xs">
+                                    <td className="border border-gray-400 p-2 text-center" colSpan={2}>
+                                        TOTAL
+                                    </td>
+                                    <td className="border border-gray-400 p-2">{totals.assetActivityNo}</td>
+                                    <td className="border border-gray-400 p-2">{totals.assetEstimatedCost}</td>
+                                    <td className="border border-gray-400 p-2">{totals.serviceActivityNo}</td>
+                                    <td className="border border-gray-400 p-2">{totals.serviceEstimatedCost}</td>
+                                    <td className="border border-gray-400 p-2">{totals.traningActivityNo}</td>
+                                    <td className="border border-gray-400 p-2">{totals.traningEstimatedCost}</td>
+                                    <td className="border border-gray-400 p-2">{totals.othersActivityNo}</td>
+                                    <td className="border border-gray-400 p-2">{totals.otherEstimatedCost}</td>
+                                    <td className="border border-gray-400 p-2">{totals.totalActivityNo}</td>
+                                    <td className="border border-gray-400 p-2">{totals.totalEstimatedCost}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div> : ""}
+
         </>
     );
 };
