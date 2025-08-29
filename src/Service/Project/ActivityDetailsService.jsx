@@ -68,3 +68,8 @@ export const getActivitySummaryReport = async (dist, block, gp, year, formType, 
     return await webApi.get(`/ParabaithakActivity/RPTActivitySummary?distLgd=${dist}&blockLgd=${block}&gpLgd=${gp}&planYear=${year}&formType=${formType}&schemeId=${schemeId}&componentId=${comId}&focusArea=${focusArea}&upaSmaityId=${upaSamId}&sectorId=${SecId}&sdgId=${sdgId}&verify=${verify}&categoryId=${catId}&operationType=${operation}&convergence=${convengence}&activityName=${activityName}`,);
 }
 
+
+export const getActivityListReport = async (dist, block, gp, year, formType, schemeId, comId, focusArea, upaSamId, SecId, sdgId, verify, catId, operation, convengence, activityName) => {
+    return await webApi.get(`/ParabaithakActivity/RPTActivityList?distLgd=${dist}&blockLgd=${block}&gpLgd=${gp}&planYear=${year}&formType=${formType}&schemeId=${schemeId}&componentId=${comId}&focusArea=${focusArea}&upaSmaityId=${upaSamId}&sectorId=${SecId}&sdgId=${sdgId}&verify=${verify}&categoryId=${catId}&operationType=${operation}&convergence=${convengence}&activityName=${activityName}`,);
+}
+

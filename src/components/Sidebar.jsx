@@ -90,6 +90,7 @@ import UnverifyPassForPayment from "../views/forms/Utility/UnverifyPassForPaymen
 import CashAnalysisDetails from "../views/forms/Reports/CashAnalysisDetails";
 import BankTryReconciliation from "../views/forms/Reports/BankTryReconciliation";
 import MonthClosingReport from "../views/forms/Reports/MonthCloseReport";
+import OSRCollectionApp from "../views/forms/Register/OSRCollectionApp";
 
 
 
@@ -658,6 +659,14 @@ export const sideBarList = [
     route: "/month-closing-report",
     permissions: [1],
   },
+    {
+    Component: OSRCollectionApp,
+    text: "OSRCollectionApp",
+    route: "/osr-collection-app",
+    permissions: [1],
+  },
+
+
 
 
 
@@ -1323,6 +1332,18 @@ export const Sidebar = () => {
                 <span className="flex items-center space-x-4">
                   {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
                   <span>Contractor Deduction Register</span>
+                </span>
+              </div>
+            </SidebarElement>
+
+            <SidebarElement
+              to="/osr-collection-app"
+              customCss={"flex justify-start pl-4 "}
+            >
+              <div className="text-sm items-start py-1 capitalize">
+                <span className="flex items-center space-x-4">
+                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                  <span>OSR Collection - Mobile App</span>
                 </span>
               </div>
             </SidebarElement>

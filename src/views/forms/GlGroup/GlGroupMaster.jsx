@@ -314,7 +314,7 @@ const GlGroupMaster = () => {
                                     placeholder="Group Name"
                                     className="mt-1 p-1 block w-full border border-gray-300 rounded-md"
                                     onChange={onContractorName}
-                                    onKeyDown={handleKeyDown}
+                                    // onKeyDown={handleKeyDown}
                                     ref={groupName}
                                 />
                                 {!isValidContractorName && (

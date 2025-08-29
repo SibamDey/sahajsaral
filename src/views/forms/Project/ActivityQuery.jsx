@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useReactToPrint } from "react-to-print";
 import { getDistrictListforEvent, getBlockList, getGpList, getParabaithakActivity } from "../../../Service/Project/ActivityDetailsService";
 import { ToastContainer, toast } from "react-toastify";
 import * as XLSX from "xlsx";
-import { getAllScheme, getPlanYear, getAllComponent, getAllUpaSamity, getAllSector, getFocusAreaMgnrega, getFocusArea, getCategoryMgnrega, getCategory, getSDGCategory, getDetailsReport, getActivitySummaryReport } from "../../../Service/Project/ActivityDetailsService";
+import { getAllScheme, getPlanYear, getAllComponent, getAllUpaSamity, getAllSector, getFocusAreaMgnrega, getFocusArea, getCategoryMgnrega, getCategory, getSDGCategory, getDetailsReport, getActivitySummaryReport, getActivityListReport } from "../../../Service/Project/ActivityDetailsService";
 const ActivityQuery = () => {
+    const printRef = useRef(null);
     const jsonString = sessionStorage.getItem("SAHAJ_SARAL_USER");
     const userData = JSON.parse(jsonString);
     const [district, setDistrict] = useState();
@@ -35,9 +37,10 @@ const ActivityQuery = () => {
     const [detailsReportList, setDetailsReportList] = useState([]);
     const [selectedPlanYear, setSelectedPlanYear] = useState("");
     const [activitySummaryReportList, setActivitySummaryReportList] = useState([]);
+    const [activityListReport, setActivityListReport] = useState([]);
 
 
-    console.log(detailsReportList, "detailsReportList")
+    console.log(activityListReport, "detailsReportList")
     useEffect(() => {
         const jsonString = sessionStorage.getItem("SAHAJ_SARAL_USER");
         const data = JSON.parse(jsonString);
@@ -67,6 +70,7 @@ const ActivityQuery = () => {
 
     const onDetailsReport = () => {
         setActivitySummaryReportList([]);
+        setActivityListReport([]);
         if (!selectedPlanYear) {
             toast.error("Please select Plan Year");
         } else if (!activityOutput) {
@@ -74,7 +78,7 @@ const ActivityQuery = () => {
             return;
         } else {
             getDetailsReport(district ? district : userData?.USER_LEVEL == "DIST" || userData?.USER_LEVEL == "BLOCK" || userData?.USER_LEVEL == "GP" ? userData?.DIST_LGD : 0,
-                block ? block : userData?.BLOCK_LGD, gp ? gp : 0, selectedPlanYear, activityOutput, schemeName ? schemeName : 0, component ? component : 0, focusArea ? focusArea : 0, upaSamity ? upaSamity : 0, sector ? sector : 0, sdgId ? sdgId : 0
+                block ? block : userData?.BLOCK_LGD, gp ? gp : userData?.GP_LGD, selectedPlanYear, activityOutput, schemeName ? schemeName : 0, component ? component : 0, focusArea ? focusArea : 0, upaSamity ? upaSamity : 0, sector ? sector : 0, sdgId ? sdgId : 0
                 , status ? status : "N", category ? category : 0, activityIs ? activityIs : "N", convergence ? convergence : 0, activityName ? activityName : "N"
             ).then(function (result) {
                 const response = result?.data;
@@ -86,6 +90,7 @@ const ActivityQuery = () => {
 
 
     const onActivitySummaryReport = () => {
+        setActivityListReport([]);
         setDetailsReportList([]);
         if (!selectedPlanYear) {
             toast.error("Please select Plan Year");
@@ -94,7 +99,7 @@ const ActivityQuery = () => {
             return;
         } else {
             getActivitySummaryReport(district ? district : userData?.USER_LEVEL == "DIST" || userData?.USER_LEVEL == "BLOCK" || userData?.USER_LEVEL == "GP" ? userData?.DIST_LGD : 0,
-                block ? block : userData?.BLOCK_LGD, gp ? gp : 0, selectedPlanYear, activityOutput, schemeName ? schemeName : 0, component ? component : 0, focusArea ? focusArea : 0, upaSamity ? upaSamity : 0, sector ? sector : 0, sdgId ? sdgId : 0
+                block ? block : userData?.BLOCK_LGD, gp ? gp : userData?.GP_LGD, selectedPlanYear, activityOutput, schemeName ? schemeName : 0, component ? component : 0, focusArea ? focusArea : 0, upaSamity ? upaSamity : 0, sector ? sector : 0, sdgId ? sdgId : 0
                 , status ? status : "N", category ? category : 0, activityIs ? activityIs : "N", convergence ? convergence : 0, activityName ? activityName : "N"
             ).then(function (result) {
                 const response = result?.data;
@@ -103,6 +108,28 @@ const ActivityQuery = () => {
             });
         }
     }
+
+
+    const onShowActivityList = () => {
+        setActivitySummaryReportList([]);
+        setDetailsReportList([]);
+        if (!selectedPlanYear) {
+            toast.error("Please select Plan Year");
+        } else if (!activityOutput) {
+            toast.error("Please select Activity Output");
+            return;
+        } else {
+            getActivityListReport(district ? district : userData?.USER_LEVEL == "DIST" || userData?.USER_LEVEL == "BLOCK" || userData?.USER_LEVEL == "GP" ? userData?.DIST_LGD : 0,
+                block ? block : userData?.BLOCK_LGD, gp ? gp : userData?.GP_LGD, selectedPlanYear, activityOutput, schemeName ? schemeName : 0, component ? component : 0, focusArea ? focusArea : 0, upaSamity ? upaSamity : 0, sector ? sector : 0, sdgId ? sdgId : 0
+                , status ? status : "N", category ? category : 0, activityIs ? activityIs : "N", convergence ? convergence : 0, activityName ? activityName : "N"
+            ).then(function (result) {
+                const response = result?.data;
+                console.log(response, "resresres")
+                setActivityListReport(response);
+            });
+        }
+    }
+
 
     useEffect(() => {
         getPlanYear().then(function (result) {
@@ -285,12 +312,72 @@ const ActivityQuery = () => {
         }
     );
 
+
+    const exportDetailsToExcel = () => {
+        const wb = XLSX.utils.book_new();
+
+        const list = Array.isArray(detailsReportList)
+            ? detailsReportList
+            : [detailsReportList];
+
+        list.forEach((item, idx) => {
+            const ws_data = [
+                ["DETAILS REPORT OF ACTIVITY LIST"],
+                [""],
+                ["Sl No", item?.slNo],
+                ["Scheme Component", item?.schemeComponent],
+                ["Activity No", item?.activityNo],
+                ["Activity Name & Description", item?.activitNameDescription],
+                ["Estimated Cost", item?.estimatedCost],
+                ["Convergence With", item?.convergenceWith],
+                ["Activity Output Status", item?.activityOutputStatus],
+                ["Starting Time", item?.startingTime],
+                ["Focus Area", item?.focusArea],
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+            // ✅ Merge title row across A1:D1
+            ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }];
+
+            // ✅ Set column widths
+            ws["!cols"] = [
+                { wch: 25 },
+                { wch: 50 },
+                { wch: 25 },
+                { wch: 40 },
+            ];
+
+            // ✅ Apply styles (bold headers)
+            const makeBold = ["A1", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11"];
+            makeBold.forEach((cell) => {
+                if (ws[cell]) {
+                    ws[cell].s = {
+                        font: { bold: true },
+                        alignment: { horizontal: "left", vertical: "center" },
+                    };
+                }
+            });
+
+            XLSX.utils.book_append_sheet(wb, ws, `Report_${idx + 1}`);
+        });
+
+        XLSX.writeFile(wb, "Details_Activity_List.xlsx");
+    };
+
+
+    const handlePrint = useReactToPrint({
+        content: () => printRef.current,
+        documentTitle: `Activity_Report_${detailsReportList?.planYear}`,
+    });
+
+
     return (
         <>
 
             <ToastContainer />
 
-            <div className="bg-white rounded-lg p-2 flex flex-col flex-grow" style={{ marginTop: "-40px" }}>
+            <div className="bg-white rounded-lg flex flex-col flex-grow" style={{ marginTop: "-40px" }}>
                 <legend className="text-lg font-semibold text-cyan-700">Activity Query</legend>
 
                 <div className=" flex flex-col space-y-2 py-1">
@@ -303,6 +390,7 @@ const ActivityQuery = () => {
                                 >
                                     District
                                     <span className="text-red-500"> *</span>
+
                                 </label>
                                 <select
                                     id="receipt_name"
@@ -332,7 +420,6 @@ const ActivityQuery = () => {
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     Block
-                                    <span className="text-red-500"> *</span>
                                 </label>
                                 <select
                                     id="department_name"
@@ -359,7 +446,6 @@ const ActivityQuery = () => {
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     GP
-                                    <span className="text-red-500"> *</span>
                                 </label>
                                 <select
                                     id="scheme_name"
@@ -386,7 +472,6 @@ const ActivityQuery = () => {
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     Plan Year
-                                    <span className="text-red-500"> *</span>
                                 </label>
                                 <select
                                     id="scheme_name"
@@ -398,6 +483,8 @@ const ActivityQuery = () => {
                                 >
                                     <option value="" selected hidden>
                                         Select Plan Year
+                                        <span className="text-red-500"> *</span>
+
                                     </option>
                                     {planYear.map((i) => (
                                         <option key={i?.planYear} value={i?.planYear}>
@@ -417,6 +504,7 @@ const ActivityQuery = () => {
                                 >
                                     Activity output
                                     <span className="text-red-500"> *</span>
+
                                 </label>
                                 <select
                                     id="receipt_name"
@@ -450,7 +538,6 @@ const ActivityQuery = () => {
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     Activity Is
-                                    <span className="text-red-500"> *</span>
                                 </label>
                                 <select
                                     id="department_name"
@@ -488,7 +575,6 @@ const ActivityQuery = () => {
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     Scheme Name
-                                    <span className="text-red-500"> *</span>
                                 </label>
                                 <select
                                     id="scheme_name"
@@ -516,7 +602,6 @@ const ActivityQuery = () => {
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     Component
-                                    <span className="text-red-500"> *</span>
                                 </label>
                                 <select
                                     id="scheme_name"
@@ -550,7 +635,6 @@ const ActivityQuery = () => {
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     Upa Samiti
-                                    <span className="text-red-500"> *</span>
                                 </label>
                                 <select
                                     id="receipt_payment_nature"
@@ -579,7 +663,6 @@ const ActivityQuery = () => {
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     Sector
-                                    <span className="text-red-500"> *</span>
                                 </label>
                                 <select
                                     id="fund_type"
@@ -611,7 +694,6 @@ const ActivityQuery = () => {
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     Focus Area
-                                    <span className="text-red-500"> *</span>
                                 </label>
                                 <select
                                     id="receipt_payment_nature"
@@ -640,7 +722,6 @@ const ActivityQuery = () => {
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     Category
-                                    <span className="text-red-500"> *</span>
                                 </label>
                                 <select
                                     id="fund_type"
@@ -671,7 +752,6 @@ const ActivityQuery = () => {
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     SDG
-                                    <span className="text-red-500"> *</span>
                                 </label>
                                 <select
                                     id="gl_group"
@@ -700,7 +780,6 @@ const ActivityQuery = () => {
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     Convergence
-                                    <span className="text-red-500"> *</span>
                                 </label>
                                 <select
                                     id="receipt_payment_group"
@@ -739,7 +818,6 @@ const ActivityQuery = () => {
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     Activity Status
-                                    <span className="text-red-500"> *</span>
                                 </label>
                                 <select
                                     id="head_classification"
@@ -765,7 +843,6 @@ const ActivityQuery = () => {
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     Activity Name
-                                    <span className="text-red-500"> *</span>
 
                                 </label>
                                 <input
@@ -803,6 +880,7 @@ const ActivityQuery = () => {
                             <button
                                 type="button"
                                 className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-1 px-2 rounded"
+                                onClick={onShowActivityList}
                             >
                                 Show Activity List
                             </button>
@@ -816,127 +894,192 @@ const ActivityQuery = () => {
                 <div className="h-[600px] overflow-y-auto border rounded-lg">
 
                     {detailsReportList.map((item, index) => (
-                        <div className="p-6 bg-white text-sm">
-                            {/* Header */}
-                            <div className="text-center border-b border-black pb-2 mb-4">
-                                <h2 className="font-bold">{item?.gpName}</h2>
-                                <h2 className="font-bold">{item?.distName} {item?.blockName}</h2>
-                                <h3 className="font-bold underline">
-                                    DETAILS REPORT OF ACTIVITY LIST : {item?.planYear}
-                                </h3>
-                            </div>
-
-                            {/* Entry + Approval */}
-                            <div className="flex justify-between text-xs font-semibold mb-2">
-                                <span>{item?.enteredBy}</span>
-                                <span>{item?.verifiedBy}</span>
-                            </div>
-
-                            {/* Upa-Samiti */}
-                            <div className="mb-3 font-semibold">
-                                {item?.upaSamitiName}
-                            </div>
-
-                            {/* Grid Section */}
-                            <div className="border border-black text-xs">
-                                {/* Row 1 */}
-                                <div className="grid grid-cols-4 border-b border-black">
-                                    <div className="p-2 border-r border-black">Activity Output: {item?.acvitityOutput}</div>
-                                    <div className="p-2 border-r border-black">Scheme:  {item?.schemeName}</div>
-                                    <div className="p-2 border-r border-black">Component: {item?.componentName}</div>
-                                    <div className="p-2">Implementing Agency: {item?.implementAgency}</div>
-                                </div>
-
-                                {/* Row 2 */}
-                                <div className="grid grid-cols-4 border-b border-black">
-                                    <div className="p-2 border-r border-black">Activity Type: {item?.type}</div>
-                                    <div className="p-2 border-r border-black">Category: {item?.categoryName}</div>
-                                    <div className="p-2 border-r border-black">Sector: {item?.sector}</div>
-                                    <div className="p-2">Subject: {item?.subject}</div>
-                                </div>
-
-                                {/* Row 3: Highlighted Activity Name */}
-                                <div className="col-span-4 p-2 border-b border-black font-bold bg-gray-100">
-                                    Activity Name: 1 - {item?.activityName}
-                                </div>
-
-                                {/* Row 4: Activity Desc */}
-                                <div className="grid grid-cols-2 border-b border-black">
-                                    <div className="p-2 border-r border-black">
-                                        Activity Desc: {item?.activityDesc}
+                        <div ref={printRef} className="p-6 bg-white text-sm">
+                            {detailsReportList.map((item, index) => (
+                                <div
+                                    key={index}
+                                    className="mb-10 print-page-break"
+                                >
+                                    {/* Header */}
+                                    <div className="text-center border-b border-black pb-2 mb-4">
+                                        <h2 className="font-bold">{item?.gpName}</h2>
+                                        <h2 className="font-bold">
+                                            {item?.distName} {item?.blockName}
+                                        </h2>
+                                        <h3 className="font-bold underline">
+                                            DETAILS REPORT OF ACTIVITY LIST : {item?.planYear}
+                                        </h3>
                                     </div>
-                                    <div className="p-2">Gram Sansad: {item?.sansad}</div>
-                                </div>
 
-                                {/* Row 5 */}
-                                <div className="grid grid-cols-2 border-b border-black">
-                                    <div className="p-2 border-r border-black">Focus Area: {item?.focusArea}</div>
-                                    <div className="p-2">Mission Antyodaya Gap: {item?.gapMA}</div>
-                                </div>
-
-                                {/* Row 6 */}
-                                <div className="grid grid-cols-3 border-b border-black">
-                                    <div className="p-2 border-r border-black">Caste Group: {item?.caste}</div>
-                                    <div className="p-2 border-r border-black">Activity For: {item?.activityForAll}</div>
-                                    <div className="p-2">PB Sector Gap: {item?.gapPB}</div>
-                                </div>
-
-                                {/* Row 7 */}
-                                <div className="grid grid-cols-4 border-b border-black">
-                                    <div className="p-2 border-r border-black">Activity Status: {item?.operationType}</div>
-                                    <div className="p-2 border-r border-black">Whether Costless: {item?.costlessActivity}</div>
-                                    <div className="p-2 border-r border-black">Estimated Total Cost: {item?.estimatedCost}</div>
-                                    <div className="p-2">Estimated Man Days: {item?.estimatedMandays}</div>
-                                </div>
-
-                                {/* Row 8 */}
-                                <div className="grid grid-cols-4 border-b border-black">
-                                    <div className="p-2 border-r border-black">Starting Time: {item?.startTime}</div>
-                                    <div className="p-2 border-r border-black">Duration: {item?.duration}</div>
-                                    <div className="p-2 border-r border-black">SC: {item?.sc} ST: {item?.st}</div>
-                                    <div className="p-2">Others: {item?.gen} | Total: {item?.total}</div>
-                                </div>
-
-                                {/* Row 9 */}
-                                <div className="grid grid-cols-3 border-b border-black">
-                                    <div className="p-2 border-r border-black">Activity Type: {item?.assetActivityName}</div>
-                                    <div className="p-2 border-r border-black">Asset Category: {item?.assetCategory}</div>
-                                    <div className="p-2">Sub Category: {item?.assetSubCategory}</div>
-                                </div>
-
-                                {/* Row 10 */}
-                                <div className="grid grid-cols-4 border-b border-black">
-                                    <div className="p-2 border-r border-black">Unit of Measurement: {item?.assetUnitType}</div>
-                                    <div className="p-2 border-r border-black">Total Unit: {item?.assetTotUnit}</div>
-                                    <div className="p-2 border-r border-black">Latitude: {item?.latitude}</div>
-                                    <div className="p-2">Longitude: {item?.longitude}</div>
-                                </div>
-
-                                {/* Row 11 */}
-                                <div className="grid grid-cols-3 border-b border-black">
-                                    <div className="p-2 border-r border-black">Census Village: {item?.vill2}</div>
-                                    <div className="p-2 border-r border-black">Census Village: {item?.vill3}</div>
-                                    <div className="p-2">Census Village: {item?.vill4}</div>
-                                </div>
-
-                                {/* Row 12 */}
-                                <div className="grid grid-cols-3 border-b border-black">
-                                    <div className="p-2 border-r border-black">Convergence Type: {item?.convergenceActivity}</div>
-                                    <div className="p-2 border-r border-black">Department: {item?.deptName}</div>
-                                    <div className="p-2">Activity: {item?.convergence}</div>
-                                </div>
-
-                                {/* Row 13 */}
-                                <div className="grid grid-cols-3">
-                                    <div className="p-2 border-r border-black">
-                                        Related SDG: {item?.sdg1}
+                                    {/* Entry + Approval */}
+                                    <div className="flex justify-between text-xs font-semibold mb-2">
+                                        <span>{item?.enteredBy}</span>
+                                        <span>{item?.verifiedBy}</span>
                                     </div>
-                                    <div className="p-2 border-r border-black">Related SDG: {item?.sdg2}</div>
-                                    <div className="p-2">Recommended By: {item?.recomend} | Remarks (If Any): {item?.remarks}</div>
+
+                                    {/* Upa-Samiti */}
+                                    <div className="mb-3 font-semibold">{item?.upaSamitiName}</div>
+
+                                    {/* Grid Section */}
+                                    <div className="border border-black text-xs">
+                                        {/* Row 1 */}
+                                        <div className="grid grid-cols-4 border-b border-black">
+                                            <div className="p-2 border-r border-black">
+                                                Activity Output: {item?.acvitityOutput}
+                                            </div>
+                                            <div className="p-2 border-r border-black">
+                                                Scheme: {item?.schemeName}
+                                            </div>
+                                            <div className="p-2 border-r border-black">
+                                                Component: {item?.componentName}
+                                            </div>
+                                            <div className="p-2">
+                                                Implementing Agency: {item?.implementAgency}
+                                            </div>
+                                        </div>
+
+                                        {/* Row 2 */}
+                                        <div className="grid grid-cols-4 border-b border-black">
+                                            <div className="p-2 border-r border-black">
+                                                Activity Type: {item?.type}
+                                            </div>
+                                            <div className="p-2 border-r border-black">
+                                                Category: {item?.categoryName}
+                                            </div>
+                                            <div className="p-2 border-r border-black">Sector: {item?.sector}</div>
+                                            <div className="p-2">Subject: {item?.subject}</div>
+                                        </div>
+
+                                        {/* Row 3: Highlighted Activity Name */}
+                                        <div className="col-span-4 p-2 border-b border-black font-bold bg-gray-100">
+                                            Activity Name: {index + 1} - {item?.activityName}
+                                        </div>
+
+                                        {/* Row 4: Activity Desc */}
+                                        <div className="grid grid-cols-2 border-b border-black">
+                                            <div className="p-2 border-r border-black">
+                                                Activity Desc: {item?.activityDesc}
+                                            </div>
+                                            <div className="p-2">Gram Sansad: {item?.sansad}</div>
+                                        </div>
+
+                                        {/* Row 5 */}
+                                        <div className="grid grid-cols-2 border-b border-black">
+                                            <div className="p-2 border-r border-black">
+                                                Focus Area: {item?.focusArea}
+                                            </div>
+                                            <div className="p-2">Mission Antyodaya Gap: {item?.gapMA}</div>
+                                        </div>
+
+                                        {/* Row 6 */}
+                                        <div className="grid grid-cols-3 border-b border-black">
+                                            <div className="p-2 border-r border-black">Caste Group: {item?.caste}</div>
+                                            <div className="p-2 border-r border-black">
+                                                Activity For: {item?.activityForAll}
+                                            </div>
+                                            <div className="p-2">PB Sector Gap: {item?.gapPB}</div>
+                                        </div>
+
+                                        {/* Row 7 */}
+                                        <div className="grid grid-cols-4 border-b border-black">
+                                            <div className="p-2 border-r border-black">
+                                                Activity Status: {item?.operationType}
+                                            </div>
+                                            <div className="p-2 border-r border-black">
+                                                Whether Costless: {item?.costlessActivity}
+                                            </div>
+                                            <div className="p-2 border-r border-black">
+                                                Estimated Total Cost: {item?.estimatedCost}
+                                            </div>
+                                            <div className="p-2">
+                                                Estimated Man Days: {item?.estimatedMandays}
+                                            </div>
+                                        </div>
+
+                                        {/* Row 8 */}
+                                        <div className="grid grid-cols-4 border-b border-black">
+                                            <div className="p-2 border-r border-black">
+                                                Starting Time: {item?.startTime}
+                                            </div>
+                                            <div className="p-2 border-r border-black">
+                                                Duration: {item?.duration}
+                                            </div>
+                                            <div className="p-2 border-r border-black">
+                                                SC: {item?.sc} ST: {item?.st}
+                                            </div>
+                                            <div className="p-2">
+                                                Others: {item?.gen} | Total: {item?.total}
+                                            </div>
+                                        </div>
+
+                                        {/* Row 9 */}
+                                        <div className="grid grid-cols-3 border-b border-black">
+                                            <div className="p-2 border-r border-black">
+                                                Activity Type: {item?.assetActivityName}
+                                            </div>
+                                            <div className="p-2 border-r border-black">
+                                                Asset Category: {item?.assetCategory}
+                                            </div>
+                                            <div className="p-2">Sub Category: {item?.assetSubCategory}</div>
+                                        </div>
+
+                                        {/* Row 10 */}
+                                        <div className="grid grid-cols-4 border-b border-black">
+                                            <div className="p-2 border-r border-black">
+                                                Unit of Measurement: {item?.assetUnitType}
+                                            </div>
+                                            <div className="p-2 border-r border-black">
+                                                Total Unit: {item?.assetTotUnit}
+                                            </div>
+                                            <div className="p-2 border-r border-black">
+                                                Latitude: {item?.latitude}
+                                            </div>
+                                            <div className="p-2">Longitude: {item?.longitude}</div>
+                                        </div>
+
+                                        {/* Row 11 */}
+                                        <div className="grid grid-cols-3 border-b border-black">
+                                            <div className="p-2 border-r border-black">
+                                                Census Village: {item?.vill2}
+                                            </div>
+                                            <div className="p-2 border-r border-black">
+                                                Census Village: {item?.vill3}
+                                            </div>
+                                            <div className="p-2">Census Village: {item?.vill4}</div>
+                                        </div>
+
+                                        {/* Row 12 */}
+                                        <div className="grid grid-cols-3 border-b border-black">
+                                            <div className="p-2 border-r border-black">
+                                                Convergence Type: {item?.convergenceActivity}
+                                            </div>
+                                            <div className="p-2 border-r border-black">Department: {item?.deptName}</div>
+                                            <div className="p-2">Activity: {item?.convergence}</div>
+                                        </div>
+
+                                        {/* Row 13 */}
+                                        <div className="grid grid-cols-3">
+                                            <div className="p-2 border-r border-black">Related SDG: {item?.sdg1}</div>
+                                            <div className="p-2 border-r border-black">Related SDG: {item?.sdg2}</div>
+                                            <div className="p-2">
+                                                Recommended By: {item?.recomend} | Remarks (If Any): {item?.remarks}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            ))}
                         </div>
+
                     ))}
+                </div> : ""}
+            {detailsReportList.length > 0 ?
+                <div className="flex justify-center mt-4">
+                    <button
+                        onClick={handlePrint}
+                        className="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition"
+                    >
+                        📥 print
+                    </button>
                 </div> : ""}
 
             {activitySummaryReportList.length > 0 ?
@@ -999,6 +1142,56 @@ const ActivityQuery = () => {
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div> : ""}
+
+            {activityListReport.length > 0 ?
+                <div className="h-[600px] overflow-y-auto border rounded-lg">
+
+                    <div className="p-4">
+                        {/* Table */}
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full border border-gray-400 text-sm">
+                                <thead className="bg-gray-200 text-xs">
+                                    <tr className="bg-gray-100 text-center text-xs font-semibold">
+                                        <th className="border border-gray-400 p-2 w-12">SL NO</th>
+                                        <th className="border border-gray-400 p-2 w-40">SCHEME & COMPONENT</th>
+                                        <th className="border border-gray-400 p-2 w-20">ACTIVITY NO</th>
+                                        <th className="border border-gray-400 p-2">ACTIVITY NAME & DESCRIPTION</th>
+                                        <th className="border border-gray-400 p-2 w-28">ESTIMATED COST</th>
+                                        <th className="border border-gray-400 p-2 w-28">CONVERGENCE WITH</th>
+                                        <th className="border border-gray-400 p-2 w-32">ACTIVITY OUTPUT (STATUS)</th>
+                                        <th className="border border-gray-400 p-2 w-24">STARTING TIME</th>
+                                        <th className="border border-gray-400 p-2 w-40">FOCUS AREA</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="text-xs">
+                                    {activityListReport.length > 0 ? (
+                                        activityListReport.map((item, index) => (
+                                            <tr key={index} className="text-center">
+                                                <td className="border border-gray-400 p-2">{item.slNo}</td>
+                                                <td className="border border-gray-400 p-2">{item.schemeComponent}</td>
+                                                <td className="border border-gray-400 p-2">{item.activityNo}</td>
+                                                <td className="border border-gray-400 p-2 text-left">
+                                                    {item.activitNameDescription}
+                                                </td>
+                                                <td className="border border-gray-400 p-2">{item.estimatedCost}</td>
+                                                <td className="border border-gray-400 p-2">{item.convergenceWith}</td>
+                                                <td className="border border-gray-400 p-2">{item.activityOutputStatus}</td>
+                                                <td className="border border-gray-400 p-2">{item.startingTime}</td>
+                                                <td className="border border-gray-400 p-2">{item.focusArea}</td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="9" className="border border-gray-400 p-2 text-center">
+                                                No Data Available
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div> : ""}
 
