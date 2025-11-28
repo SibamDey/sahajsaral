@@ -1,5 +1,8 @@
 import webApi from "../../WebApi/WebApi";
-
+import axios from "axios";
+const webAPI = axios.create({
+    baseURL: "https://prdtax.wb.gov.in/api",
+});
 
 export const getParabaithakActivityByScheme = async (dist, block, gp, year, scheme, activity, eGramId) => {
     return await webApi.get(`/ParabaithakActivity/GetActivityListSchemeWise?distLgd=${dist}&blockLgd=${block}&gpLgd=${gp}&planYear=${year}&schemeId=${scheme}&activityName=${activity}&eGramId=${eGramId}`,);
@@ -73,7 +76,8 @@ export const getAllGlGroupList = async (lgd, value) => {
 
 export const addInsertPassForPayment = async (lgdCode, finYear, paymentDate, schemeType, expType, activityCode, activityDesc,
     tenderNo, theme1Id, theme1Name, theme2Id, theme2Name, theme3Id, theme3Name, planTenderSchemeId, woNo, billType, accountCode, paymentDesc, partyType, partyCode, payTo, payAddress, netAmount,
-    deductAmount, allotmentNo, subAllot, deductFlag, docType, docFile, userIndex, tableData, duductionAccountCode, voucherIds, billRa, onSuccess, onFailure) => {
+    deductAmount, allotmentNo, subAllot, deductFlag, docType, docFile, userIndex, tableData, duductionAccountCode, voucherIds, billRa, idNo, billNo,
+    billDate, billAmount, onSuccess, onFailure) => {
     try {
         const res = await webApi.post(
             `/PassForPayment/Insert`,
@@ -112,7 +116,11 @@ export const addInsertPassForPayment = async (lgdCode, finYear, paymentDate, sch
                     "userIndex": userIndex,
                     "duductionAccountCode": duductionAccountCode,
                     "voucherIds": voucherIds,
-                    "billTypeDesc": billRa
+                    "billTypeDesc": billRa,
+                    "pTaxPaymentId": idNo,
+                    "billNo": billNo ? billNo : null,
+                    "billDate": billDate ? billDate : null,
+                    "billAmount": Number(billAmount) ? Number(billAmount) : 0,
                 },
                 "deduct": tableData
             },
@@ -140,6 +148,109 @@ export const addInsertPassForPayment = async (lgdCode, finYear, paymentDate, sch
         console.log("fdgdf")
     }
 };
+
+
+export const addPTaxLogin = async (onSuccess, onFailure) => {
+    try {
+        const res = await webAPI.post("/xauth", {
+            UserName: "pmswb007",
+            Password: "uJg5WDMDsYf2lr3d",
+        });
+
+        const r = res?.data;
+        if (r?.status === "ok" && r?.message?.user?.Token) {
+            // Save token
+            localStorage.setItem("ptaxToken", r.message.user.Token);
+            return onSuccess(r);
+        } else {
+            if (onFailure) onFailure("❌ Something Wrong! " + JSON.stringify(res.data));
+        }
+    } catch (error) {
+        console.error("❌ API error:", error);
+        if (onFailure) onFailure(error);
+    }
+};
+
+
+export const verifyClaim = async (lgdCode, claimId, onSuccess, onFailure) => {
+    try {
+        const token = localStorage.getItem("ptaxToken");
+        if (!token) {
+            throw new Error("No token found. Please login first.");
+        }
+
+        const res = await webAPI.post(
+            "https://prdtax.wb.gov.in/api/tc-cm-verifiy",
+            { lgdCode, claimId },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        return onSuccess(res.data);
+    } catch (error) {
+        console.error("❌ Verify Claim API error:", error);
+        if (onFailure) onFailure(error);
+    }
+};
+
+
+export const updateClaimStatus = async (lgdCode, claimId, claimStatus, onSuccess, onFailure) => {
+    try {
+        const token = localStorage.getItem("ptaxToken");
+        if (!token) {
+            throw new Error("No token found. Please login first.");
+        }
+        console.log(lgdCode, claimId, claimStatus, "updatestatus")
+
+        const res = await webAPI.post(
+            "https://prdtax.wb.gov.in/api/tc-cm-status",
+            { lgdCode, claimId, claimStatus }, // ✅ API body updated
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        if (onSuccess) onSuccess(res.data);
+        return res.data;
+    } catch (error) {
+        console.error("❌ Update Claim Status API error:", error);
+        if (onFailure) onFailure(error);
+        throw error;
+    }
+};
+
+export const updateVoucherClaimStatus = async (lgdCode, claimId, claimStatus, pvNumber, onSuccess, onFailure) => {
+    try {
+        const token = localStorage.getItem("ptaxToken");
+        if (!token) {
+            throw new Error("No token found. Please login first.");
+        }
+        console.log(lgdCode, claimId, claimStatus, pvNumber, "updatestatus")
+
+        const res = await webAPI.post(
+            "https://prdtax.wb.gov.in/api/tc-cm-status",
+            { lgdCode, claimId, claimStatus, pvNumber }, // ✅ API body updated
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        if (onSuccess) onSuccess(res.data);
+        return res.data;
+    } catch (error) {
+        console.error("❌ Update Claim Status API error:", error);
+        if (onFailure) onFailure(error);
+        throw error;
+    }
+};
+
 
 
 export const verifyPassForPayment = async (lgdCode, pfpId, userIndex, onSuccess, onFailure) => {
@@ -388,6 +499,7 @@ export const addVoucherEntry = async (lgdCode, finYear, voucherModeData, voucher
 export const getAccountHeadList = async (lgd, grpName) => {
     return await webApi.get(`/GlGroup/GetAccountHeadGlGroup?lgdCode=${lgd}&groupName=${grpName ? grpName : 0}`,);
 }
+
 
 export const getReferenceOfDetails = async (lgd, glGroup) => {
     return await webApi.get(`/Voucher/GetTransitVoucherPopup?lgdCode=${lgd}&glGroup=${glGroup}`,);

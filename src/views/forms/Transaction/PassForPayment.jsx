@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetch } from "../../../functions/Fetchfunctions";
 import {
     getDeductionList, deletePassForPayment, getPassForPaymentById, getPassForPaymentDetails, getParabaithakActivityByScheme, getTenderList, getPartyTypeList, getAcCodeDescList, getContractorList, getEmployeeList, getJobWorkerList, getDepartmentList, getLsgList, getDeductedtAcCodeList, addInsertPassForPayment, verifyPassForPayment, getAccountHeadList,
-    getNextPFPVerify, getGlGroupBalance
+    getNextPFPVerify, getGlGroupBalance, addPTaxLogin, verifyClaim, updateClaimStatus
 } from "../../../Service/Transaction/TransactionService";
 import { Toast } from "flowbite-react";
 import ColorRingCustomLoader from "../../Loader/Loader";
@@ -51,7 +51,8 @@ const PassForPayment = () => {
     const [acCodeDescAllList, setAcCodeDescAllList] = useState([]);
     const [nameList, setNameList] = useState([]);
     const [partyName, setPartyName] = useState("");
-
+    const [verifyClaimDetails, setVerifyClaimDetails] = useState("");
+    console.log(deductedAcCodeValue, deductionValue, "deductedAcCodeValue")
     const jsonString = sessionStorage.getItem("SAHAJ_SARAL_USER");
     const userData = JSON.parse(jsonString);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -102,13 +103,89 @@ const PassForPayment = () => {
     const [deleteReason, setDeleteReason] = useState("");
     console.log(selectedData[0]?.partyDetails, acCodeDesc, "acCodeDescacCodeDesc")
     const [showDeduction, setShowDeduction] = useState(false);
-    console.log(selectedData, "selectedData")
     const [totalDeductionAmount, setTotalDeductionAmount] = useState(0);
     const [ids, setIds] = useState(""); // Store all IDs as a comma-separated string
     const [modalNextVerify, setModalNextVerify] = useState(false)
     const [modalNextVerifyData, setModalNextVerifyData] = useState()
     const [glGroupFlag, setGlBalanceFlag] = useState(false);
     const [glGroupBalanceData, setGlGroupBalanceData] = useState()
+    const [idNo, setIdNo] = useState("")
+    const [billNo, setBillNo] = useState("NA");
+    const [billDate, setBillDate] = useState(getCurrentDate());
+    const [billAmount, setBillAmount] = useState("0");
+
+    const onBillNo = (e) => {
+        setBillNo(e.target.value)
+    }
+
+    const onBilDate = (e) => {
+        setBillDate(e.target.value)
+    }
+
+    const onBillAmount = (e) => {
+        setBillAmount(e.target.value)
+    }
+
+
+    const onIdNo = (e) => {
+        const value = e.target.value.toUpperCase();
+        setIdNo(value);
+
+        if (value.length === 15) {
+            console.log("✅ Condition satisfied: hitting XAuth API...");
+            setLoader(true);
+
+            addPTaxLogin(
+                (r) => {
+                    console.log("Login Response:", r);
+
+                    const token = r?.message?.user?.Token;
+                    if (token) {
+                        // Now call Verify API
+                        verifyClaim(
+                            userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : 0
+                                || userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : 0
+                                    || userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
+                            value,
+                            (data) => {
+                                console.log("Verify Claim Response:", data);
+                                toast.success("Verification Successful!");
+
+                                const claimData = data?.data;
+
+                                setVerifyClaimDetails(claimData);
+                                setPayto(claimData?.tcName ?? "");
+                                setPayAddress(claimData?.tcaddress ?? "");
+                                onGrossAmount(Number(claimData?.amount) || 0);
+                                setPartyTypes("O");
+
+                                setLoader(false); // ✅ stop loader on success
+                            },
+                            (err) => {
+                                toast.error("Sorry! No Information found");
+                                setPayto("");
+                                setPayAddress("");
+                                onGrossAmount(0);
+                                setPartyTypes("");
+
+                                setLoader(false); // ✅ stop loader on failure
+                            }
+                        );
+                    } else {
+                        setLoader(false); // ✅ no token case
+                    }
+                },
+                (err) => {
+                    toast.error("Login Failed: " + err);
+                    setLoader(false); // ✅ stop loader on login failure
+                }
+            );
+        }
+    };
+
+
+
+
     useEffect(() => {
         setHasEditedGross(false); // Reset edit flag when selection changes
     }, [selectedData]);
@@ -119,6 +196,7 @@ const PassForPayment = () => {
             onGrossAmount(totalDeductionAmount);
         }
     }, [totalDeductionAmount, hasEditedGross]);
+
 
 
     // const ids = selectedData.map(item => item.id).join(",");
@@ -632,8 +710,14 @@ const PassForPayment = () => {
         setAllotementNo(e.target.value)
     }
 
-    const onAcCodeDesc = (e) => {
-        setAcCodeDesc(e.target.value)
+    console.log(idNo, "idNoidNoidNo")
+
+    const onAcCodeDesc = async (e) => {
+        const value = e.target.value;
+        setAcCodeDesc(value);
+        setIdNo("");
+
+        // reset states...
         setPassForPayNarration("");
         setPartyTypes("");
         setGetPassForPaymentDataById("");
@@ -641,14 +725,32 @@ const PassForPayment = () => {
         setPayAddress("");
         setName("");
         setNameList([]);
-        setPartyName({ contractorId: "", contractorNm: "", empId: "", empName: "", jobWorkerId: "", jobWorkerName: "", deptId: "", deptName: "", lsgCode: "", lsgName: "" });
+        setPartyName({
+            contractorId: "",
+            contractorNm: "",
+            empId: "",
+            empName: "",
+            jobWorkerId: "",
+            jobWorkerName: "",
+            deptId: "",
+            deptName: "",
+            lsgCode: "",
+            lsgName: "",
+        });
         setTableData([]);
         onGrossAmount(0);
         setSubAllotment("");
         setDocumentType("");
         setBase64String("");
         setImagePreview(null);
-    }
+
+        // 👇 API CALL only if value matches
+        console.log("onAcCodeDesc called, value =", value);
+
+
+    };
+
+
 
     const onPassForPayNarration = (e) => {
         setPassForPayNarration(e.target.value)
@@ -702,6 +804,8 @@ const PassForPayment = () => {
             toast.error("Please Enter Bill RA")
         } else if (!acCodeDesc) {
             toast.error("Please Enter A/C Code Description")
+        } else if (acCodeDesc == 202501003 && idNo.toString().length !== 15) {
+            toast.error("Please Enter 15 digit Valid ID No");
         } else if (!passForPayNarration) {
             toast.error("Please Enter Pass for Payment Narration")
         } else if (!partyTypes) {
@@ -712,7 +816,15 @@ const PassForPayment = () => {
             toast.error("Please Select Party Name")
         } else if (!(partyTypes === "N" || partyTypes === "O" || partyTypes === "GC") && !activeModal) {
             toast.error("Please Select Party Code")
-        } else if (schematicType !== "0" && Number(acCodeDesc) !== 202601005 && !payto) {
+        } else if (partyTypes === "C" && !billNo) {
+            toast.error("Please Enter Invoice No / Bill No")
+        } else if (partyTypes === "C" && !billDate) {
+            toast.error("Please Enter Invoice Date / Bill Date")
+        } else if (partyTypes === "C" && !billAmount) {
+            toast.error("Please Enter Taxable Amount")
+        }
+
+        else if (schematicType !== "0" && Number(acCodeDesc) !== 202601005 && !payto) {
             toast.error("Please Enter Pay To")
         }
         else if (grossAmount <= 0) {
@@ -852,12 +964,17 @@ const PassForPayment = () => {
                 : partyTypes === "J" ? partyName?.jobWorkerName
                     : partyTypes === "D" ? partyName?.deptName
                         : partyTypes === "L" ? partyName?.lsgName
-                            : "";
+                            : partyTypes === "O" ? payto // keep existing
+                                : "";
     };
 
     useEffect(() => {
-        setPayto(getPaytoValue()); // Update state whenever dependencies change
-    }, [partyTypes, partyName]); // Listen for changes in partyTypes AND partyName
+        const newVal = getPaytoValue();
+        if (newVal) {
+            setPayto(newVal);
+        }
+    }, [partyTypes, partyName]);
+
 
     const onPayTo = (e) => {
         setPayto(e.target.value);
@@ -874,12 +991,19 @@ const PassForPayment = () => {
                         ? partyName?.deptAbv
                         : partyTypes === "L"
                             ? (partyName?.lgdAdd1 ?? "") + " " + (partyName?.lgdAdd2 ?? "")
-                            : "";
+                            : partyTypes === "O"
+                                ? payAddress   // 👈 preserve API-filled state
+                                : "";
     };
 
+
     useEffect(() => {
-        setPayAddress(getPayAddress()); // Update state whenever dependencies change
+        const newVal = getPayAddress();
+        if (newVal) {
+            setPayAddress(newVal);
+        }
     }, [partyTypes, partyName]);
+
 
     const onPayAddress = (e) => {
         setPayAddress(e.target.value)
@@ -891,33 +1015,125 @@ const PassForPayment = () => {
 
     console.log(selectedIds, selectedData, "tableData")
 
+
+    console.log(loader, "loader")
+
     const onConfirmSubmit = () => {
         setLoader(true);
 
-        addInsertPassForPayment(
-            userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : 0 || userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : 0 || userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
-            financialYear, selectedDate, schematicType, expenditureType, activityTheme?.activityCode, activityTheme?.activityDesc, tender,
-            activityTheme?.theme1Id, activityTheme?.theme1Name, activityTheme?.theme2Id, activityTheme?.theme2Name, activityTheme?.theme3Id, activityTheme?.theme3Name, activityTheme?.schemeId, workOrder, billType, acCodeDesc, passForPayNarration, partyTypes,
-            partyTypes === "C" ? partyName?.contractorId : partyTypes === "E" ? partyName?.empId : partyTypes === "J" ? partyName?.jobWorkerId : partyTypes === "D" ? partyName?.deptId : partyTypes === "L" ? partyName?.lsgCode : "",
-            payto ? payto : selectedData[0]?.partyDetails?.substring(13), payAddress,
-            netAmount.toFixed(2), totalAmount.toFixed(2), allotementNo, subAllotment == true ? 1 : 0, tableData?.length > 0 ? 1 : 0, documentType, base64String, userData?.USER_INDEX, tableData, firstAccountCode, ids, billRa,
-            (r) => {
-                console.log(r, "dd");
-                if (r.status == 0) {
-                    // setOpenModal(true);
-                    setLoader(false);
-                    setPassforPaymentResponse(r)
-                    toast.success(r.message);
-                    setConfirmSubmitFlag(false);
-                    setShowPopID(true);
+        if (acCodeDesc == 202501003) {
+            // 🔎 Special account code
+            if (verifyClaimDetails?.PaymentStatus === "PENDING") {
+                console.log("✅ Condition satisfied: hitting both APIs...");
 
-                } else if (r.status == 1) {
-                    setLoader(false);
-                    toast.error(r.message);
-                }
+                // Step 1: Call first API
+                addInsertPassForPayment(
+                    userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD :
+                        userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD :
+                            userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
+                    financialYear, selectedDate, schematicType, expenditureType,
+                    activityTheme?.activityCode, activityTheme?.activityDesc, tender,
+                    activityTheme?.theme1Id, activityTheme?.theme1Name,
+                    activityTheme?.theme2Id, activityTheme?.theme2Name,
+                    activityTheme?.theme3Id, activityTheme?.theme3Name,
+                    activityTheme?.schemeId, workOrder, billType, acCodeDesc,
+                    passForPayNarration, partyTypes,
+                    partyTypes === "C" ? partyName?.contractorId :
+                        partyTypes === "E" ? partyName?.empId :
+                            partyTypes === "J" ? partyName?.jobWorkerId :
+                                partyTypes === "D" ? partyName?.deptId :
+                                    partyTypes === "L" ? partyName?.lsgCode : "",
+                    payto ? payto : selectedData[0]?.partyDetails?.substring(13),
+                    payAddress,
+                    netAmount.toFixed(2), totalAmount.toFixed(2),
+                    allotementNo, subAllotment ? 1 : 0,
+                    tableData?.length > 0 ? 1 : 0,
+                    documentType, base64String, userData?.USER_INDEX,
+                    tableData, firstAccountCode, ids, billRa, idNo, billNo,
+                    billDate, billAmount,  // ✅ idNo included here
+                    (r) => {
+                        console.log("InsertPassForPayment Response:", r);
+                        setLoader(false);
+                        if (r.status == 0) {
+                            setPassforPaymentResponse(r);
+                            toast.success(r.message);
+                            setConfirmSubmitFlag(false);
+                            setShowPopID(true);
+
+                            // Step 2: Call second API after success
+                            addPTaxLogin(
+                                (r) => {
+                                    console.log("Login Response:", r);
+                                    const token = r?.message?.user?.Token;
+                                    if (token) {
+                                        updateClaimStatus(
+                                            userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD :
+                                                userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD :
+                                                    userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
+                                            verifyClaimDetails?.receiptNo,
+                                            "PROCESSING"
+                                        );
+                                    }
+                                },
+                                (err) => {
+                                    toast.error("Login Failed: " + err);
+                                }
+                            );
+                        } else if (r.status == 1) {
+                            toast.error(r.message);
+                        }
+                    }
+                );
+            } else {
+                // ❌ Case 3: status not pending
+                setLoader(false);
+                toast.error("Claim status is not pending");
             }
-        );
-    }
+        } else {
+            // ⚠️ Case 2: any other acCodeDesc → only InsertPassForPayment
+            console.log("⚠️ Condition not satisfied: calling only InsertPassForPayment...");
+
+            addInsertPassForPayment(
+                userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD :
+                    userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD :
+                        userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
+                financialYear, selectedDate, schematicType, expenditureType,
+                activityTheme?.activityCode, activityTheme?.activityDesc, tender,
+                activityTheme?.theme1Id, activityTheme?.theme1Name,
+                activityTheme?.theme2Id, activityTheme?.theme2Name,
+                activityTheme?.theme3Id, activityTheme?.theme3Name,
+                activityTheme?.schemeId, workOrder, billType, acCodeDesc,
+                passForPayNarration, partyTypes,
+                partyTypes === "C" ? partyName?.contractorId :
+                    partyTypes === "E" ? partyName?.empId :
+                        partyTypes === "J" ? partyName?.jobWorkerId :
+                            partyTypes === "D" ? partyName?.deptId :
+                                partyTypes === "L" ? partyName?.lsgCode : "",
+                payto ? payto : selectedData[0]?.partyDetails?.substring(13),
+                payAddress,
+                netAmount.toFixed(2), totalAmount.toFixed(2),
+                allotementNo, subAllotment ? 1 : 0,
+                tableData?.length > 0 ? 1 : 0,
+                documentType, base64String, userData?.USER_INDEX,
+                tableData, firstAccountCode, ids, billRa, idNo, billNo,
+                billDate, billAmount,  // ✅ idNo included here
+                (r) => {
+                    console.log("InsertPassForPayment Response:", r);
+                    setLoader(false);
+                    if (r.status == 0) {
+                        setPassforPaymentResponse(r);
+                        toast.success(r.message);
+                        setConfirmSubmitFlag(false);
+                        setShowPopID(true);
+                    } else if (r.status == 1) {
+                        toast.error(r.message);
+                    }
+                }
+            );
+        }
+    };
+
+
 
     const onClosePopId = () => {
         setShowPopID(false)
@@ -981,25 +1197,72 @@ const PassForPayment = () => {
         if (!deleteReason) {
             toast.error("Please Enter Reason for Deletion")
         } else {
-            deletePassForPayment(userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
-                getPassForPaymentDataById?.basic?.pfpId, deleteReason, userData?.USER_INDEX,
-                (r) => {
-                    console.log(r, "dd");
-                    if (r.status == 0) {
-                        // setOpenModal(true);
-                        // setPassforPaymentResponse(r)
-                        toast.success(r.message);
-                        setGetPassForPaymentDataById("")
-                        setDeleteReason("");
-                        setDeleteFlag(false)
-                        window.location.reload();
+            if (getPassForPaymentDataById?.basic?.accountCode === "202501003") {
+                deletePassForPayment(userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
+                    getPassForPaymentDataById?.basic?.pfpId, deleteReason, userData?.USER_INDEX,
+                    (r) => {
+                        console.log(r, "dd");
+                        if (r.status == 0) {
+                            // setOpenModal(true);
+                            // setPassforPaymentResponse(r)
+                            toast.success(r.message);
+                            setGetPassForPaymentDataById("")
+                            setDeleteReason("");
+                            setDeleteFlag(false)
+                            addPTaxLogin(
+                                (r) => {
+                                    console.log("Login Response:", r);
+                                    const token = r?.message?.user?.Token;
+                                    if (token) {
+                                        updateClaimStatus(
+                                            userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD :
+                                                userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD :
+                                                    userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
+                                            getPassForPaymentDataById?.basic?.pTaxPaymentId,
+                                            "PENDING"
+                                        );
+                                    }
+                                },
+                                (err) => {
+                                    toast.error("Login Failed: " + err);
+                                }
+                            );
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 2000);
 
 
-                    } else if (r.status == 1) {
-                        toast.error(r.message);
+
+                        } else if (r.status == 1) {
+                            toast.error(r.message);
+                        }
                     }
-                }
-            );
+                );
+            } else {
+                deletePassForPayment(userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
+                    getPassForPaymentDataById?.basic?.pfpId, deleteReason, userData?.USER_INDEX,
+                    (r) => {
+                        console.log(r, "dd");
+                        if (r.status == 0) {
+                            // setOpenModal(true);
+                            // setPassforPaymentResponse(r)
+                            toast.success(r.message);
+                            setGetPassForPaymentDataById("")
+                            setDeleteReason("");
+                            setDeleteFlag(false)
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 2000);
+
+
+
+                        } else if (r.status == 1) {
+                            toast.error(r.message);
+                        }
+                    }
+                );
+            }
+
         }
     }
 
@@ -2438,15 +2701,17 @@ const PassForPayment = () => {
                                 </fieldset>
 
                                 <fieldset className="border border-gray-300 rounded-lg mb-1">
-                                    <div className="flex w-full space-x-4 mt-1" >
+                                    {/* 202501003 */}
+
+                                    <div className="flex w-full space-x-1 mt-1" >
 
 
                                         <div className="px-3 w-1/2 flex flex-col relative">
                                             <div className="flex items-center border bg-gray-200 rounded h-8">
-                                                <span className="px-2 bg-gray-200 text-xs">GL Group<span className="text-red-500 "> * </span></span>
+                                                <span className="px-1 bg-gray-200 text-xs">GL Group<span className="text-red-500 "> * </span></span>
                                                 <input
                                                     type="url"
-                                                    className="flex-grow text-xs px-3 py-2 h-8 outline-none rounded"
+                                                    className="flex-grow text-xs px-2 py-2 h-8 outline-none rounded"
                                                     placeholder="Search GL Group Name..."
                                                     onChange={onPartyType}
                                                     value={partyType}// Call the function when input changes
@@ -2490,8 +2755,8 @@ const PassForPayment = () => {
 
                                         <div className="w-full flex flex-col mb-1 px-3">
                                             <div class="flex items-center bg-gray-200 rounded h-8">
-                                                <span class="px-2 bg-gray-200 text-xs">A/C Code Desc<span className="text-red-500 "> * </span></span>
-                                                <select value={acCodeDesc} id="DISTRICT" class="flex-grow text-xs px-2 py-1 h-8 outline-none rounded" onChange={onAcCodeDesc}>
+                                                <span class="px-1 bg-gray-200 text-xs">A/C Code Desc<span className="text-red-500 "> * </span></span>
+                                                <select value={acCodeDesc} id="DISTRICT" class="flex-grow text-xs px-1 py-1 h-8 outline-none rounded" onChange={onAcCodeDesc}>
                                                     <option value="">--Select A/C Code Desc--</option>
                                                     {acCodeDescAllList.map((d, i) => (
                                                         <option value={d?.accountCode}>{d?.accountCode}-{d?.accountCodeDesc}</option>
@@ -2501,12 +2766,34 @@ const PassForPayment = () => {
                                                 </select>
                                             </div>
                                         </div>
+
+                                        {acCodeDesc == 202501003 && (
+                                            <div className="w-full flex flex-col mb-1 px-3">
+                                                <div className="flex items-center border bg-gray-200 rounded h-8 overflow-hidden">
+                                                    <span className="px-1 bg-gray-200 text-xs whitespace-nowrap flex-none">
+                                                        ID No<span className="text-red-500"> *</span>
+                                                    </span>
+                                                    <div className="flex-1 min-w-0">
+                                                        <input
+                                                            type="text"
+                                                            // className="w-full text-xs px-2 py-1 h-8 outline-none"
+                                                            className="uppercase w-full text-xs px-2 py-2 h-7 outline-none rounded"
+                                                            placeholder="ID No.."
+                                                            onChange={onIdNo}
+                                                            maxLength={15}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
+
+
                                     <div className="flex w-full space-x-4">
                                         <div className="px-3 w-full flex flex-col mb-1">
                                             <div class="flex items-center border bg-gray-200 rounded h-8">
                                                 <span class="px-2 bg-gray-200 text-xs">Pass for Payment Narration<span className="text-red-500 "> * </span></span>
-                                                <input type="url" class="flex-grow text-xs px-3 py-2 h-8 outline-none rounded" placeholder="Pass for payment narration" onChange={onPassForPayNarration} value={passForPayNarration} />
+                                                <input type="url" maxLength={200} class="flex-grow text-xs px-3 py-2 h-8 outline-none rounded" placeholder="Pass for payment narration" onChange={onPassForPayNarration} value={passForPayNarration} />
                                             </div>
                                         </div>
                                     </div>
@@ -2532,6 +2819,8 @@ const PassForPayment = () => {
                                                         className="flex-grow text-xs px-2 py-1 h-7 outline-none rounded"
                                                         onChange={onPartyTypes}
                                                         value={partyTypes}
+                                                        disabled={Number(acCodeDesc) === 202501003}
+
 
                                                     >
                                                         <option value="">--Select Party Type--</option>
@@ -2617,6 +2906,8 @@ const PassForPayment = () => {
                                                     placeholder="Pay to"
                                                     value={Number(acCodeDesc) === 202601005 ? selectedData[0]?.partyDetails?.substring(13) : payto}
                                                     onChange={onPayTo}
+                                                    disabled={Number(acCodeDesc) === 202501003}
+
                                                 />
                                             </div>
                                         </div>
@@ -2630,6 +2921,8 @@ const PassForPayment = () => {
                                                     placeholder="Party Address"
                                                     value={payAddress}
                                                     onChange={onPayAddress}
+                                                    disabled={Number(acCodeDesc) === 202501003}
+
                                                 />
                                                 {partyTypes === "L" || partyTypes === "D" ?
                                                     <>
@@ -2646,6 +2939,50 @@ const PassForPayment = () => {
                                         </div>
 
                                     </div>
+                                    {partyTypes === "C" ?
+                                        <div className="flex w-full space-x-4 mt-1" style={{ marginLeft: "5px" }}>
+                                            <div className="px-2 w-1/3 flex flex-col mb-1">
+
+                                                <div class="flex items-center border bg-gray-200 rounded h-8">
+                                                    <span class="px-2 bg-gray-200 text-xs">Invoice No/Bill No<span className="text-red-500 "> * </span></span>
+                                                    <input type="text"
+                                                        class="flex-grow text-xs px-3 py-2 h-8 outline-none rounded"
+                                                        placeholder="Invoice No/Bill No"
+                                                        onChange={onBillNo}
+                                                        value={billNo}
+
+
+                                                    />
+
+                                                </div>
+                                            </div>
+
+                                            <div className="px-3 w-1/3 flex flex-col mb-1">
+
+                                                <div class="flex items-center border bg-gray-200 rounded h-8" style={{ marginLeft: "4px" }}>
+                                                    <span class="px-2 bg-gray-200 text-xs">Invoice Date/Bill Date<span className="text-red-500 "> * </span></span>
+                                                    <input type="date" class="flex-grow text-xs px-3 py-2 h-8 outline-none rounded" placeholder="Invoice Date"
+                                                        onChange={onBilDate}
+                                                        value={billDate} />
+
+                                                </div>
+                                            </div>
+
+                                            <div className="px-4 w-1/3 flex flex-col">
+
+                                                <div class="flex items-center border bg-gray-200 rounded h-8">
+                                                    <span class="px-2 bg-gray-200 text-xs">Taxable Amount (Rs.)<span className="text-red-500 "> * </span></span>
+                                                    <input type="number" class="flex-grow text-xs px-3 py-2 h-8 outline-none rounded"
+                                                        placeholder="Taxable Amount (Rs.)"
+                                                        onChange={onBillAmount}
+                                                        value={billAmount} />
+
+                                                </div>
+                                            </div>
+
+
+
+                                        </div> : ""}
                                 </fieldset>
                                 {showDeduction ?
                                     <div>
@@ -2653,6 +2990,7 @@ const PassForPayment = () => {
                                             Total Deduction Amount: {totalDeductionAmount} and Reference Voucher IDs: {ids}
                                         </label>
                                     </div> : ""}
+
                                 <div className="flex w-full space-x-4 mt-1" style={{ marginLeft: "5px" }}>
                                     <div className="px-2 w-1/3 flex flex-col mb-1">
 
@@ -2666,6 +3004,7 @@ const PassForPayment = () => {
                                                     onGrossAmount(e.target.value);
                                                 }}
                                                 value={grossAmount}
+                                                disabled={Number(acCodeDesc) === 202501003}
 
                                             />
 
@@ -2705,16 +3044,18 @@ const PassForPayment = () => {
                                                         id="DISTRICT"
                                                         className="flex-grow text-xs px-2 py-1 h-full outline-none rounded"
                                                         onChange={(e) => setDeductedAcCodeValue(JSON.parse(e.target.value))}
-                                                    // value={deductedAcCodeValue}
+                                                        value={deductedAcCodeValue ? JSON.stringify(deductedAcCodeValue) : "0"}
                                                     >
 
                                                         <option value="0">--Select Deducted A/C Code--</option>
 
                                                         {accDeductList?.map((d) => (
-
-                                                            <option value={JSON.stringify(d)}>{d?.accountCodeDesc}</option>
+                                                            <option key={d.accountCode} value={JSON.stringify(d)}>
+                                                                {d.accountCodeDesc}
+                                                            </option>
                                                         ))}
                                                     </select>
+
 
                                                 </div>
                                             </div>
@@ -3147,6 +3488,49 @@ const PassForPayment = () => {
                                         </div>
 
                                     </div>
+                                    {getPassForPaymentDataById?.basic?.partyType === "C" ?
+                                        <div className="flex w-full space-x-4 mt-1" style={{ marginLeft: "5px" }}>
+                                            <div className="px-2 w-1/3 flex flex-col mb-1">
+
+                                                <div class="flex items-center border bg-gray-200 rounded h-8">
+                                                    <span class="px-2 bg-gray-200 text-xs">Invoice No/Bill No<span className="text-red-500 "> * </span></span>
+                                                    <input type="text"
+                                                        class="flex-grow text-xs px-3 py-2 h-8 outline-none rounded"
+                                                        placeholder="Invoice No/Bill No"
+                                                        onChange={onBillNo}
+                                                        value={getPassForPaymentDataById?.basic?.billNo}
+                                                        disabled
+
+
+                                                    />
+
+                                                </div>
+                                            </div>
+
+                                            <div className="px-3 w-1/3 flex flex-col mb-1">
+
+                                                <div class="flex items-center border bg-gray-200 rounded h-8" style={{ marginLeft: "4px" }}>
+                                                    <span class="px-2 bg-gray-200 text-xs">Invoice Date/Bill Date<span className="text-red-500 "> * </span></span>
+                                                    <input type="text" class="flex-grow text-xs px-3 py-2 h-8 outline-none rounded" placeholder="Invoice Date/Bill Date"
+                                                        value={getPassForPaymentDataById?.basic?.billDate} disabled />
+
+                                                </div>
+                                            </div>
+
+                                            <div className="px-4 w-1/3 flex flex-col">
+
+                                                <div class="flex items-center border bg-gray-200 rounded h-8">
+                                                    <span class="px-2 bg-gray-200 text-xs">Taxable Amount (Rs.)<span className="text-red-500 "> * </span></span>
+                                                    <input type="number" class="flex-grow text-xs px-3 py-2 h-8 outline-none rounded"
+                                                        placeholder="Taxable Amount (Rs.)"
+                                                        value={getPassForPaymentDataById?.basic?.billAmount} disabled />
+
+                                                </div>
+                                            </div>
+
+
+
+                                        </div> : ""}
                                 </fieldset>
 
                                 <div className="flex w-full space-x-4 mt-1" style={{ marginLeft: "5px" }}>

@@ -447,33 +447,51 @@ const ChequeReceiptIssueRegister = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {cashAnalysisSummaryDtls?.map((group, groupIndex) => (
-                                            <React.Fragment key={groupIndex}>
-                                                {/* A/C Head Section Row */}
-                                                <tr className="bg-yellow-100 font-semibold">
-                                                    <td colSpan="10" className="border p-2 text-center">
-                                                        Bank A/C: {group.accountHead}
-                                                    </td>
-                                                </tr>
+                                        {cashAnalysisSummaryDtls?.map((group, groupIndex) => {
+                                            // calculate total for this group
+                                            const totalAmount = group.transactions?.reduce(
+                                                (sum, entry) => sum + (Number(entry?.amount) || 0),
+                                                0
+                                            );
 
-                                                {/* Transactions under this account head */}
-                                                {group.transactions?.map((entry, index) => (
-                                                    <tr key={index} className="text-center">
-                                                        <td className="border p-2">{entry?.glGroupName}</td>
-                                                        <td className="border p-2">{entry?.instrumentType}</td>
-                                                        <td className="border p-2">{entry?.chequeNo}</td>
-                                                        <td className="border p-2">{entry?.chequeDate}</td>
-                                                        <td className="border p-2">{entry?.inFavourOf}</td>
-                                                        <td className="border p-2">{entry?.particulars}</td>
-                                                        <td className="border p-2">{entry?.amount}</td>
-                                                        <td className="border p-2">{entry?.voucherId}</td>
-                                                        <td className="border p-2">{entry?.voucherDate}</td>
-                                                        <td className="border p-2">{entry?.reconciliationDate}</td>
+                                            return (
+                                                <React.Fragment key={groupIndex}>
+                                                    {/* A/C Head Section Row */}
+                                                    <tr className="bg-yellow-100 font-semibold">
+                                                        <td colSpan="10" className="border p-2 text-center">
+                                                            Bank A/C: {group.accountHead}
+                                                        </td>
                                                     </tr>
-                                                ))}
-                                            </React.Fragment>
-                                        ))}
+
+                                                    {/* Transactions under this account head */}
+                                                    {group.transactions?.map((entry, index) => (
+                                                        <tr key={index} className="text-center">
+                                                            <td className="border p-2">{entry?.glGroupName}</td>
+                                                            <td className="border p-2">{entry?.instrumentType}</td>
+                                                            <td className="border p-2">{entry?.chequeNo}</td>
+                                                            <td className="border p-2">{entry?.chequeDate}</td>
+                                                            <td className="border p-2">{entry?.inFavourOf}</td>
+                                                            <td className="border p-2">{entry?.particulars}</td>
+                                                            <td className="border p-2">{entry?.amount}</td>
+                                                            <td className="border p-2">{entry?.voucherId}</td>
+                                                            <td className="border p-2">{entry?.voucherDate}</td>
+                                                            <td className="border p-2">{entry?.reconciliationDate}</td>
+                                                        </tr>
+                                                    ))}
+
+                                                    {/* Total row for this group */}
+                                                    <tr className="bg-gray-200 font-bold text-center">
+                                                        <td colSpan="6" className="border p-2 text-right">
+                                                            Total:
+                                                        </td>
+                                                        <td className="border p-2">{totalAmount.toFixed(2)}</td>
+                                                        <td colSpan="3" className="border p-2"></td>
+                                                    </tr>
+                                                </React.Fragment>
+                                            );
+                                        })}
                                     </tbody>
+
                                 </table>
                             </div>
 

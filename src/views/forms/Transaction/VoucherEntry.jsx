@@ -7,7 +7,7 @@ import {
     getRealAccWithbalance, getPartyTypeList, getChequeNoForVoucher, getContractorList
     , getEmployeeList, getJobWorkerList, getDepartmentList, getLsgList, deleteVoucher,
     addVoucherEntry, getAccountHeadList, getReferenceOfDetails, getNextPassForPaymentId, getReferenceOfAdvanceAdj, getRealAccAllList, verifyVoucher,
-    getNextQuery, getNextVerify
+    getNextQuery, getNextVerify, addPTaxLogin, verifyClaim, updateVoucherClaimStatus, updateClaimStatus
 } from "../../../Service/Transaction/TransactionService";
 import Modal from 'react-modal';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -139,6 +139,8 @@ const VoucherEntry = () => {
     const [modalNextQueryData, setModalNextQueryData] = useState()
     const [modalNextVerify, setModalNextVerify] = useState(false)
     const [modalNextVerifyData, setModalNextVerifyData] = useState()
+    const [verifyClaimDetails, setVerifyClaimDetails] = useState("");
+
     const printRef = useRef();
 
     const voucherMode = [
@@ -385,7 +387,7 @@ const VoucherEntry = () => {
         getPassForPaymentById(userData?.CORE_LGD, d,
         ).then(function (result) {
             const response = result?.data;
-            console.log(response, "report")
+            console.log(response, "sisou")
             setGetPassForPaymentDataById(response);
             setPaymentDesc(response?.basic?.paymentDesc);
             setModalPassForPaymentId(false)
@@ -394,6 +396,46 @@ const VoucherEntry = () => {
             setToDatePassForPayment("");
             setPassForPaymentStatus("");
             setPassForPaymentDetailsById([]);
+
+            if (response?.basic?.accountCode === "202501003") {
+                addPTaxLogin(
+                    (r) => {
+                        console.log("Login Response:", r);
+
+                        const token = r?.message?.user?.Token;
+                        if (token) {
+                            // Now call Verify API
+                            verifyClaim(
+                                userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : 0
+                                    || userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : 0
+                                        || userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
+                                response?.basic?.pTaxPaymentId,
+                                (data) => {
+                                    console.log("Verify Claim Response:", data);
+                                    toast.success("Verification Successful!");
+
+                                    const claimData = data?.data;
+
+                                    setVerifyClaimDetails(claimData);
+
+                                    setLoader(false); // ✅ stop loader on success
+                                },
+                                (err) => {
+                                    toast.error("Sorry! No Information found");
+
+                                    setLoader(false); // ✅ stop loader on failure
+                                }
+                            );
+                        } else {
+                            setLoader(false); // ✅ no token case
+                        }
+                    },
+                    (err) => {
+                        toast.error("Login Failed: " + err);
+                        setLoader(false); // ✅ stop loader on login failure
+                    }
+                );
+            }
         })
     }
 
@@ -1022,134 +1064,308 @@ const VoucherEntry = () => {
 
     const onConfirmSubmit = () => {
         setLoader(true)
-        addVoucherEntry(
-            userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : 0 || userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : 0 || userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
-            financialYear,
-            voucherModeData,
-            voucherTypeData,
-            voucherDate,
-            voucherNo,
-            getPassForPaymentDataById?.basic?.pfpId,
-            voucherModeData === "N" ? selectedValue : bankTreasury ? bankTreasury : realAccWithbalance[0]?.accountCode,
-            voucherModeData === "N" ? selectedValue2 : getPassForPaymentDataById?.basic?.accountCode || accCode,
-            voucherModeData === "P" ? (getPassForPaymentDataById?.basic?.deductAmount) + (getPassForPaymentDataById?.basic?.netAmount) : grossAmount,
-            voucherModeData === "P" ? getPassForPaymentDataById?.basic?.deductAmount : deductedAmount,
-            voucherModeData === "P" ? getPassForPaymentDataById?.basic?.netAmount : netAmount,
-            paymentDesc,
-            voucherModeData === "P" ? getPassForPaymentDataById?.basic?.partyType : partyTypes,
-            voucherModeData === "P" ? getPassForPaymentDataById?.basic?.partyCode : partyTypes === "C" ? partyName?.contractorId : partyTypes === "E" ? partyName?.empId : partyTypes === "J" ? partyName?.jobWorkerId : partyTypes === "D" ? partyName?.deptId : partyTypes === "L" ? partyName?.lsgCode : "",
-            voucherModeData === "P" ? getPassForPaymentDataById?.basic?.payAddress : payAddress,
-            voucherModeData === "P" ? getPassForPaymentDataById?.basic?.payTo : payto,
-            userData?.USER_INDEX,
-            instType,
-            instTypeAllList?.bankName,
-            instTypeAllList?.chequeNo,
-            receiptPaymentDate,
-            getPassForPaymentDataById?.basic?.subAllot === "1" ? 1 : 0,
-            selectedValue === "900000601" || selectedValue2 === "900000601" || matches000 || voucherTypeData === "C" ? 1 : 0,
-            matches801 ? 1 : 0,
-            matches901 ? 1 : 0,
-            matches601 ? 1 : 0,
-            accountHeadAllList.find(item => item.groupName === accountHead)?.groupId ?? null,
-            referenceOfDataById,
-            null,
-            voucherModeData === "P" ? getPassForPaymentDataById?.basic?.allotmentNo : allotmentNo,
-            allotmentDate,
-            challanNo,
-            challanByWhom,
-            challanWhoseBehalf,
-            base64String,
-            (r) => {
-                console.log(r, "dd");
-                if (r.status == 0) {
-                    setVoucherResponse(r);
-                    toast.success(r.message);
-                    setConfirmSubmitFlag(false);
-                    setShowVoucherID(true);
-                    setLoader(false);
 
+        if (getPassForPaymentDataById?.basic?.accountCode === "202501003") {
 
-                    if (voucherModeData === "P") {
-                        // setVoucherPaymentFlag(true);
-                        getDebitVoucher(userData?.CORE_LGD, r?.voucherId).then((response) => {
-                            if (response.status === 200) {
-                                setVoucherData(response.data);
-                            } else {
-                                toast.error("Failed to fetch data");
-                            }
-                        });
-                    } else if (voucherModeData === "N" && voucherTypeData === "N") {
-                        // setVoucherContraFlag(true)
-                        getContraVoucher(userData?.CORE_LGD, r?.voucherId).then((response) => {
-                            if (response.status === 200) {
-                                setVoucherData(response.data);
-                            } else {
-                                toast.error("Failed to fetch data");
-                            }
-                        });
-                    } else if (voucherModeData === "R") {
-                        // setVoucherCreditFlag(true)
-                        getReceiptVoucher(userData?.CORE_LGD, r?.voucherId).then((response) => {
-                            if (response.status === 200) {
-                                setVoucherData(response.data);
-                                if (voucherModeData === "R" && voucherTypeData === "C") {
-                                    // setVoucherCashierReceiptFlag(true)
-                                    getCashierReceiptVoucher(userData?.CORE_LGD, r?.voucherId).then((response) => {
-                                        if (response.status === 200) {
-                                            setVoucherDataCashierReceipt(response.data);
-                                        } else {
-                                            toast.error("Failed to fetch data");
-                                        }
-                                    });
+            if (verifyClaimDetails?.PaymentStatus === "PROCESSING") {
+
+                addVoucherEntry(
+                    userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : 0 || userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : 0 || userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
+                    financialYear,
+                    voucherModeData,
+                    voucherTypeData,
+                    voucherDate,
+                    voucherNo,
+                    getPassForPaymentDataById?.basic?.pfpId,
+                    voucherModeData === "N" ? selectedValue : bankTreasury ? bankTreasury : realAccWithbalance[0]?.accountCode,
+                    voucherModeData === "N" ? selectedValue2 : getPassForPaymentDataById?.basic?.accountCode || accCode,
+                    voucherModeData === "P" ? (getPassForPaymentDataById?.basic?.deductAmount) + (getPassForPaymentDataById?.basic?.netAmount) : grossAmount,
+                    voucherModeData === "P" ? getPassForPaymentDataById?.basic?.deductAmount : deductedAmount,
+                    voucherModeData === "P" ? getPassForPaymentDataById?.basic?.netAmount : netAmount,
+                    paymentDesc,
+                    voucherModeData === "P" ? getPassForPaymentDataById?.basic?.partyType : partyTypes,
+                    voucherModeData === "P" ? getPassForPaymentDataById?.basic?.partyCode : partyTypes === "C" ? partyName?.contractorId : partyTypes === "E" ? partyName?.empId : partyTypes === "J" ? partyName?.jobWorkerId : partyTypes === "D" ? partyName?.deptId : partyTypes === "L" ? partyName?.lsgCode : "",
+                    voucherModeData === "P" ? getPassForPaymentDataById?.basic?.payAddress : payAddress,
+                    voucherModeData === "P" ? getPassForPaymentDataById?.basic?.payTo : payto,
+                    userData?.USER_INDEX,
+                    instType,
+                    instTypeAllList?.bankName,
+                    instTypeAllList?.chequeNo,
+                    receiptPaymentDate,
+                    getPassForPaymentDataById?.basic?.subAllot === "1" ? 1 : 0,
+                    selectedValue === "900000601" || selectedValue2 === "900000601" || matches000 || voucherTypeData === "C" ? 1 : 0,
+                    matches801 ? 1 : 0,
+                    matches901 ? 1 : 0,
+                    matches601 ? 1 : 0,
+                    accountHeadAllList.find(item => item.groupName === accountHead)?.groupId ?? null,
+                    referenceOfDataById,
+                    null,
+                    voucherModeData === "P" ? getPassForPaymentDataById?.basic?.allotmentNo : allotmentNo,
+                    allotmentDate,
+                    challanNo,
+                    challanByWhom,
+                    challanWhoseBehalf,
+                    base64String,
+                    (r) => {
+                        console.log(r, "dd");
+                        if (r.status == 0) {
+                            setVoucherResponse(r);
+                            toast.success(r.message);
+                            setConfirmSubmitFlag(false);
+                            setShowVoucherID(true);
+                            setLoader(false);
+                            const voucherId = r?.voucherId;
+
+                            addPTaxLogin(
+                                (r) => {
+                                    console.log("Login Response:", r);
+                                    const token = r?.message?.user?.Token;
+                                    if (token) {
+                                        updateVoucherClaimStatus(userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : 0 || userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : 0 || userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
+                                            verifyClaimDetails?.receiptNo, "COMPLETED", voucherId);
+                                    }
+                                },
+                                (err) => {
+                                    toast.error("Login Failed: " + err);
                                 }
-                            } else {
-                                toast.error("Failed to fetch data");
+                            );
+
+                            if (voucherModeData === "P") {
+                                // setVoucherPaymentFlag(true);
+                                getDebitVoucher(userData?.CORE_LGD, r?.voucherId).then((response) => {
+                                    if (response.status === 200) {
+                                        setVoucherData(response.data);
+                                    } else {
+                                        toast.error("Failed to fetch data");
+                                    }
+                                });
+                            } else if (voucherModeData === "N" && voucherTypeData === "N") {
+                                // setVoucherContraFlag(true)
+                                getContraVoucher(userData?.CORE_LGD, r?.voucherId).then((response) => {
+                                    if (response.status === 200) {
+                                        setVoucherData(response.data);
+                                    } else {
+                                        toast.error("Failed to fetch data");
+                                    }
+                                });
+                            } else if (voucherModeData === "R") {
+                                // setVoucherCreditFlag(true)
+                                getReceiptVoucher(userData?.CORE_LGD, r?.voucherId).then((response) => {
+                                    if (response.status === 200) {
+                                        setVoucherData(response.data);
+                                        if (voucherModeData === "R" && voucherTypeData === "C") {
+                                            // setVoucherCashierReceiptFlag(true)
+                                            getCashierReceiptVoucher(userData?.CORE_LGD, r?.voucherId).then((response) => {
+                                                if (response.status === 200) {
+                                                    setVoucherDataCashierReceipt(response.data);
+                                                } else {
+                                                    toast.error("Failed to fetch data");
+                                                }
+                                            });
+                                        }
+                                    } else {
+                                        toast.error("Failed to fetch data");
+                                    }
+                                });
                             }
-                        });
-                    }
-                    else if (voucherModeData === "N" && voucherTypeData === "J") {
-                        // setVoucherJournalFlag(true)
-                        getJournalVoucher(userData?.CORE_LGD, r?.voucherId).then((response) => {
-                            if (response.status === 200) {
-                                setVoucherData(response.data);
-                            } else {
-                                toast.error("Failed to fetch data");
+                            else if (voucherModeData === "N" && voucherTypeData === "J") {
+                                // setVoucherJournalFlag(true)
+                                getJournalVoucher(userData?.CORE_LGD, r?.voucherId).then((response) => {
+                                    if (response.status === 200) {
+                                        setVoucherData(response.data);
+                                    } else {
+                                        toast.error("Failed to fetch data");
+                                    }
+                                });
                             }
-                        });
-                    }
 
 
-                } else if (r.status == 1) {
-                    setLoader(false);
-                    toast.error(r.message);
-                }
+                        } else if (r.status == 1) {
+                            setLoader(false);
+                            toast.error(r.message);
+                        }
+                    }
+                );
             }
-        );
+
+            else {
+                // ❌ Case 3: status not pending
+                setLoader(false);
+                toast.error("Claim status is not processing");
+            }
+        } else {
+            addVoucherEntry(
+                userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : 0 || userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : 0 || userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
+                financialYear,
+                voucherModeData,
+                voucherTypeData,
+                voucherDate,
+                voucherNo,
+                getPassForPaymentDataById?.basic?.pfpId,
+                voucherModeData === "N" ? selectedValue : bankTreasury ? bankTreasury : realAccWithbalance[0]?.accountCode,
+                voucherModeData === "N" ? selectedValue2 : getPassForPaymentDataById?.basic?.accountCode || accCode,
+                voucherModeData === "P" ? (getPassForPaymentDataById?.basic?.deductAmount) + (getPassForPaymentDataById?.basic?.netAmount) : grossAmount,
+                voucherModeData === "P" ? getPassForPaymentDataById?.basic?.deductAmount : deductedAmount,
+                voucherModeData === "P" ? getPassForPaymentDataById?.basic?.netAmount : netAmount,
+                paymentDesc,
+                voucherModeData === "P" ? getPassForPaymentDataById?.basic?.partyType : partyTypes,
+                voucherModeData === "P" ? getPassForPaymentDataById?.basic?.partyCode : partyTypes === "C" ? partyName?.contractorId : partyTypes === "E" ? partyName?.empId : partyTypes === "J" ? partyName?.jobWorkerId : partyTypes === "D" ? partyName?.deptId : partyTypes === "L" ? partyName?.lsgCode : "",
+                voucherModeData === "P" ? getPassForPaymentDataById?.basic?.payAddress : payAddress,
+                voucherModeData === "P" ? getPassForPaymentDataById?.basic?.payTo : payto,
+                userData?.USER_INDEX,
+                instType,
+                instTypeAllList?.bankName,
+                instTypeAllList?.chequeNo,
+                receiptPaymentDate,
+                getPassForPaymentDataById?.basic?.subAllot === "1" ? 1 : 0,
+                selectedValue === "900000601" || selectedValue2 === "900000601" || matches000 || voucherTypeData === "C" ? 1 : 0,
+                matches801 ? 1 : 0,
+                matches901 ? 1 : 0,
+                matches601 ? 1 : 0,
+                accountHeadAllList.find(item => item.groupName === accountHead)?.groupId ?? null,
+                referenceOfDataById,
+                null,
+                voucherModeData === "P" ? getPassForPaymentDataById?.basic?.allotmentNo : allotmentNo,
+                allotmentDate,
+                challanNo,
+                challanByWhom,
+                challanWhoseBehalf,
+                base64String,
+                (r) => {
+                    console.log(r, "dd");
+                    if (r.status == 0) {
+                        setVoucherResponse(r);
+                        toast.success(r.message);
+                        setConfirmSubmitFlag(false);
+                        setShowVoucherID(true);
+                        setLoader(false);
+                        const voucherId = r?.voucherId;
+
+
+                        if (voucherModeData === "P") {
+                            // setVoucherPaymentFlag(true);
+                            getDebitVoucher(userData?.CORE_LGD, r?.voucherId).then((response) => {
+                                if (response.status === 200) {
+                                    setVoucherData(response.data);
+                                } else {
+                                    toast.error("Failed to fetch data");
+                                }
+                            });
+                        } else if (voucherModeData === "N" && voucherTypeData === "N") {
+                            // setVoucherContraFlag(true)
+                            getContraVoucher(userData?.CORE_LGD, r?.voucherId).then((response) => {
+                                if (response.status === 200) {
+                                    setVoucherData(response.data);
+                                } else {
+                                    toast.error("Failed to fetch data");
+                                }
+                            });
+                        } else if (voucherModeData === "R") {
+                            // setVoucherCreditFlag(true)
+                            getReceiptVoucher(userData?.CORE_LGD, r?.voucherId).then((response) => {
+                                if (response.status === 200) {
+                                    setVoucherData(response.data);
+                                    if (voucherModeData === "R" && voucherTypeData === "C") {
+                                        // setVoucherCashierReceiptFlag(true)
+                                        getCashierReceiptVoucher(userData?.CORE_LGD, r?.voucherId).then((response) => {
+                                            if (response.status === 200) {
+                                                setVoucherDataCashierReceipt(response.data);
+                                            } else {
+                                                toast.error("Failed to fetch data");
+                                            }
+                                        });
+                                    }
+                                } else {
+                                    toast.error("Failed to fetch data");
+                                }
+                            });
+                        }
+                        else if (voucherModeData === "N" && voucherTypeData === "J") {
+                            // setVoucherJournalFlag(true)
+                            getJournalVoucher(userData?.CORE_LGD, r?.voucherId).then((response) => {
+                                if (response.status === 200) {
+                                    setVoucherData(response.data);
+                                } else {
+                                    toast.error("Failed to fetch data");
+                                }
+                            });
+                        }
+
+
+                    } else if (r.status == 1) {
+                        setLoader(false);
+                        toast.error(r.message);
+                    }
+                }
+            );
+
+
+        }
     }
 
     const onSubmitDelete = () => {
         if (!deleteReason) {
             toast.error("Please Enter Reason for Deletion")
         } else {
-            deleteVoucher(userData?.CORE_LGD, voucherDataById?.basic?.voucherId, deleteReason, userData?.USER_INDEX,
-                (r) => {
-                    console.log(r, "dd");
-                    if (r.status == 0) {
-                        // setOpenModal(true);
-                        // setPassforPaymentResponse(r)
-                        toast.success(r.message);
-                        setDeleteReason("");
-                        setGetVoucherDataById("")
-                        setDeleteFlag(false)
-                        setGetVoucherDataById("")
+            if (voucherDataById?.basic?.nominalAccountCode === "202501003") {
+                deleteVoucher(userData?.CORE_LGD, voucherDataById?.basic?.voucherId, deleteReason, userData?.USER_INDEX,
+                    (r) => {
+                        console.log(r, "dd");
+                        if (r.status == 0) {
+                            // setOpenModal(true);
+                            // setPassforPaymentResponse(r)
+                            toast.success(r.message);
+                            setDeleteReason("");
+                            setGetVoucherDataById("")
+                            setDeleteFlag(false)
+                            setGetVoucherDataById("")
+                            addPTaxLogin(
+                                (r) => {
+                                    console.log("Login Response:", r);
+                                    const token = r?.message?.user?.Token;
+                                    if (token) {
+                                        updateClaimStatus(
+                                            userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD :
+                                                userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD :
+                                                    userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
+                                            voucherDataById?.basic?.ptaxPaymentId,
+                                            "PROCESSING"
+                                        );
+                                    }
+                                },
+                                (err) => {
+                                    toast.error("Login Failed: " + err);
+                                }
+                            );
 
 
 
-                    } else if (r.status == 1) {
-                        toast.error(r.message);
+                        } else if (r.status == 1) {
+                            toast.error(r.message);
+                        }
                     }
-                }
-            );
+                );
+            } else {
+                deleteVoucher(userData?.CORE_LGD, voucherDataById?.basic?.voucherId, deleteReason, userData?.USER_INDEX,
+                    (r) => {
+                        console.log(r, "dd");
+                        if (r.status == 0) {
+                            // setOpenModal(true);
+                            // setPassforPaymentResponse(r)
+                            toast.success(r.message);
+                            setDeleteReason("");
+                            setGetVoucherDataById("")
+                            setDeleteFlag(false)
+                            setGetVoucherDataById("")
+
+
+
+                        } else if (r.status == 1) {
+                            toast.error(r.message);
+                        }
+                    }
+                );
+            }
         }
     }
 
@@ -2036,7 +2252,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                                 <p><span className="font-semibold text-cyan-700">of:</span> {voucherData?.voucherDetails?.partyAddress}</p>
                                 <p><span className="font-semibold text-cyan-700" style={{ lineHeight: "1.8" }}>Description:</span> {voucherData?.voucherDetails?.voucherNarration}</p>
                                 <p><span className="font-semibold text-cyan-700 lhght" style={{ lineHeight: "1.5" }}>Rs.:</span> {voucherData?.voucherDetails?.voucherNetAmount}/- (Rs.{voucherData?.voucherDetails?.voucherNetAmountWord})</p>
-                                <p><span className="font-semibold text-cyan-700">Paid by:</span> {voucherData?.voucherDetails?.instrumentType}</p>
+                                <p><span className="font-semibold text-cyan-700">Paid by:</span> {voucherData?.voucherDetails?.instrumentType} <span> {voucherData?.realAccountDesc === "CASH" ? "" : "(" + voucherData?.realAccountDesc + ")"}</span></p>
                                 <p><span className="font-semibold text-cyan-700">No.:</span> {voucherData?.voucherDetails?.instrumentNo}</p>
                                 <p><span className="font-semibold text-cyan-700">Dated:</span> {voucherData?.voucherDetails?.instrumentType === "None" ? "" : voucherData?.voucherDetails?.instrumentDate}</p>
                                 <p><span className="font-semibold text-cyan-700">Drawn on:</span> {voucherData?.voucherDetails?.instrumentDetails}</p>
@@ -2642,7 +2858,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                                 <p><span className="font-semibold text-cyan-700">of:</span> {voucherData?.partyAddress}</p>
                                 <p><span className="font-semibold text-cyan-700">Description:</span> {voucherData?.voucherNarration}</p>
                                 <p><span className="font-semibold text-cyan-700">Rs.:</span> {voucherData?.voucherNetAmount}/- (Rs.{voucherData?.voucherNetAmountWord})</p>
-                                <p><span className="font-semibold text-cyan-700">Received by:</span> {voucherData?.instrumentType}</p>
+                                <p><span className="font-semibold text-cyan-700">Received by:</span> {voucherData?.instrumentType}  <span> {voucherData?.realAccountDesc === "CASH" ? "" : "(" + voucherData?.realAccountDesc + ")"}</span></p>
                                 <p><span className="font-semibold text-cyan-700">No.:</span> {voucherData?.instrumentNo}</p>
                                 <p><span className="font-semibold text-cyan-700">Dated:</span> {voucherData?.instrumentType === "None" ? "" : voucherData?.instrumentDate}</p>
                                 <p><span className="font-semibold text-cyan-700">Drawn on:</span> {voucherData?.instrumentDetails}</p>
@@ -4644,7 +4860,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                                                 <div className="px-3 w-full flex flex-col ">
                                                     <div class="flex items-center border bg-gray-200 rounded h-7">
                                                         <span class="px-2 bg-gray-200 text-xs">Voucher Narration<span className="text-red-500 "> * </span></span>
-                                                        <input type="url" class="flex-grow text-xs px-3 py-2 h-7 outline-none rounded" placeholder="Voucher Narration"
+                                                        <input maxLength={200} type="url" class="flex-grow text-xs px-3 py-2 h-7 outline-none rounded" placeholder="Voucher Narration"
                                                             value={paymentDesc} onChange={onVoucherNarration} />
 
                                                     </div>
@@ -4704,6 +4920,47 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                                                         </div>
                                                     </div>
                                                 </div>
+                                                {getPassForPaymentDataById?.basic?.partyType === "C" ?
+                                                    <div className="flex w-full space-x-4 mt-1" style={{ marginLeft: "5px" }}>
+                                                        <div className="px-2 w-1/3 flex flex-col mb-1">
+
+                                                            <div class="flex items-center border bg-gray-200 rounded h-7">
+                                                                <span class="px-2 bg-gray-200 text-xs">Invoice No</span>
+                                                                <input type="text"
+                                                                    class="flex-grow text-xs px-3 py-2 h-7 outline-none rounded"
+                                                                    placeholder="Invoice No"
+                                                                    value={getPassForPaymentDataById?.basic?.billNo}
+
+
+                                                                />
+
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="px-3 w-1/3 flex flex-col mb-1">
+
+                                                            <div class="flex items-center border bg-gray-200 rounded h-7" style={{ marginLeft: "4px" }}>
+                                                                <span class="px-2 bg-gray-200 text-xs">Invoice Date</span>
+                                                                <input type="text" class="flex-grow text-xs px-3 py-2 h-7 outline-none rounded" placeholder="Invoice Date"
+                                                                    value={getPassForPaymentDataById?.basic?.billDate} />
+
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="px-4 w-1/3 flex flex-col">
+
+                                                            <div class="flex items-center border bg-gray-200 rounded h-7">
+                                                                <span class="px-2 bg-gray-200 text-xs">Taxable Amount</span>
+                                                                <input type="number" class="flex-grow text-xs px-3 py-2 h-7 outline-none rounded"
+                                                                    placeholder="Taxable Amount (Rs.)"
+                                                                    value={getPassForPaymentDataById?.basic?.billAmount} />
+
+                                                            </div>
+                                                        </div>
+
+
+
+                                                    </div> : ""}
                                             </fieldset> : voucherModeData === "N" && voucherTypeData === "N" && selectedValue2 === "900000001" ?
 
                                                 <fieldset className="border border-gray-300 rounded-lg">

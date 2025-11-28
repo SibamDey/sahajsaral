@@ -56,7 +56,7 @@ import AcitivityWiseWorkOrder from "../views/forms/Project/ActivityWiseWorkOrder
 import SectorWiseAllocation from "../views/forms/Project/SectorWiseAllocation";
 import Form3536 from "../views/forms/Project/Form3536";
 import AdvanceRegister from "../views/forms/Register/AdvanceRegister";
-import ContractorPaymentCertificate from "../views/forms/Document/ContractorPaymentCertificate";
+import ContractorPaymentCertificate from "../views/forms/Document/IssuancePaymentCertificate";
 import ActivityWiseExpenditure from "../views/forms/Reports/ActivityWiseExpenditure";
 import AllotmentWiseExpenditure from "../views/forms/Reports/AllotmentWiseExpenditure";
 import GeneralLedger from "../views/forms/Reports/GeneralLedger";
@@ -91,6 +91,8 @@ import CashAnalysisDetails from "../views/forms/Reports/CashAnalysisDetails";
 import BankTryReconciliation from "../views/forms/Reports/BankTryReconciliation";
 import MonthClosingReport from "../views/forms/Reports/MonthCloseReport";
 import OSRCollectionApp from "../views/forms/Register/OSRCollectionApp";
+import PropertyTaxReport from "../views/forms/Register/PropertyTaxReport";
+import PreparationPaymentCertificate from "../views/forms/Document/PreparationPamentCertificate";
 
 
 
@@ -598,6 +600,13 @@ export const sideBarList = [
   },
 
   {
+    Component: PropertyTaxReport,
+    text: "PropertyTaxReport",
+    route: "/property-tax-report",
+    permissions: [1],
+  },
+
+  {
     Component: CheckBalanceRealNominal,
     text: "CheckBalanceRealNominal",
     route: "/check-balance-real-nominal",
@@ -659,12 +668,21 @@ export const sideBarList = [
     route: "/month-closing-report",
     permissions: [1],
   },
-    {
+  {
     Component: OSRCollectionApp,
     text: "OSRCollectionApp",
     route: "/osr-collection-app",
     permissions: [1],
   },
+
+  {
+    Component: PreparationPaymentCertificate,
+    text: "PreparationPaymentCertificate",
+    route: "/preparation-payment-certificate",
+    permissions: [1],
+  },
+
+
 
 
 
@@ -802,7 +820,7 @@ export const Sidebar = () => {
         </SidebarExpand>
 
         <SidebarExpand text="Report Group" icon="fluent-mdl2:radio-bullet">
-          {userData?.USER_INDEX === 1 ?
+          {userData?.USER_INDEX === 1 || userData?.USER_ID === "9007011952" ?
             <SidebarElement
               to="/gl-group-master"
               customCss={"flex justify-start pl-4 "}
@@ -1216,6 +1234,17 @@ export const Sidebar = () => {
                 </span>
               </div>
             </SidebarElement>
+            <SidebarElement
+              to="/contractor-payment-certificate"
+              customCss={"flex justify-start pl-4 "}
+            >
+              <div className="text-sm  items-start py-1 capitalize">
+                <span className="flex items-center space-x-4">
+                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                  <span>Issuance of Payment Certificate</span>
+                </span>
+              </div>
+            </SidebarElement>
 
           </SidebarExpand>
 
@@ -1286,7 +1315,18 @@ export const Sidebar = () => {
               <div className="text-sm items-start py-1 capitalize">
                 <span className="flex items-center space-x-4">
                   {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                  <span>Property Tax</span>
+                  <span>Collection of Property Tax</span>
+                </span>
+              </div>
+            </SidebarElement>
+            <SidebarElement
+              to="/property-tax-report"
+              customCss={"flex justify-start pl-4 "}
+            >
+              <div className="text-sm items-start py-1 capitalize">
+                <span className="flex items-center space-x-4">
+                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                  <span>Tax Collectors Commision</span>
                 </span>
               </div>
             </SidebarElement>
@@ -1401,30 +1441,31 @@ export const Sidebar = () => {
               </div>
             </SidebarElement>
 
-
             <SidebarElement
-              to="/contractor-payment-certificate"
+              to="/preparation-payment-certificate"
               customCss={"flex justify-start pl-4 "}
             >
               <div className="text-sm  items-start py-1 capitalize">
                 <span className="flex items-center space-x-4">
                   {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                  <span>Contractor Payment Certificate</span>
+                  <span>Preparation of Payment Certificate</span>
                 </span>
               </div>
             </SidebarElement>
 
+
+
             <SidebarElement
-                to="/bank-try-reconciliation"
-                customCss={"flex justify-start pl-4 "}
-              >
-                <div className="text-sm items-start py-1 capitalize">
-                  <span className="flex items-center space-x-4">
-                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                    <span>Bank/Try Reconciliation</span>
-                  </span>
-                </div>
-              </SidebarElement>
+              to="/bank-try-reconciliation"
+              customCss={"flex justify-start pl-4 "}
+            >
+              <div className="text-sm items-start py-1 capitalize">
+                <span className="flex items-center space-x-4">
+                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                  <span>Bank/Try Reconciliation</span>
+                </span>
+              </div>
+            </SidebarElement>
 
             <SidebarElement
               to="/bank-try-passbook"
@@ -1485,7 +1526,7 @@ export const Sidebar = () => {
               </SidebarElement>
 
 
-              
+
 
 
               {/* : */}

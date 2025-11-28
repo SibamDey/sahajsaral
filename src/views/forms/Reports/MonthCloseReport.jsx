@@ -36,9 +36,12 @@ const MonthClosingModule = () => {
         date ? new Date(date).toLocaleDateString("en-GB").replace(/\//g, '.') : "Invalid Date";
 
     const monthList = [
-        'april', 'may', 'june', 'july', 'aug', 'sep',
-        'oct', 'nov', 'dec', 'jan', 'feb', 'march'
+        'april', 'may', 'june', 'july',
+        'august', 'september',
+        'october', 'november', 'december',
+        'january', 'february', 'march'
     ];
+
 
     useEffect(() => {
 

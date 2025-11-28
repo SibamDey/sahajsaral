@@ -789,7 +789,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                             <p><span className="lhght font-semibold text-cyan-700">of:</span> {voucherData?.voucherDetails?.partyAddress}</p>
                             <p className="lhght"><span className="lhght font-semibold text-cyan-700">Description:</span> {voucherData?.voucherDetails?.voucherNarration}</p>
                             <p><span className="font-semibold text-cyan-700 lhght" style={{ lineHeight: "1.5" }}>Rs.:</span> {voucherData?.voucherDetails?.voucherNetAmount}/- (Rs.{voucherData?.voucherDetails?.voucherNetAmountWord})</p>
-                            <p><span className="font-semibold text-cyan-700">Paid by:</span> {voucherData?.voucherDetails?.instrumentType}</p>
+                            <p><span className="font-semibold text-cyan-700">Paid by:</span> {voucherData?.voucherDetails?.instrumentType} <span> {voucherData?.voucherDetails?.realAccountDesc === "CASH" ? "" : "("+voucherData?.voucherDetails?.realAccountDesc+")"}</span></p>
                             <p><span className="font-semibold text-cyan-700">No.:</span> {voucherData?.voucherDetails?.instrumentNo}</p>
                             <p><span className="font-semibold text-cyan-700">Dated:</span> {voucherData?.voucherDetails?.instrumentType === "None" ? "" : voucherData?.voucherDetails?.instrumentDate}</p>
                             <p><span className="font-semibold text-cyan-700">Drawn on:</span> {voucherData?.voucherDetails?.instrumentDetails}</p>
@@ -1031,7 +1031,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                             <p><span className="font-semibold text-cyan-700">of:</span> {voucherData?.partyAddress}</p>
                             <p className="lhght"><span className="font-semibold text-cyan-700" style={{ lineHeight: "1.8" }}>Description:</span> {voucherData?.voucherNarration}</p>
                             <p><span className="font-semibold text-cyan-700" style={{ lineHeight: "1.5" }}>Rs.:</span> {voucherData?.voucherNetAmount}/- (Rs.{voucherData?.voucherNetAmountWord})</p>
-                            <p><span className="font-semibold text-cyan-700">Received by:</span> {voucherData?.instrumentType}</p>
+                            <p><span className="font-semibold text-cyan-700">Received by:</span> {voucherData?.instrumentType} <span> {voucherData?.realAccountDesc === "CASH" ? "" : "("+voucherData?.realAccountDesc+")"}</span></p>
                             <p><span className="font-semibold text-cyan-700">No.:</span> {voucherData?.instrumentNo}</p>
                             <p><span className="font-semibold text-cyan-700">Dated:</span> {voucherData?.instrumentType === "None" ? "" : voucherData?.instrumentDate}</p>
                             <p><span className="font-semibold text-cyan-700">Drawn on:</span> {voucherData?.instrumentDetails}</p>
@@ -1649,7 +1649,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                                                         >
                                                             <FontAwesomeIcon size="2x" icon={faEye} title="View File" />
                                                         </button>
-                                                    ) :  header === "pfpFile" && row[header] ? (
+                                                    ) : header === "pfpFile" && row[header] ? (
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation(); // 👈 Prevent the row click

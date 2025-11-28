@@ -167,6 +167,12 @@ const ContractorDeductionRegister = () => {
         },
 
         {
+            header: "PFP Id",
+            accessorKey: "pfpId",
+            headclass: "cursor-pointer",
+        },
+
+        {
             header: "Voucher Id",
             accessorKey: "paymentVoucherId",
             headclass: "cursor-pointer",
@@ -209,6 +215,21 @@ const ContractorDeductionRegister = () => {
         {
             header: "PAN",
             accessorKey: "contructorPan",
+            headclass: "cursor-pointer",
+        },
+        {
+            header: "Invoice No / Bill No",
+            accessorKey: "invoiceNo",
+            headclass: "cursor-pointer",
+        },
+        {
+            header: "Invoice Date / Bill Date",
+            accessorKey: "invoiceDate",
+            headclass: "cursor-pointer",
+        },
+        {
+            header: "Taxable Amount",
+            accessorKey: "taxableAmount",
             headclass: "cursor-pointer",
         },
 
@@ -467,60 +488,56 @@ const ContractorDeductionRegister = () => {
                         onChange={(e) => setFiltering(e.target.value)}
                     />
                 </div>
-                <div className=" flex flex-col space-y-6 pb-8">
-                    <Table style={{ border: "1px solid #444 " }}>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <Table.Head key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => (
-                                    <Table.HeadCell
-                                        style={{ border: "1px solid #444 ", padding: "4px 8px", lineHeight: "1.2" }} // Reduced padding and line-height
-                                        key={header.id}
-                                        className={classNames(
-                                            header.column.columnDef.headclass,
-                                            " bg-cyan-400/90 btn-blue transition-all whitespace-nowrap"
-                                        )}
-                                        onClick={header.column.getToggleSortingHandler()}
-                                    >
-                                        {header.isPlaceholder ? null : (
-                                            <div className="flex items-center space-x-2 justify-between">
-                                                <span className="normal-case">
-                                                    {flexRender(
-                                                        header.column.columnDef.header,
-                                                        header.getContext()
-                                                    )}
-                                                </span>
-                                                <SortIcon sort={header.column.getIsSorted()} />
-                                            </div>
-                                        )}
-                                    </Table.HeadCell>
-                                ))}
-                            </Table.Head>
-                        ))}
-
-
-                        <Table.Body className="divide-y" style={{ border: "1px solid #444 " }}>
-                            {table.getRowModel().rows.map((row) => (
-                                <Table.Row key={row.id} style={{ border: "1px solid #444 " }}>
-                                    {row.getVisibleCells().map((cell) => (
-                                        <Table.Cell
-                                            style={{ border: "1px solid #444 " }}
-                                            key={cell.id}
-                                            className="p-1 text-xs"
-
-                                        >
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
+                <div className="flex flex-col space-y-6 pb-8">
+                    {/* ✅ Scroll wrapper added here */}
+                    <div className="w-full overflow-x-auto">
+                        <Table className="min-w-full" style={{ border: "1px solid #444" }}>
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <Table.Head key={headerGroup.id}>
+                                    {headerGroup.headers.map((header) => (
+                                        <Table.HeadCell
+                                            key={header.id}
+                                            style={{ border: "1px solid #444", padding: "4px 8px", lineHeight: "1.2" }}
+                                            className={classNames(
+                                                header.column.columnDef.headclass,
+                                                "bg-cyan-400/90 btn-blue transition-all whitespace-nowrap"
                                             )}
-                                        </Table.Cell>
+                                            onClick={header.column.getToggleSortingHandler()}
+                                        >
+                                            {header.isPlaceholder ? null : (
+                                                <div className="flex items-center space-x-2 justify-between">
+                                                    <span className="normal-case">
+                                                        {flexRender(header.column.columnDef.header, header.getContext())}
+                                                    </span>
+                                                    <SortIcon sort={header.column.getIsSorted()} />
+                                                </div>
+                                            )}
+                                        </Table.HeadCell>
                                     ))}
-                                </Table.Row>
+                                </Table.Head>
                             ))}
-                        </Table.Body>
-                    </Table>
+
+                            <Table.Body className="divide-y" style={{ border: "1px solid #444" }}>
+                                {table.getRowModel().rows.map((row) => (
+                                    <Table.Row key={row.id} style={{ border: "1px solid #444" }}>
+                                        {row.getVisibleCells().map((cell) => (
+                                            <Table.Cell
+                                                key={cell.id}
+                                                style={{ border: "1px solid #444" }}
+                                                className="p-1 text-xs whitespace-nowrap"
+                                            >
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </Table.Cell>
+                                        ))}
+                                    </Table.Row>
+                                ))}
+                            </Table.Body>
+                        </Table>
+                    </div>
 
                     <Pagination data={data} table={table} />
                 </div>
+
             </div>
         </>
     );

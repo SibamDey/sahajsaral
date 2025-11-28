@@ -33,10 +33,16 @@ const RealAccountCBT = () => {
     const onClosePreview = () => {
         if (voucherMode === "Payment") {
             setVoucherPaymentFlag(false);
+            setRealAccountById(true)
+
         } else if (voucherMode === "Transfer") {
             setVoucherContraFlag(false);
+            setRealAccountById(true)
+
         } else if (voucherMode === "Reciept") {
             setVoucherCreditFlag(false);
+            setRealAccountById(true)
+
         }
 
     }

@@ -317,9 +317,7 @@ const GlGroupMaster = () => {
                                     // onKeyDown={handleKeyDown}
                                     ref={groupName}
                                 />
-                                {!isValidContractorName && (
-                                    <div style={{ color: "red" }}>Please enter a valid Group Name</div>
-                                )}
+                            
                             </div>
 
                             {/* LF ID */}

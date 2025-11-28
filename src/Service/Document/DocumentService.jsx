@@ -66,3 +66,15 @@ export const getSearchPassForPayment = async (lgd, frmDate, toDate, pfpStts, ver
     return await webApi.get(`/PassForPayment/Listing?lgdCode=${lgd}&frmDate=${frmDate}&toDate=${toDate}&pfpStts=${pfpStts}&voucherGen=${verify}&pfpNarration=${narration}`);
 }
 
+
+export const getSearchPaymantCertificate = async (lgd, frmDate, toDate, partyCode) => {
+    return await webApi.get(`/PaymentCertificate/GetPaymentList?lgdCode=${lgd}&frmDate=${frmDate}&toDate=${toDate}&partyCode=${partyCode}`);
+}
+
+export const getSearchRptPaymantCertificate = async (lgd, partyCode) => {
+    return await webApi.get(`/PaymentCertificate/RptPaymentSummary?lgdCode=${lgd}&partyCode=${partyCode}`);
+}
+
+
+
+

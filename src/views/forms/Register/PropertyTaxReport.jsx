@@ -23,7 +23,7 @@ import * as XLSX from "xlsx";
 
 
 
-const PropertyTax = () => {
+const PropertyTaxReport = () => {
     const [mutationId, setMutationId] = useState(null);
     const jsonString = sessionStorage.getItem("SAHAJ_SARAL_USER");
     const userData = JSON.parse(jsonString);
@@ -52,7 +52,7 @@ const PropertyTax = () => {
 
     const { mutate: addPed, isPending: addPending, data: result, } = useMutation({
         mutationFn: (newTodo) => {
-            return fetch.get(`/Register/ReceivePtax?lgdCode=${userData?.CORE_LGD}&frmDate=${fromDate.current.value}&toDate=${toDate.current.value}`);
+            return fetch.get(`/Voucher/GetPtaxCommission?lgdCode=${userData?.CORE_LGD}&frmDate=${fromDate.current.value}&toDate=${toDate.current.value}`);
         },
 
         mutationKey: ["adddesignation"],
@@ -136,48 +136,40 @@ const PropertyTax = () => {
     }, [result]);
 
 
-    const list = [
-        {
-            header: "Voucher Id",
-            accessorKey: "voucherId",
-            className: "text-left cursor-pointer",
-            // cell: ({ row }) => row.index + 1,
-            headclass: "cursor-pointer w-32",
-            // sortingFn: "id",
-        },
-        {
-            header: "Voucher Date",
-            accessorKey: "date",
-            headclass: "cursor-pointer",
-        },
-        {
-            header: "Assessee No",
-            accessorKey: "assesseeNo",
-            headclass: "cursor-pointer",
-        },
-        {
-            header: "Name",
-            accessorKey: "assesseeName",
-            headclass: "cursor-pointer",
-        },
-        {
-            header: "Address",
-            accessorKey: "assesseeAddress",
-            headclass: "cursor-pointer",
-        },
-        {
-            header: "Transaction No",
-            accessorKey: "transactionNo",
-            headclass: "cursor-pointer",
-        },
-        {
-            header: "Amount",
-            accessorKey: "taxAmount",
-            headclass: "cursor-pointer",
-        },
+const list = [
+  {
+    header: "Voucher Id",
+    accessorKey: "voucherId",
+    className: "text-left cursor-pointer",
+    headclass: "cursor-pointer w-32",
+  },
+  {
+    header: "Voucher Date",
+    accessorKey: "voucherDate",
+    headclass: "cursor-pointer",
+  },
+  {
+    header: "Party Name",
+    accessorKey: "partyName",
+    headclass: "cursor-pointer",
+  },
+  {
+    header: "Amount",
+    accessorKey: "voucherAmount",
+    headclass: "cursor-pointer",
+  },
+  {
+    header: "Payment Id",
+    accessorKey: "pTaxPaymentId",
+    headclass: "cursor-pointer",
+  },
+  {
+    header: "Narration",
+    accessorKey: "voucherNarration",
+    headclass: "cursor-pointer",
+  },
+];
 
-
-    ];
 
     const [sorting, setSorting] = useState([]);
     const [filtering, setFiltering] = useState("");
@@ -228,7 +220,7 @@ const PropertyTax = () => {
             <ToastContainer />
 
             <div className="bg-white rounded-lg p-2 flex flex-col flex-grow" style={{ marginTop: "-40px" }}>
-                <legend className="text-lg font-semibold text-cyan-700">Collection of Property Tax</legend>
+                <legend className="text-lg font-semibold text-cyan-700">Tax Collectors Commision</legend>
 
                 <div className=" flex flex-col space-y-2 py-1">
                     <div className="flex flex-col w-full space-y-2">
@@ -382,4 +374,4 @@ const PropertyTax = () => {
     );
 };
 
-export default PropertyTax;
+export default PropertyTaxReport;
