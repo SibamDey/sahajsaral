@@ -93,6 +93,7 @@ import MonthClosingReport from "../views/forms/Reports/MonthCloseReport";
 import OSRCollectionApp from "../views/forms/Register/OSRCollectionApp";
 import PropertyTaxReport from "../views/forms/Register/PropertyTaxReport";
 import PreparationPaymentCertificate from "../views/forms/Document/PreparationPamentCertificate";
+// import PublicPaymentCertificate from "../views/forms/Document/PublicPaymentCertificate";
 
 
 
@@ -682,6 +683,12 @@ export const sideBarList = [
     permissions: [1],
   },
 
+  //   {
+  //   Component: PublicPaymentCertificate,
+  //   text: "PublicPaymentCertificate",
+  //   route: "/payment-certificate/view",
+  //   permissions: [1],
+  // },
 
 
 

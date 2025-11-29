@@ -4,18 +4,46 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { fetch } from "../../../functions/Fetchfunctions";
 import { useReactToPrint } from "react-to-print";
+import QRCode from "qrcode";
 import {
   getSearchRptPaymantCertificate,
 } from "../../../Service/Document/DocumentService";
+import logo from "../../../Img/logo.png";
 
 /* ------------------- CERTIFICATE DOCUMENT ------------------- */
 
 const PaymentCertificateDocument = React.forwardRef(
-  ({ cert, officeName, officeAddress, officeContact }, ref) => {
+  ({ cert, officeName, officeAddress, officeContact, qrSrc }, ref) => {
     if (!cert) return null;
 
     return (
-      <div ref={ref} className="w-[900px] mx-auto bg-white p-8 text-xs text-black">
+      <div
+        ref={ref}
+        className="w-[900px] mx-auto bg-white p-8 text-xs text-black"
+      >
+        {/* Top row: Logo (left) + QR (right) */}
+        <div className="flex justify-between items-start mb-2">
+          {/* Logo */}
+          <div>
+            <img
+              src={logo}
+              alt="Office Logo"
+              className="w-20 h-20 object-contain"
+            />
+          </div>
+
+          {/* QR Code */}
+          <div>
+            {qrSrc && (
+              <img
+                src={qrSrc}
+                alt="QR Code"
+                className="w-20 h-20 object-contain"
+              />
+            )}
+          </div>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-4">
           <div className="font-semibold text-sm">
@@ -26,7 +54,7 @@ const PaymentCertificateDocument = React.forwardRef(
           </div>
           <div className="text-[11px]">
             {officeContact ||
-              "email: ______@gmail.com, Phone: _________, Pin: ______"}
+              "email: ______@gmail.com, Phone: _________"}
           </div>
           <div className="mt-3 font-semibold underline text-sm">
             Payment Certificate
@@ -158,11 +186,7 @@ const PaymentCertificateDocument = React.forwardRef(
 
         {/* Footer */}
         <div className="mt-6 flex justify-between text-[11px]">
-          <div>
-            Place: __________
-            <br />
-            Date: __________
-          </div>
+          <div>Date: __________</div>
           <div className="text-right">
             Executive Officer
             <br />
@@ -181,6 +205,7 @@ const PreparationPaymentCertificate = () => {
   const [data, setData] = useState([]);
   const [certificate, setCertificate] = useState(null);
   const [showCert, setShowCert] = useState(false);
+  const [qrImage, setQrImage] = useState("");
 
   const jsonString = sessionStorage.getItem("SAHAJ_SARAL_USER");
   const userData = JSON.parse(jsonString || "{}");
@@ -194,6 +219,22 @@ const PreparationPaymentCertificate = () => {
 
   const coreLgd = userData?.CORE_LGD;
   const userIndex = userData?.USER_INDEX;
+
+  // --------- BUILD OFFICE HEADER VALUES FROM SESSION ---------
+  const officeNameFromSession =
+    userData?.DIST_NAME && userData?.USER_LEVEL === "DIST"
+      ? `Office of The ${userData.DIST_NAME} Panchayat Samiti`
+      : undefined;
+
+  // If you have no address in session, let it fall back to default text
+  const officeAddressFromSession = undefined;
+
+  const officeContactFromSession =
+    userData?.EMAIL || userData?.MOBILE
+      ? `email: ${userData.EMAIL || "________@gmail.com"}, Phone: ${
+          userData.MOBILE || "_________"
+        }`
+      : undefined;
 
   // LOAD CONTRACTORS
   const { data: contractorList = [] } = useQuery({
@@ -215,8 +256,7 @@ const PreparationPaymentCertificate = () => {
   const sortedContractors = useMemo(() => {
     if (!Array.isArray(contractorList)) return [];
     return [...contractorList].sort((a, b) =>
-      String(a.contractorNm).localeCompare(String(b.contractorNm)
-      )
+      String(a.contractorNm).localeCompare(String(b.contractorNm))
     );
   }, [contractorList]);
 
@@ -236,12 +276,33 @@ const PreparationPaymentCertificate = () => {
     }
   };
 
+  /* ----------- QR CODE GENERATION (encoded ref) ----------- */
+  const generateQR = async ({ lgdCode, partyCode, paymentId }) => {
+    try {
+      const payloadObj = { lgdCode, partyCode, paymentId };
+      const json = JSON.stringify(payloadObj);
+      const encoded = window.btoa(json); // base64 encode
+
+      const baseHashUrl = "https://wbpms.in/SahajSaral/#";
+      const routePath = "/payment-certificate/view";
+
+      const url = `${baseHashUrl}${routePath}?ref=${encodeURIComponent(
+        encoded
+      )}`;
+
+      const base64 = await QRCode.toDataURL(url, { width: 200 });
+      setQrImage(base64);
+    } catch (err) {
+      console.error("QR Code generation error:", err);
+      setQrImage("");
+    }
+  };
+
   /* ----------- VIEW -> CALL CERTIFICATE API ----------- */
 
   const onView = async (row) => {
     try {
       const lgd = coreLgd || lgdCode; // use what your API expects
-      // partyCode may come from row or from contractorId
       const partyCode = row.partyCode || selectedContractorId;
       const paymentId = row.paymentId;
 
@@ -262,7 +323,10 @@ const PreparationPaymentCertificate = () => {
         return;
       }
 
-      setCertificate(arr[0]); // only one record as per sample
+      const certObj = arr[0];
+
+      setCertificate(certObj);
+      await generateQR({ lgdCode: lgd, partyCode, paymentId }); // QR with encoded ref
       setShowCert(true);
     } catch (err) {
       console.error(err);
@@ -392,7 +456,7 @@ const PreparationPaymentCertificate = () => {
       {/* ------------- MODAL FOR CERTIFICATE + PRINT ------------- */}
       {showCert && certificate && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded shadow-lg max-h-[95vh] overflow-auto p-4">
+          <div className="bg-white rounded shadow-lg max_height-[95vh] max-h-[95vh] overflow-auto p-4">
             <div className="flex justify-between items-center mb-3">
               <h2 className="font-semibold text-sm">Payment Certificate</h2>
               <div className="space-x-2">
@@ -414,9 +478,10 @@ const PreparationPaymentCertificate = () => {
             <PaymentCertificateDocument
               ref={printRef}
               cert={certificate}
-              officeName="Office of The Jhargram Panchayat Samiti"
-              officeAddress="Ghardhara :: Jhargram"
-              officeContact="email- bdojhargram@gmail.com, Phone- 03221-255071, Pin- 721507"
+              officeName={officeNameFromSession}
+              officeAddress={officeAddressFromSession}
+              officeContact={officeContactFromSession}
+              qrSrc={qrImage}
             />
           </div>
         </div>
