@@ -5,27 +5,159 @@ import QRCode from "qrcode";
 import { ToastContainer, toast } from "react-toastify";
 import { useReactToPrint } from "react-to-print";
 import logo from "../../../Img/logo.png";
+import { getLgdDetails } from "../../../Service/LgdCodeGet/LgdCodeService";
 
-/* Certificate document for public view */
+/* ---------- Helpers ---------- */
+
+// Derive Indian Financial Year from a date string (supports DD.MM.YYYY)
+const getFinancialYearLabel = (dateStr) => {
+  if (!dateStr) return "____-____";
+
+  let normalized = dateStr.trim();
+
+  // Convert DD.MM.YYYY → YYYY-MM-DD
+  if (normalized.includes(".")) {
+    const parts = normalized.split(".");
+    if (parts.length === 3) {
+      normalized = `${parts[2]}-${parts[1].padStart(
+        2,
+        "0"
+      )}-${parts[0].padStart(2, "0")}`;
+    }
+  }
+
+  // Convert DD/MM/YYYY or DD-MM-YYYY → YYYY-MM-DD
+  if (normalized.includes("/") || normalized.includes("-")) {
+    const parts = normalized.split(/[-\/]/);
+    if (parts.length === 3 && parts[0].length <= 2) {
+      normalized = `${parts[2]}-${parts[1].padStart(
+        2,
+        "0"
+      )}-${parts[0].padStart(2, "0")}`;
+    }
+  }
+
+  const d = new Date(normalized);
+  if (isNaN(d)) return "____-____";
+
+  const year = d.getFullYear();
+  const month = d.getMonth(); // 0=Jan, 3=Apr
+
+  // Indian Financial Year rule
+  const fyStart = month >= 3 ? year : year - 1;
+  const fyEnd = (fyStart + 1).toString().slice(-2);
+
+  return `${fyStart}-${fyEnd}`;
+};
+
+const getTodayDate = () => {
+  const d = new Date();
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}.${month}.${year}`; // DD.MM.YYYY
+};
+
+// Signature text based on LGD type (1 = DIST, 2 = BLOCK, 3 = GP – inferred)
+const getSignatureTextFromLgdType = (lgdType) => {
+  if (lgdType === "2") return "Executive Officer / Joint Executive Officer"; // Block / PS
+  if (lgdType === "1") return "AEO / FCCAO"; // District / ZP
+  if (lgdType === "3") return "Executive Assistant"; // GP
+
+  return "Authorized Signatory";
+};
+
+const getLevelTextFromLgdType = (lgdType) => {
+  if (lgdType === "2") return "Panchayat Samiti";
+  if (lgdType === "1") return "Zilla Parishad";
+  if (lgdType === "3") return "Gram Panchayat";
+
+  return "Local Self Government";
+};
+
+// Safely convert to number
+const toNum = (val) => {
+  const n = parseFloat(val);
+  return isNaN(n) ? 0 : n;
+};
+
+// "Others" = (grossAmount - incomeTax + gstAmount + cessAmount + securityAmount + royaltyAmount + netAmount)
+const calcOthers = (row) => {
+  if (!row) return "0.00";
+
+  const grossAmount = toNum(row.grossAmount);
+  const incomeTax = toNum(row.incomeTax);
+  const gstAmount = toNum(row.gstAmount);
+  const cessAmount = toNum(row.cessAmount);
+  const securityAmount = toNum(row.securityAmount);
+  const royaltyAmount = toNum(row.royaltyAmount);
+  const netAmount = toNum(row.netAmount);
+
+  const result =
+
+    (incomeTax +
+      gstAmount +
+      cessAmount +
+      securityAmount +
+      royaltyAmount +
+      netAmount) - grossAmount;
+
+  return result.toFixed(2);
+};
+
+// Sum of a numeric column across all rows
+const sumBy = (rows, key) =>
+  rows.reduce((acc, r) => acc + toNum(r[key]), 0);
+
+// Sum of "Others" for all rows
+const sumOthers = (rows) =>
+  rows.reduce((acc, r) => acc + toNum(calcOthers(r)), 0);
+
+/* ---------- Certificate document for public view ---------- */
+
 const PaymentCertificateDocument = React.forwardRef(
-  ({ cert, qrSrc }, ref) => {
-    if (!cert) return null;
+  (
+    { rows, officeName, officeAddress, signatureText, levelText, qrSrc },
+    ref
+  ) => {
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+
+    const first = rows[0];
+    const financialYear = getFinancialYearLabel(
+      first.generateDate || first.voucherDate
+    );
 
     return (
       <div
         ref={ref}
         className="w-[900px] mx-auto bg-white p-8 text-xs text-black"
       >
-        {/* Top row: Logo + QR */}
-        <div className="flex justify-between items-start mb-2">
-          <div>
+        {/* Top row: Logo (left) + Office header (center) + QR (right) */}
+        <div className="flex items-start mb-4">
+          {/* Logo */}
+          <div className="w-1/5 flex justify-start">
             <img
               src={logo}
               alt="Office Logo"
               className="w-20 h-20 object-contain"
             />
           </div>
-          <div>
+
+          {/* Office Header (center) */}
+          <div className="flex-1 text-center px-2">
+            <div className="font-semibold text-sm">
+              Office of The {officeName || "Office of the ______ Panchayat Samiti"}
+            </div>
+            <div className="text-[11px] font-semibold">
+              {officeAddress || "_________ :: District _______"}
+            </div>
+            <div className="mt-3 font-semibold underline text-sm">
+              Payment Certificate
+            </div>
+          </div>
+
+          {/* QR Code */}
+          <div className="w-1/5 flex justify-end">
             {qrSrc && (
               <img
                 src={qrSrc}
@@ -36,36 +168,27 @@ const PaymentCertificateDocument = React.forwardRef(
           </div>
         </div>
 
-        {/* Header */}
-        <div className="text-center mb-4">
-          <div className="font-semibold text-sm">
-            Office of The Jhargram Panchayat Samiti
-          </div>
-          <div className="text-[11px]">Ghardhara :: Jhargram</div>
-          <div className="text-[11px]">
-            email- bdojhargram@gmail.com, Phone- 03221-255071, Pin- 721507
-          </div>
-          <div className="mt-3 font-semibold underline text-sm">
-            Payment Certificate
-          </div>
-        </div>
-
         {/* Issued to */}
         <div className="mb-4 text-[11px]">
           <div>
             <span className="font-semibold">Issued to : </span>
-            {cert.contractorName}
+            {first.contractorName}
           </div>
           <div>
-            <span className="ml-14">Party Code : </span>
-            {cert.partyCode}
+            <span className="mb-4 font-semibold">Contractor PAN No : </span>
+            {first.contractorPan}
+          </div>
+          <div>
+            <span className="mb-4 font-semibold">Contractor Address : </span>
+            {first.contractorAddr}
           </div>
         </div>
 
         {/* Paragraph */}
-        <p className="mb-4 text-[11px] leading-snug">
+        <p className="mb-4 text-[11px] leading-snug font-semibold">
           The contractor has worked &amp; has drawn payment under this Panchayat
-          Samiti for the below mentioned work during the Financial Year 2025-26.
+          Samiti for the below mentioned work during the Financial Year{" "}
+          {financialYear}.
         </p>
 
         {/* Table */}
@@ -73,9 +196,6 @@ const PaymentCertificateDocument = React.forwardRef(
           <thead>
             <tr className="bg-gray-100">
               <th className="border border-black px-1 py-1">Date of Payment</th>
-              <th className="border border-black px-1 py-1">
-                Name of the Contractor
-              </th>
               <th className="border border-black px-1 py-1 w-[220px]">
                 Description of works
               </th>
@@ -87,9 +207,7 @@ const PaymentCertificateDocument = React.forwardRef(
                 Security Deposit
               </th>
               <th className="border border-black px-1 py-1">Royalty</th>
-              <th className="border border-black px-1 py-1">
-                CESS on Royalty
-              </th>
+              <th className="border border-black px-1 py-1">Others</th>
               <th className="border border-black px-1 py-1">
                 Net amount paid
               </th>
@@ -97,74 +215,75 @@ const PaymentCertificateDocument = React.forwardRef(
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td className="border border-black px-1 py-1 text-center">
-                {cert.voucherDate}
-              </td>
-              <td className="border border-black px-1 py-1">
-                {cert.contractorName}
-              </td>
-              <td className="border border-black px-1 py-1">
-                {cert.activityDesc}
-              </td>
-              <td className="border border-black px-1 py-1 text-right">
-                {cert.grossAmount}
-              </td>
-              <td className="border border-black px-1 py-1 text-right">
-                {cert.incomeTax}
-              </td>
-              <td className="border border-black px-1 py-1 text-right">
-                {cert.gstAmount}
-              </td>
-              <td className="border border-black px-1 py-1 text-right">
-                {cert.cessAmount}
-              </td>
-              <td className="border border-black px-1 py-1 text-right">
-                {cert.securityAmount}
-              </td>
-              <td className="border border-black px-1 py-1 text-right">
-                {cert.royaltyAmount}
-              </td>
-              <td className="border border-black px-1 py-1 text-right">
-                0.00
-              </td>
-              <td className="border border-black px-1 py-1 text-right">
-                {cert.netAmount}
-              </td>
-              <td className="border border-black px-1 py-1">
-                {cert.accountHead}
-              </td>
-            </tr>
+            {/* All rows */}
+            {rows.map((row, idx) => (
+              <tr key={row.voucherId || idx}>
+                <td className="border border-black px-1 py-1 text-center">
+                  {row.voucherDate}
+                </td>
 
+                <td className="border border-black px-1 py-1">
+                  {row.activityDesc}
+                </td>
+                <td className="border border-black px-1 py-1 text-right">
+                  {row.grossAmount}
+                </td>
+                <td className="border border-black px-1 py-1 text-right">
+                  {row.incomeTax}
+                </td>
+                <td className="border border-black px-1 py-1 text-right">
+                  {row.gstAmount}
+                </td>
+                <td className="border border-black px-1 py-1 text-right">
+                  {row.cessAmount}
+                </td>
+                <td className="border border-black px-1 py-1 text-right">
+                  {row.securityAmount}
+                </td>
+                <td className="border border-black px-1 py-1 text-right">
+                  {row.royaltyAmount}
+                </td>
+                <td className="border border-black px-1 py-1 text-right">
+                  {calcOthers(row)}
+                </td>
+                <td className="border border-black px-1 py-1 text-right">
+                  {row.netAmount}
+                </td>
+                <td className="border border-black px-1 py-1">
+                  {row.accountHead}
+                </td>
+              </tr>
+            ))}
+
+            {/* total row */}
             <tr>
               <td className="border border-black px-1 py-1 text-right font-semibold">
                 Total
               </td>
               <td className="border border-black px-1 py-1"></td>
-              <td className="border border-black px-1 py-1"></td>
               <td className="border border-black px-1 py-1 text-right font-semibold">
-                {cert.grossAmount}
+                {sumBy(rows, "grossAmount").toFixed(2)}
               </td>
               <td className="border border-black px-1 py-1 text-right font-semibold">
-                {cert.incomeTax}
+                {sumBy(rows, "incomeTax").toFixed(2)}
               </td>
               <td className="border border-black px-1 py-1 text-right font-semibold">
-                {cert.gstAmount}
+                {sumBy(rows, "gstAmount").toFixed(2)}
               </td>
               <td className="border border-black px-1 py-1 text-right font-semibold">
-                {cert.cessAmount}
+                {sumBy(rows, "cessAmount").toFixed(2)}
               </td>
               <td className="border border-black px-1 py-1 text-right font-semibold">
-                {cert.securityAmount}
+                {sumBy(rows, "securityAmount").toFixed(2)}
               </td>
               <td className="border border-black px-1 py-1 text-right font-semibold">
-                {cert.royaltyAmount}
+                {sumBy(rows, "royaltyAmount").toFixed(2)}
               </td>
               <td className="border border-black px-1 py-1 text-right font-semibold">
-                0.00
+                {sumOthers(rows).toFixed(2)}
               </td>
               <td className="border border-black px-1 py-1 text-right font-semibold">
-                {cert.netAmount}
+                {sumBy(rows, "netAmount").toFixed(2)}
               </td>
               <td className="border border-black px-1 py-1"></td>
             </tr>
@@ -172,12 +291,15 @@ const PaymentCertificateDocument = React.forwardRef(
         </table>
 
         {/* Footer */}
-        <div className="mt-6 flex justify-between text-[11px]">
-          <div>Date: __________</div>
+        <div className="mt-6 flex justify-between text-[11px] font-semibold">
+          <div>
+            Issued on: {first.generateDate} <br />
+            Printed on: {getTodayDate()}
+          </div>
           <div className="text-right">
-            Executive Officer
+            {signatureText || "Executive Officer"}
             <br />
-            _______ Panchayat Samiti
+            {officeName}
           </div>
         </div>
 
@@ -189,11 +311,14 @@ const PaymentCertificateDocument = React.forwardRef(
   }
 );
 
+/* ---------- Public container component ---------- */
+
 const PublicPaymentCertificate = () => {
   const [searchParams] = useSearchParams();
-  const [certificate, setCertificate] = useState(null);
+  const [certificateRows, setCertificateRows] = useState([]); // <-- array of vouchers
   const [qrImage, setQrImage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [lgd, setLgd] = useState([]); // LSG details
 
   const printRef = useRef();
   const handlePrint = useReactToPrint({
@@ -221,6 +346,7 @@ const PublicPaymentCertificate = () => {
 
   const { lgdCode, partyCode, paymentId } = decodedParams;
 
+  // Fetch certificate (all voucher rows)
   useEffect(() => {
     const fetchCertificate = async () => {
       try {
@@ -244,8 +370,7 @@ const PublicPaymentCertificate = () => {
           return;
         }
 
-        const certObj = arr[0];
-        setCertificate(certObj);
+        setCertificateRows(arr);
 
         // QR shown on this page = current URL (optional)
         const base64 = await QRCode.toDataURL(window.location.href, {
@@ -263,18 +388,50 @@ const PublicPaymentCertificate = () => {
     fetchCertificate();
   }, [lgdCode, partyCode, paymentId]);
 
+  // Fetch LGD / office header info using lgdCode from URL (NOT session)
+  useEffect(() => {
+    if (!lgdCode) return;
+
+    getLgdDetails(lgdCode)
+      .then((response) => {
+        if (response?.status === 200) {
+          setLgd(response.data || []);
+        } else {
+          toast.error("Failed to fetch office details");
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Failed to fetch office details");
+      });
+  }, [lgdCode]);
+
+  const lgdInfo = Array.isArray(lgd) && lgd.length > 0 ? lgd[0] : null;
+
+  const officeNameFromApi = lgdInfo?.lsgName
+    ? `${lgdInfo.lsgName}`
+    : undefined;
+
+  const officeAddressFromApi =
+    lgdInfo?.lgdAdd1 || lgdInfo?.lgdAdd2
+      ? [lgdInfo.lgdAdd1, lgdInfo.lgdAdd2].filter(Boolean).join(", ")
+      : undefined;
+
+  const signatureTextFromApi = getSignatureTextFromLgdType(lgdInfo?.lgdType);
+  const levelTextFromApi = getLevelTextFromLgdType(lgdInfo?.lgdType);
+
   if (loading) {
     return (
       <>
         <ToastContainer />
         <div className="flex items-center justify-center min-h-screen">
-          <p>Loading certificate...</p>
+          <p>Loading Payment certificate...</p>
         </div>
       </>
     );
   }
 
-  if (!certificate) {
+  if (!Array.isArray(certificateRows) || certificateRows.length === 0) {
     return (
       <>
         <ToastContainer />
@@ -290,7 +447,8 @@ const PublicPaymentCertificate = () => {
       <ToastContainer />
       <div className="min-h-screen bg-gray-100 py-4">
         <div className="max-w-5xl mx-auto bg-white shadow rounded p-4">
-          <div className="flex justify-between items-center mb-3">
+          {/* If you want print button, uncomment this */}
+          {/* <div className="flex justify-between items-center mb-3">
             <h2 className="font-semibold text-sm">Payment Certificate</h2>
             <button
               onClick={handlePrint}
@@ -298,11 +456,15 @@ const PublicPaymentCertificate = () => {
             >
               Download / Print PDF
             </button>
-          </div>
+          </div> */}
 
           <PaymentCertificateDocument
             ref={printRef}
-            cert={certificate}
+            rows={certificateRows}
+            officeName={officeNameFromApi}
+            officeAddress={officeAddressFromApi}
+            signatureText={signatureTextFromApi}
+            levelText={levelTextFromApi}
             qrSrc={qrImage}
           />
         </div>

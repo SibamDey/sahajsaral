@@ -10,6 +10,9 @@
     }
   }
 
+
+
+
   .btn-blue {
     @apply capitalize hover:bg-cyan-400/60 text-blue-900;
   }
