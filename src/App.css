@@ -12,3 +12,17 @@ input::-webkit-inner-spin-button {
     margin: 0;
 }
 
+/* ---- PRINT TUNING FOR PAYMENT CERTIFICATE ---- */
+@media print {
+  /* More white space on top of every printed page (incl. 2nd page) */
+  @page {
+    /* left/right/bottom you can tweak; key is bigger margin-top */
+    margin: 10mm 0mm 0mm 0mm;
+  }
+
+  /* Optional: keep the whole certificate from breaking very awkwardly */
+  .certificate-container {
+    page-break-inside: avoid;
+  }
+}
+

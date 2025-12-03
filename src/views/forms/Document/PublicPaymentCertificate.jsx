@@ -145,13 +145,13 @@ const PaymentCertificateDocument = React.forwardRef(
 
           {/* Office Header (center) */}
           <div className="flex-1 text-center px-2">
-            <div className="font-semibold text-sm">
+            <div className="font-semibold text-sm uppercase">
               Office of The {officeName || "Office of the ______ Panchayat Samiti"}
             </div>
-            <div className="text-[11px] font-semibold">
+            <div className="text-[11px] font-semibold uppercase">
               {officeAddress || "_________ :: District _______"}
             </div>
-            <div className="mt-3 font-semibold underline text-sm">
+            <div className="mt-3 font-semibold underline text-sm uppercase">
               Payment Certificate
             </div>
           </div>
@@ -169,27 +169,28 @@ const PaymentCertificateDocument = React.forwardRef(
         </div>
 
         {/* Issued to */}
-        <div className="mb-4 text-[11px]">
+        <div className="mb-4 text-[11px] uppercase">
           <div>
-            <span className="font-semibold">Issued to : </span>
+            <span className="font-semibold uppercase">Issued to : </span>
             {first.contractorName}
           </div>
           <div>
-            <span className="mb-4 font-semibold">Contractor PAN No : </span>
+            <span className="mb-4 font-semibold uppercase">PAN : </span>
             {first.contractorPan}
           </div>
           <div>
-            <span className="mb-4 font-semibold">Contractor Address : </span>
+            <span className="mb-4 font-semibold uppercase">Address : </span>
             {first.contractorAddr}
           </div>
         </div>
 
         {/* Paragraph */}
         <p className="mb-4 text-[11px] leading-snug font-semibold">
-          The contractor has worked &amp; has drawn payment under this Panchayat
-          Samiti for the below mentioned work during the Financial Year{" "}
-          {financialYear}.
+          The Contractor/Supplier has worked &amp; has drawn payment under this{" "}
+          {levelText || "Local Self Government"}{" "}
+          for the below mentioned work during the Financial Year {financialYear}.
         </p>
+
 
         {/* Table */}
         <table className="w-full border border-black text-[10px] border-collapse">
@@ -197,7 +198,7 @@ const PaymentCertificateDocument = React.forwardRef(
             <tr className="bg-gray-100">
               <th className="border border-black px-1 py-1">Date of Payment</th>
               <th className="border border-black px-1 py-1 w-[220px]">
-                Description of works
+                Transaction ID & Description of works
               </th>
               <th className="border border-black px-1 py-1">Total Amount</th>
               <th className="border border-black px-1 py-1">Income Tax</th>
@@ -207,11 +208,12 @@ const PaymentCertificateDocument = React.forwardRef(
                 Security Deposit
               </th>
               <th className="border border-black px-1 py-1">Royalty</th>
-              <th className="border border-black px-1 py-1">Others</th>
+              <th className="border border-black px-1 py-1">Other Deduction</th>
               <th className="border border-black px-1 py-1">
                 Net amount paid
               </th>
               <th className="border border-black px-1 py-1">Head of A/c</th>
+              <th className="border border-black px-1 py-1">Verified By</th>
             </tr>
           </thead>
           <tbody>
@@ -251,6 +253,9 @@ const PaymentCertificateDocument = React.forwardRef(
                 </td>
                 <td className="border border-black px-1 py-1">
                   {row.accountHead}
+                </td>
+                <td className="border border-black px-1 py-1">
+                  {row.verifiedBy}
                 </td>
               </tr>
             ))}
@@ -303,8 +308,9 @@ const PaymentCertificateDocument = React.forwardRef(
           </div>
         </div>
 
-        <div className="mt-4 text-[10px] text-gray-500 text-center">
-          This certificate is viewed via QR verification from Sahaj Saral.
+        <div className="mt-4 text-[10px] text-gray-500 text-center flex items-center justify-center gap-1">
+          {/* <span className="text-green-600 font-bold">✔</span> */}
+          This document is viewed via QR verification from Sahaj-Saral under West Bengal Panchayat Management System.
         </div>
       </div>
     );
@@ -419,6 +425,7 @@ const PublicPaymentCertificate = () => {
 
   const signatureTextFromApi = getSignatureTextFromLgdType(lgdInfo?.lgdType);
   const levelTextFromApi = getLevelTextFromLgdType(lgdInfo?.lgdType);
+  console.log(signatureTextFromApi, levelTextFromApi, "popopo")
 
   if (loading) {
     return (
@@ -466,6 +473,7 @@ const PublicPaymentCertificate = () => {
             signatureText={signatureTextFromApi}
             levelText={levelTextFromApi}
             qrSrc={qrImage}
+
           />
         </div>
       </div>

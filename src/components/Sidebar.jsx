@@ -56,7 +56,7 @@ import AcitivityWiseWorkOrder from "../views/forms/Project/ActivityWiseWorkOrder
 import SectorWiseAllocation from "../views/forms/Project/SectorWiseAllocation";
 import Form3536 from "../views/forms/Project/Form3536";
 import AdvanceRegister from "../views/forms/Register/AdvanceRegister";
-import ContractorPaymentCertificate from "../views/forms/Document/IssuancePaymentCertificate";
+import ContractorPaymentCertificate from "../views/forms/Document/PreparationPaymentCertificate";
 import ActivityWiseExpenditure from "../views/forms/Reports/ActivityWiseExpenditure";
 import AllotmentWiseExpenditure from "../views/forms/Reports/AllotmentWiseExpenditure";
 import GeneralLedger from "../views/forms/Reports/GeneralLedger";
@@ -92,7 +92,7 @@ import BankTryReconciliation from "../views/forms/Reports/BankTryReconciliation"
 import MonthClosingReport from "../views/forms/Reports/MonthCloseReport";
 import OSRCollectionApp from "../views/forms/Register/OSRCollectionApp";
 import PropertyTaxReport from "../views/forms/Register/PropertyTaxReport";
-import PreparationPaymentCertificate from "../views/forms/Document/PreparationPamentCertificate";
+import PreparationPaymentCertificate from "../views/forms/Document/IssuancePaymentCertificate";
 // import PublicPaymentCertificate from "../views/forms/Document/PublicPaymentCertificate";
 
 
@@ -482,7 +482,7 @@ export const sideBarList = [
   {
     Component: ContractorPaymentCertificate,
     text: "ContractorPaymentCertificate",
-    route: "/contractor-payment-certificate",
+    route: "/preparation-payment-certificate",
     permissions: [1],
   },
   {
@@ -679,7 +679,7 @@ export const sideBarList = [
   {
     Component: PreparationPaymentCertificate,
     text: "PreparationPaymentCertificate",
-    route: "/preparation-payment-certificate",
+    route: "/issuance-payment-certificate",
     permissions: [1],
   },
 
@@ -1242,13 +1242,13 @@ export const Sidebar = () => {
               </div>
             </SidebarElement>
             <SidebarElement
-              to="/contractor-payment-certificate"
+              to="/preparation-payment-certificate"
               customCss={"flex justify-start pl-4 "}
             >
               <div className="text-sm  items-start py-1 capitalize">
                 <span className="flex items-center space-x-4">
                   {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                  <span>Issuance of Payment Certificate</span>
+                  <span>Preparation of Payment Certificate</span>
                 </span>
               </div>
             </SidebarElement>
@@ -1449,13 +1449,13 @@ export const Sidebar = () => {
             </SidebarElement>
 
             <SidebarElement
-              to="/preparation-payment-certificate"
+              to="/issuance-payment-certificate"
               customCss={"flex justify-start pl-4 "}
             >
               <div className="text-sm  items-start py-1 capitalize">
                 <span className="flex items-center space-x-4">
                   {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                  <span>Preparation of Payment Certificate</span>
+                  <span>Issuance of Payment Certificate</span>
                 </span>
               </div>
             </SidebarElement>
