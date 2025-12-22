@@ -33,7 +33,7 @@ const ChequeReceiptIssueRegister = () => {
     const [cashAnalysisSummaryCB, setCashAnalysisSummaryCB] = useState();
     const [finInstitution, setfinInstitute] = useState([]);
     const [lgd, setLgd] = useState([]);
-
+    console.log(lgd, "lgd")
 
     // Calculate the current financial year dynamically
     useEffect(() => {

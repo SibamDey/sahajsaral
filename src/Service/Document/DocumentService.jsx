@@ -75,6 +75,20 @@ export const getSearchRptPaymantCertificate = async (lgd, partyCode) => {
     return await webApi.get(`/PaymentCertificate/RptPaymentSummary?lgdCode=${lgd}&partyCode=${partyCode}`);
 }
 
+export const getAdvanceRegisterSummary = async (lgdCode) => {
+  return await webApi.get(
+    `/Register/AdvanceRegisterSummary?lgdCode=${lgdCode}`
+  );
+};
+
+// already have: getAdvanceRegisterSummary
+
+export const getAdvanceRegisterDetails = async (lgdCode, voucherId) => {
+  return await webApi.get(
+    `/Register/AdvanceRegisterDetails?lgdCode=${lgdCode}&voucherId=${voucherId}`
+  );
+};
+
 
 
 
