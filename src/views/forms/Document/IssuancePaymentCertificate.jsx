@@ -16,28 +16,19 @@ import {
 import logo from "../../../Img/logo.png";
 import { getLgdDetails } from "../../../Service/LgdCodeGet/LgdCodeService";
 
-/* ---------- SESSION USER + SIGNATURE HELPERS ---------- */
+/* ---------- SIGNATURE + LEVEL HELPERS (PURE) ---------- */
 
-const jsonString = sessionStorage.getItem("SAHAJ_SARAL_USER");
-const userData = JSON.parse(jsonString || "{}");
-
-const getSignatureText = () => {
-  const level = userData?.USER_LEVEL;
-
+const getSignatureText = (level) => {
   if (level === "BLOCK") return "Executive Officer / Joint Executive Officer";
   if (level === "DIST") return "AEO / FCCAO";
   if (level === "GP") return "Executive Assistant";
-
   return "Authorized Signatory"; // fallback
 };
 
-const getLevelText = () => {
-  const level = userData?.USER_LEVEL;
-
+const getLevelText = (level) => {
   if (level === "BLOCK") return "Panchayat Samiti";
   if (level === "DIST") return "Zilla Parishad";
   if (level === "GP") return "Gram Panchayat";
-
   return "Authorized Signatory"; // fallback
 };
 
@@ -134,7 +125,7 @@ const sumOthers = (rows) =>
 /* ------------------- CERTIFICATE DOCUMENT ------------------- */
 
 const PaymentCertificateDocument = React.forwardRef(
-  ({ rows, officeName, officeAddress, qrSrc }, ref) => {
+  ({ rows, officeName, officeAddress, qrSrc, userLevel }, ref) => {
     if (!Array.isArray(rows) || rows.length === 0) return null;
 
     const first = rows[0]; // use first row for header information
@@ -143,8 +134,10 @@ const PaymentCertificateDocument = React.forwardRef(
     );
 
     return (
-      <div ref={ref} className="certificate-container w-[900px] mx-auto bg-white p-6 text-xs text-black">
-
+      <div
+        ref={ref}
+        className="certificate-container w-[900px] mx-auto bg-white p-6 text-xs text-black"
+      >
         {/* Top row: Logo (left) + Office header (center) + QR (right) */}
         <div className="flex items-start mb-4">
           {/* Logo */}
@@ -199,8 +192,9 @@ const PaymentCertificateDocument = React.forwardRef(
 
         {/* Paragraph */}
         <p className="mb-4 text-[11px] leading-snug font-semibold">
-          The Contractor/Supplier has worked &amp; has drawn payment under this {getLevelText()} for the below mentioned work during the Financial Year{" "}
-          {financialYear}.
+          The Contractor/Supplier has worked &amp; has drawn payment under this{" "}
+          {getLevelText(userLevel)} for the below mentioned work during the
+          Financial Year {financialYear}.
         </p>
 
         {/* Table */}
@@ -208,7 +202,6 @@ const PaymentCertificateDocument = React.forwardRef(
           <thead>
             <tr className="bg-gray-100">
               <th className="border border-black px-1 ">Date of Payment</th>
-
               <th className="border border-black px-1  w-[220px]">
                 Transaction ID & Description of works
               </th>
@@ -236,7 +229,6 @@ const PaymentCertificateDocument = React.forwardRef(
                 <td className="border border-black px-1 text-center">
                   {row.voucherDate}
                 </td>
-
                 <td className="border border-black px-1">
                   {row.activityDesc}
                 </td>
@@ -315,17 +307,17 @@ const PaymentCertificateDocument = React.forwardRef(
             Printed on: {getTodayDate()}
           </div>
           <div className="text-right">
-            {getSignatureText()} <br />
+            {getSignatureText(userLevel)} <br />
             {officeName}
           </div>
         </div>
         <div className="mt-4 text-[10px] text-gray-500 text-center flex items-center justify-center gap-1">
           <span>
-            This document has been generated through <span className="italic font-semibold">Sahaj-Saral</span> under West Bengal Panchayat Management System.
+            This document has been generated through{" "}
+            <span className="italic font-semibold">Sahaj-Saral</span> under West
+            Bengal Panchayat Management System.
           </span>
         </div>
-
-
       </div>
     );
   }
@@ -340,13 +332,37 @@ const IssuancePaymentCertificate = () => {
   const [showCert, setShowCert] = useState(false);
   const [qrImage, setQrImage] = useState("");
 
+  // loader for Search
+  const [loading, setLoading] = useState(false);
+
+  // User data from session
+  const [userData, setUserData] = useState(null);
+
   // LSG / LGD header details
   const [lgd, setLgd] = useState([]);
 
+  /* --------- LOAD USER DATA FROM SESSION STORAGE ---------- */
+  useEffect(() => {
+    try {
+      const jsonString = sessionStorage.getItem("SAHAJ_SARAL_USER");
+      if (jsonString) {
+        const parsed = JSON.parse(jsonString);
+        setUserData(parsed);
+      } else {
+        setUserData(null);
+      }
+    } catch (err) {
+      console.error("Failed to parse SAHAJ_SARAL_USER from sessionStorage", err);
+      setUserData(null);
+    }
+  }, []);
+
+  const userLevel = userData?.USER_LEVEL;
+
   const lgdCode =
-    userData?.USER_LEVEL === "GP"
+    userLevel === "GP"
       ? userData?.GP_LGD
-      : userData?.USER_LEVEL === "BLOCK"
+      : userLevel === "BLOCK"
         ? userData?.BLOCK_LGD
         : userData?.DIST_LGD;
 
@@ -392,7 +408,7 @@ const IssuancePaymentCertificate = () => {
           : [];
       return contractors;
     },
-    enabled: !!lgdCode,
+    enabled: !!lgdCode, // will become true once userData is loaded and lgdCode is available
   });
 
   const sortedContractors = useMemo(() => {
@@ -402,20 +418,31 @@ const IssuancePaymentCertificate = () => {
     );
   }, [contractorList]);
 
+  /* ---------------- SEARCH HANDLER WITH LOADER ---------------- */
+
   const onSearch = () => {
     if (!selectedContractorId) {
       toast.error("Please select a Contractor");
-    } else {
-      getSearchRptPaymantCertificate(coreLgd, selectedContractorId).then(
-        (response) => {
-          if (response.status === 200) {
-            setData(response.data || []);
-          } else {
-            toast.error("Failed to fetch data");
-          }
-        }
-      );
+      return;
     }
+
+    setLoading(true);
+
+    getSearchRptPaymantCertificate(coreLgd || lgdCode, selectedContractorId)
+      .then((response) => {
+        if (response.status === 200) {
+          setData(response.data || []);
+        } else {
+          toast.error("Failed to fetch data");
+        }
+      })
+      .catch((err) => {
+        console.error("Search error:", err);
+        toast.error("Search failed");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   /* ----------- QR CODE GENERATION (encoded ref) ----------- */
@@ -481,8 +508,9 @@ const IssuancePaymentCertificate = () => {
   const printRef = useRef();
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
-    documentTitle: `PaymentCertificate_${certificateRows[0]?.partyCode || ""
-      }_${certificateRows[0]?.voucherId || ""}`,
+    documentTitle: `PaymentCertificate_${
+      certificateRows[0]?.partyCode || ""
+    }_${certificateRows[0]?.voucherId || ""}`,
   });
 
   return (
@@ -523,8 +551,9 @@ const IssuancePaymentCertificate = () => {
                   type="button"
                   className="btn-submit h-9 px-2 mt-5 shadow-sm text-white hover:bg-cyan-700"
                   onClick={onSearch}
+                  disabled={loading}
                 >
-                  Search
+                  {loading ? "Searching..." : "Search"}
                 </button>
               </div>
             </div>
@@ -589,15 +618,15 @@ const IssuancePaymentCertificate = () => {
           </div>
         )}
 
-        {Array.isArray(data) && data.length === 0 && (
+        {Array.isArray(data) && data.length === 0 && !loading && (
           <p className="text-center text-gray-500 mt-4">No records found.</p>
         )}
       </div>
 
       {/* ------------- MODAL FOR CERTIFICATE + PRINT ------------- */}
       {showCert && certificateRows.length > 0 && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded shadow-lg max_height-[95vh] max-h-[95vh] overflow-auto p-4">
+        <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center">
+          <div className="bg-white rounded shadow-lg max-h-[95vh] overflow-auto p-4">
             <div className="flex justify-between items-center mb-3">
               <h2 className="font-semibold text-sm">Payment Certificate</h2>
               <div className="space-x-2">
@@ -622,7 +651,18 @@ const IssuancePaymentCertificate = () => {
               officeName={officeNameFromApi}
               officeAddress={officeAddressFromApi}
               qrSrc={qrImage}
+              userLevel={userLevel}
             />
+          </div>
+        </div>
+      )}
+
+      {/* ------------- GLOBAL LOADER OVERLAY ------------- */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="flex flex-col items-center space-y-3">
+            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin" />
+            <p className="text-white text-sm font-semibold">Loading...</p>
           </div>
         </div>
       )}

@@ -31,6 +31,7 @@ const NominalAccountCode = () => {
     const jsonString = sessionStorage.getItem("SAHAJ_SARAL_USER");
     const userData = JSON.parse(jsonString);
     const receiptPayment = useRef(null);
+    const receiptType = useRef(null); // ✅ NEW: mandatory field ref (Account Code Type)
     const department = useRef(null);
     const scheme = useRef(null);
     const accountCodeDesc = useRef(null);
@@ -70,6 +71,7 @@ const NominalAccountCode = () => {
             } else {
                 setGlGroupName("");
                 receiptPayment.current.value = "";
+                receiptType.current.value = ""; // ✅ NEW reset
                 department.current.value = "";
                 scheme.current.value = "";
                 accountCodeDesc.current.value = "";
@@ -102,6 +104,7 @@ const NominalAccountCode = () => {
         onSuccess: () => {
             queryClient.invalidateQueries("nominalAccList");
             receiptPayment.current.value = "";
+            receiptType.current.value = ""; // ✅ NEW reset
             department.current.value = "";
             scheme.current.value = "";
             accountCodeDesc.current.value = "";
@@ -124,6 +127,9 @@ const NominalAccountCode = () => {
     function performMutation() {
         if (receiptPayment.current.value === "") {
             toast.error("Please Select Receipt/Payment")
+
+        } else if (receiptType.current.value === "") { // ✅ NEW validation
+            toast.error("Please Select Account Code Type")
 
         } else if (department.current.value === "") {
             toast.error("Please Select Department")
@@ -188,6 +194,7 @@ const NominalAccountCode = () => {
                 "deptId": department.current.value,
                 "schemeId": scheme.current.value,
                 "rcptpmntFlag": receiptPayment.current.value,
+                "accountCodeType": receiptType.current.value, // ✅ NEW param
                 "rcptpmntNature": receiptPaymentNature.current.value,
                 "fundType": fundType.current.value,
                 "rcptGroup": receiptPaymentGroup.current.value,
@@ -245,42 +252,12 @@ const NominalAccountCode = () => {
             accessorKey: "accountCode",
             className: "text-left cursor-pointer px-2",
         },
-        // {
-        //     header: "Recpt/Pay",
-        //     accessorKey: "rcptpmntFlag",
-        //     className: "text-left cursor-pointer px-2",
-
-        // },
-        // {
-        //     header: "Dept",
-        //     accessorKey: "deptName",
-        //     className: "text-left cursor-pointer px-2",
-
-        // },
-
-        // {
-        //     header: "Scheme",
-        //     accessorKey: "schemeName",
-        //     className: "text-left cursor-pointer px-2",
-
-        // },
         {
             header: "Account Code Desc",
             accessorKey: "accountCodeDesc",
             className: "text-left cursor-pointer px-2",
 
         },
-        // {
-        //     header: "Recpt Pay Nature",
-        //     accessorKey: "rcptpmntNatureName",
-        //     className: "text-left cursor-pointer px-2",
-        // },
-        // {
-        //     header: "Fund Type",
-        //     accessorKey: "fundTypeName",
-        //     className: "text-left cursor-pointer px-2",
-        // },
-
         {
             header: "Receipt Pay Group",
             accessorKey: "rcptGroupPSName",
@@ -340,15 +317,6 @@ const NominalAccountCode = () => {
     });
 
 
-    // const { data: glGroupList } = useQuery({
-    //     queryKey: ["glGroupList"],
-    //     queryFn: async () => {
-    //         const data = await fetch.get("/GetGlGroup/Get?groupName="+glGroupName?glGroupName:0);
-    //         return data?.data;
-    //     },
-    // });
-
-
     const { data: receipt_payment_group_lIST } = useQuery({
         queryKey: ["receipt_payment_group_lIST"],
         queryFn: async () => {
@@ -376,10 +344,10 @@ const NominalAccountCode = () => {
                 (r) => {
                     console.log(r, "dd");
                     if (r.status == 0) {
-                        // setOpenModal(true);
                         toast.success(r.message);
                         queryClient.invalidateQueries("nominalAccList");
                         receiptPayment.current.value = "";
+                        receiptType.current.value = ""; // ✅ NEW reset
                         department.current.value = "";
                         scheme.current.value = "";
                         accountCodeDesc.current.value = "";
@@ -419,10 +387,10 @@ const NominalAccountCode = () => {
                 (r) => {
                     console.log(r, "dd");
                     if (r.status == 0) {
-                        // setOpenModal(true);
                         toast.success(r.message);
                         queryClient.invalidateQueries("nominalAccList");
                         receiptPayment.current.value = "";
+                        receiptType.current.value = ""; // ✅ NEW reset
                         department.current.value = "";
                         scheme.current.value = "";
                         accountCodeDesc.current.value = "";
@@ -464,7 +432,6 @@ const NominalAccountCode = () => {
 
     const onSetPartType = (i) => {
         setGlGroupName(i?.groupName)
-        // glGroup?.current?.value = i?.groupId;
         setShowDropdown(false)
 
     }
@@ -481,6 +448,7 @@ const NominalAccountCode = () => {
         XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
         XLSX.writeFile(wb, `${fileName}.xlsx`);
     };
+
     return (
         <>
             <SuccessModal
@@ -488,7 +456,6 @@ const NominalAccountCode = () => {
                 setOpenModal={setOpenModal}
                 message={"Contractor Created Successfully"}
                 to="contractor-master"
-                // resetData={resetData}
                 isSuccess={true}
             />
             <ToastContainer />
@@ -499,81 +466,108 @@ const NominalAccountCode = () => {
                 <div className=" flex flex-col space-y-2 py-1">
                     <div className="flex flex-col w-full mb-1 space-y-2">
                         <div className="flex items-center space-x-4">
-                            <div className="w-1/3">
+
+                            {/* Receipt / Payment */}
+                            <div className="w-1/4">
                                 <label
                                     htmlFor="receipt_name"
                                     className="block text-xsm font-medium text-gray-700"
                                 >
-                                    Receipt/Payment
-                                    <span className="text-red-500"> *</span>
+                                    Receipt / Payment <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     id="receipt_name"
                                     name="receipt_name"
-                                    autoComplete="off"
                                     className="block w-full p-1 border border-gray-300 rounded-md"
                                     ref={receiptPayment}
+                                    defaultValue=""
                                 >
-                                    <option value="" selected hidden>
-                                        Select Receipt/Payment
+                                    <option value="" disabled hidden>
+                                        Select Receipt / Payment
                                     </option>
                                     <option value="R">Receipt</option>
                                     <option value="P">Payment</option>
                                 </select>
                             </div>
 
-                            <div className="w-1/3">
+                            {/* Receipt Type */}
+                            <div className="w-1/4">
+                                <label
+                                    htmlFor="receipt_type"
+                                    className="block text-xsm font-medium text-gray-700"
+                                >
+                                    Account Code Type <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    id="receipt_type"
+                                    name="receipt_type"
+                                    className="block w-full p-1 border border-gray-300 rounded-md"
+                                    ref={receiptType}
+                                    defaultValue=""
+                                >
+                                    <option value="" disabled hidden>
+                                        Select Account Code Type
+                                    </option>
+                                    <option value="1">Tax</option>
+                                    <option value="0">Non-Tax</option>
+                                    <option value="2">Others</option>
+                                </select>
+                            </div>
+
+                            {/* Department */}
+                            <div className="w-1/4">
                                 <label
                                     htmlFor="department_name"
                                     className="block text-xsm font-medium text-gray-700"
                                 >
-                                    Department
-                                    <span className="text-red-500"> *</span>
+                                    Department <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     id="department_name"
                                     name="department_name"
-                                    autoComplete="off"
                                     className="block w-full p-1 border border-gray-300 rounded-md"
                                     ref={department}
+                                    defaultValue=""
                                 >
-                                    <option value="" selected hidden>
+                                    <option value="" disabled hidden>
                                         Select Department
                                     </option>
                                     {departmentList?.map((d) => (
-                                        <option value={d?.deptId}>
-                                            {d?.deptName}
+                                        <option key={d.deptId} value={d.deptId}>
+                                            {d.deptName}
                                         </option>
                                     ))}
                                 </select>
                             </div>
 
-                            <div className="w-1/3">
+                            {/* Scheme */}
+                            <div className="w-1/4">
                                 <label
                                     htmlFor="scheme_name"
                                     className="block text-xsm font-medium text-gray-700"
                                 >
-                                    Scheme
-                                    <span className="text-red-500"> *</span>
+                                    Scheme <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     id="scheme_name"
                                     name="scheme_name"
-                                    autoComplete="off"
                                     className="block w-full p-1 border border-gray-300 rounded-md"
                                     ref={scheme}
+                                    defaultValue=""
                                 >
-                                    <option value="" selected hidden>
+                                    <option value="" disabled hidden>
                                         Select Scheme
                                     </option>
                                     {schemeList?.map((d) => (
-                                        <option value={d?.schemeId}>
-                                            {d?.schemeName}
+                                        <option key={d.schemeId} value={d.schemeId}>
+                                            {d.schemeName}
                                         </option>
                                     ))}
                                 </select>
                             </div>
+
                         </div>
+
 
                         <div className="flex items-center space-x-4">
                             {/* Account Code Desc */}
@@ -594,7 +588,6 @@ const NominalAccountCode = () => {
                                     className="block w-full p-1 border border-gray-300 rounded-md"
                                     required
                                     maxLength={50}
-                                // onChange={onMobile}
                                 />
                             </div>
 
@@ -613,8 +606,9 @@ const NominalAccountCode = () => {
                                     autoComplete="off"
                                     className="block w-full p-1 border border-gray-300 rounded-md"
                                     ref={receiptPaymentNature}
+                                    defaultValue=""
                                 >
-                                    <option value="" selected hidden>
+                                    <option value="" disabled hidden>
                                         Select Receipt Payment Nature
                                     </option>
                                     <option value="1">Revenue</option>
@@ -641,8 +635,9 @@ const NominalAccountCode = () => {
                                     autoComplete="off"
                                     className="block w-full p-1 border border-gray-300 rounded-md"
                                     ref={fundType}
+                                    defaultValue=""
                                 >
-                                    <option value="" selected hidden>
+                                    <option value="" disabled hidden>
                                         Select Fund Type
                                     </option>
                                     <option value="1">Non-Plan</option>
@@ -671,8 +666,6 @@ const NominalAccountCode = () => {
                                     onChange={onGlGroupName}
                                     value={glGroupName}
                                     ref={glGroup}
-
-
                                 />
                                 {showDropdown && (
                                     <div className="absolute z-10  bg-white border border-gray-300 rounded shadow-md max-h-30 overflow-y-auto w-[390px]">
@@ -681,7 +674,7 @@ const NominalAccountCode = () => {
                                                 <div
                                                     key={index}
                                                     className="text-s w-full px-1 py-1 border border-gray-300 hover:bg-gray-200 cursor-pointer"
-                                                    onClick={() => onSetPartType(d)} // Call the select function
+                                                    onClick={() => onSetPartType(d)}
                                                 >
                                                     {d?.groupName}
                                                 </div>
@@ -709,12 +702,13 @@ const NominalAccountCode = () => {
                                     autoComplete="off"
                                     className="block w-full p-1 border border-gray-300 rounded-md"
                                     ref={receiptPaymentGroup}
+                                    defaultValue=""
                                 >
-                                    <option value="" selected hidden>
+                                    <option value="" disabled hidden>
                                         Select Receipt Group
                                     </option>
                                     {receipt_payment_group_lIST?.map((d) => (
-                                        <option value={d?.groupId}>
+                                        <option key={d?.groupId} value={d?.groupId}>
                                             {d?.groupName}
                                         </option>
                                     ))}
@@ -736,13 +730,14 @@ const NominalAccountCode = () => {
                                     autoComplete="off"
                                     className="block w-full p-1 border border-gray-300 rounded-md"
                                     ref={receiptPaymentGp}
+                                    defaultValue=""
                                 >
-                                    <option value="" selected hidden>
+                                    <option value="" disabled hidden>
                                         Select Head Classification
                                     </option>
 
                                     {receipt_payment_group_gpLIST?.map((d) => (
-                                        <option value={d?.groupId}>
+                                        <option key={d?.groupId} value={d?.groupId}>
                                             {d?.groupName}
                                         </option>
                                     ))}
@@ -839,8 +834,6 @@ const NominalAccountCode = () => {
                                     className="p-1 block w-full border border-gray-300 rounded-md"
                                     ref={objCode}
                                     maxLength={2}
-
-
                                 />
                             </div>
 
@@ -922,21 +915,12 @@ const NominalAccountCode = () => {
                                             : "bg-orange-500 hover:bg-orange-400 text-black font-bold py-1 px-8 rounded"
                                     )}
                                     onClick={performMutation}
-                                // disabled={getdata?.data?.status == 0 ? true : false}
                                 >
                                     Submit
                                 </button> : ""}
 
                             {userData?.USER_LEVEL === "HQ" ? "" :
                                 <>
-                                    {/* <button
-                                        type="button"
-                                        className="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-8 rounded"
-                                        onClick={onDelete}
-                                    >
-                                        Deleted From PRI Accounts
-                                    </button> */}
-
                                     <button
                                         type="button"
                                         className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-1 px-4 rounded"
@@ -996,7 +980,7 @@ const NominalAccountCode = () => {
                                     <Table.HeadCell
                                         key={header.id}
                                         className="p-1 bg-cyan-400/100 btn-blue text-xs"
-                                        style={{ border: "1px solid #444" }} // Keep borders
+                                        style={{ border: "1px solid #444" }}
                                         onClick={header.column.getToggleSortingHandler()}
                                     >
                                         {header.isPlaceholder ? null : (
@@ -1039,6 +1023,12 @@ const NominalAccountCode = () => {
                                         <button onClick={() => {
                                             accCode.current.value = row.original.accountCode;
                                             receiptPayment.current.value = row.original.rcptpmntFlag === "Receipt" ? "R" : "P";
+                                            // ✅ NEW: set receiptType if available in row (safe fallback)
+                                            receiptType.current.value =
+                                                row.original.accountCodeType ??
+                                                row.original.accountCodeTypeId ??
+                                                row.original.accCodeType ??
+                                                "";
                                             department.current.value = row.original.deptId;
                                             scheme.current.value = row.original.schemeId;
                                             accountCodeDesc.current.value = row.original.accountCodeDescAct;
