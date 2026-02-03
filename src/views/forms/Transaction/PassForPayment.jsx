@@ -71,6 +71,8 @@ const PassForPayment = () => {
     const [imagePreview, setImagePreview] = useState(null);
     const [selectedDate, setPaymentDate] = useState("");
     const [financialYear, setFinancialYear] = useState("");
+    console.log(financialYear, "financialYear")
+
     const [passForPaymentDetailsById, setPassForPaymentDetailsById] = useState([]);
     const [passforPaymentResponse, setPassforPaymentResponse] = useState()
 
@@ -509,7 +511,7 @@ const PassForPayment = () => {
         return ranges;
     };
 
-    const yearRanges = generateYearRanges(currentYear, 9);
+    const yearRanges = generateYearRanges(currentYear, 15);
 
     const onActivityDetailils = () => {
         setIsOpen(true)

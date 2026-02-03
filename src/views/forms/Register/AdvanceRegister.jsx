@@ -43,7 +43,7 @@ export default function AdvanceRegister() {
     setError("");
 
     try {
-      const res = await getAdvanceRegisterSummary(userData?.DIST_LGD);
+      const res = await getAdvanceRegisterSummary(userData?.USER_LEVEL==="BLOCK" ? userData?.BLOCK_LGD : userData?.USER_LEVEL==="DIST" ? userData?.DIST_LGD : userData?.USER_LEVEL==="GP"? userData?.GP_LGD : "");
 
       if (res?.data && Array.isArray(res.data)) {
         setRows(res.data);

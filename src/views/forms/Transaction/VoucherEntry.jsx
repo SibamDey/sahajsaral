@@ -175,7 +175,8 @@ const VoucherEntry = () => {
         { value: "PFMS", label: "PFMS" },
         { value: "Bill", label: "Bill" },
         { value: "UPI Trn ID", label: "UPI Trn ID" },
-        { value: "Direct Deposit", label: "Direct Deposit" }
+        { value: "Direct Deposit", label: "Direct Deposit" },
+        { value: "Allotment Receipt", label: "Allotment Receipt" }
     ];
 
     console.log(partyName, "partyName")
@@ -185,18 +186,18 @@ const VoucherEntry = () => {
             if (voucherTypeData === "R" && ["Token", "Bank Charges", "Bill", "PFMS"].includes(item.value)) {
                 return false; // Exclude these for "R"
             }
-            if (voucherTypeData === "N" && ["Online", "PFMS"].includes(item.value)) {
+            if (voucherTypeData === "N" && ["Online", "PFMS", "Allotment Receipt"].includes(item.value)) {
                 return false; // Exclude these for "N"
             }
             if (voucherTypeData === "R" && voucherType === "B" && ["None", "Token", "Bank Charges", "Bill", "PFMS"].includes(item.value)) {
                 return false; // Exclude these for "R" and "Bank"
             }
 
-            if (voucherTypeData === "P" && ["Bank Interest", "Direct Deposit", "Online"].includes(item.value)) {
+            if (voucherTypeData === "P" && ["Bank Interest", "Direct Deposit", "Online", "Allotment Receipt"].includes(item.value)) {
                 return false; // Exclude these for "R"
             }
 
-            if (voucherTypeData === "P" && voucherType === "T" && ["None", "Online"].includes(item.value)) {
+            if (voucherTypeData === "P" && voucherType === "T" && ["None", "Online", "Allotment Receipt"].includes(item.value)) {
                 return false; // Exclude these for "R"
             }
 
@@ -204,11 +205,11 @@ const VoucherEntry = () => {
                 return false; // Exclude these for "R"
             }
 
-            if (voucherTypeData === "P" && voucherType === "B" && ["None", "Online"].includes(item.value)) {
+            if (voucherTypeData === "P" && voucherType === "B" && ["None", "Online", "Allotment Receipt"].includes(item.value)) {
                 return false; // Exclude these for "R"
             }
 
-            if (voucherTypeData === "P" && voucherType === "C" && ["Bank Interest", "Fund Transfer", "UPI Trn ID", "Online"].includes(item.value)) {
+            if (voucherTypeData === "P" && voucherType === "C" && ["Bank Interest", "Fund Transfer", "UPI Trn ID", "Online", "Allotment Receipt"].includes(item.value)) {
                 return false; // Exclude these for "R"
             }
 

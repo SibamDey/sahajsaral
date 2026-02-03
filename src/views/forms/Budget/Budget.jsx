@@ -14,18 +14,27 @@ const Budget = () => {
     console.log(maxBudgetDate, "maxBudgetDate")
     const currentYear = new Date().getFullYear();
 
-    const generateYearRanges = (startYear, rangeCount) => {
-        console.log(startYear, rangeCount, "start")
+    const generateFinancialYearRanges = (rangeCount) => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth(); // 0 = Jan, 3 = April
+
+        // Financial year starts in April
+        const currentFYStart = month >= 3 ? year : year - 1;
+
         const ranges = [];
         for (let i = 0; i < rangeCount; i++) {
-            const start = startYear - i; // Start from the highest year
+            const start = currentFYStart - i;
             const end = start + 1;
             ranges.push(`${start}-${end}`);
         }
+
         return ranges;
     };
 
-    const yearRanges = generateYearRanges(currentYear, 1);
+    // usage
+    const yearRanges = generateFinancialYearRanges(1);
+
 
     const onYear = (e) => {
         console.log(e.target.value)
@@ -75,7 +84,7 @@ const Budget = () => {
             });
 
             getMaxBudgetDate(userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,).then((response) => {
-               console.log(response, "response")
+                console.log(response, "response")
                 if (response.status === 200) {
                     setMaxBudgetDate(response?.data?.message);
                 } else {
@@ -118,7 +127,7 @@ const Budget = () => {
         <>
             <ToastContainer />
 
- 
+
             <div className="bg-white rounded-lg p-2 flex flex-col flex-grow" style={{ marginTop: "-40px" }}>
                 <legend className="text-lg font-semibold text-cyan-700">Annual Budget</legend>
 

@@ -28,6 +28,18 @@ const PropertyTax = () => {
     const jsonString = sessionStorage.getItem("SAHAJ_SARAL_USER");
     const userData = JSON.parse(jsonString);
     const [openModal, setOpenModal] = useState(false);
+    const [accountCode, setAccountCode] = useState("");
+
+    // ✅ Fetch dropdown options from Java API
+    const { data: otherCollectionHeads = [], isLoading: headsLoading } = useQuery({
+        queryKey: ["OtherCollectionAccountCode"],
+        queryFn: async () => {
+            const res = await fetch.get(
+                "/Register/OtherCollectionAccountCode"
+            );
+            return res?.data || [];
+        },
+    });
 
 
     const { data: FinBranchList } = useQuery({
@@ -52,7 +64,7 @@ const PropertyTax = () => {
 
     const { mutate: addPed, isPending: addPending, data: result, } = useMutation({
         mutationFn: (newTodo) => {
-            return fetch.get(`/Register/ReceivePtax?lgdCode=${userData?.CORE_LGD}&frmDate=${fromDate.current.value}&toDate=${toDate.current.value}`);
+            return fetch.get( `/Register/OthersCollectionReport?lgdCode=${userData?.CORE_LGD}&frmDate=${fromDate.current.value}&toDate=${toDate.current.value}&accountCode=${accountCode}`);
         },
 
         mutationKey: ["adddesignation"],
@@ -84,6 +96,8 @@ const PropertyTax = () => {
             toast.error("Please select from date")
         } else if (toDate.current.value === "") {
             toast.error("Please select to date")
+        } else if (accountCode === "") {
+            toast.error("Please select Online Collection Type");
         } else {
             if (mutationId === null)
                 addPed({
@@ -136,48 +150,17 @@ const PropertyTax = () => {
     }, [result]);
 
 
-    const list = [
-        {
-            header: "Voucher Id",
-            accessorKey: "voucherId",
-            className: "text-left cursor-pointer",
-            // cell: ({ row }) => row.index + 1,
-            headclass: "cursor-pointer w-32",
-            // sortingFn: "id",
-        },
-        {
-            header: "Voucher Date",
-            accessorKey: "date",
-            headclass: "cursor-pointer",
-        },
-        {
-            header: "Assessee No",
-            accessorKey: "assesseeNo",
-            headclass: "cursor-pointer",
-        },
-        {
-            header: "Name",
-            accessorKey: "assesseeName",
-            headclass: "cursor-pointer",
-        },
-        {
-            header: "Address",
-            accessorKey: "assesseeAddress",
-            headclass: "cursor-pointer",
-        },
-        {
-            header: "Transaction No",
-            accessorKey: "transactionNo",
-            headclass: "cursor-pointer",
-        },
-        {
-            header: "Amount",
-            accessorKey: "taxAmount",
-            headclass: "cursor-pointer",
-        },
+const list = [
+//   { header: "LGD Code", accessorKey: "lgdCode", headclass: "cursor-pointer" },
+  { header: "Voucher Id", accessorKey: "voucherId", headclass: "cursor-pointer w-32" },
+  { header: "Voucher Date", accessorKey: "date", headclass: "cursor-pointer" },
+  { header: "Assessee No", accessorKey: "assesseeNo", headclass: "cursor-pointer" },
+  { header: "Name", accessorKey: "assesseeName", headclass: "cursor-pointer" },
+  { header: "Address", accessorKey: "assesseeAddress", headclass: "cursor-pointer" },
+  { header: "Transaction No", accessorKey: "transactionNo", headclass: "cursor-pointer" },
+  { header: "Amount", accessorKey: "taxAmount", headclass: "cursor-pointer" },
+];
 
-
-    ];
 
     const [sorting, setSorting] = useState([]);
     const [filtering, setFiltering] = useState("");
@@ -222,13 +205,15 @@ const PropertyTax = () => {
         XLSX.writeFile(wb, `${fileName}.xlsx`);
     };
 
+
+
     return (
         <>
 
             <ToastContainer />
 
             <div className="bg-white rounded-lg p-2 flex flex-col flex-grow" style={{ marginTop: "-40px" }}>
-                <legend className="text-lg font-semibold text-cyan-700">Collection of Property Tax</legend>
+                <legend className="text-lg font-semibold text-cyan-700">Online Collection </legend>
 
                 <div className=" flex flex-col space-y-2 py-1">
                     <div className="flex flex-col w-full space-y-2">
@@ -266,6 +251,30 @@ const PropertyTax = () => {
                                     ref={toDate}
                                 />
                             </div>
+
+                            {/* Account Head Dropdown */}
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700">
+                                    Online Collection Type
+                                </label>
+
+                                <select
+                                    value={accountCode}
+                                    onChange={(e) => setAccountCode(e.target.value)}
+                                    className="text-sm h-9 mt-1 p-2 block w-full border border-gray-300 rounded-md"
+                                >
+                                    <option value="">
+                                        {headsLoading ? "Loading..." : "Select Online Collection Type"}
+                                    </option>
+
+                                    {otherCollectionHeads?.map((item) => (
+                                        <option key={item.accountCode} value={item.accountCode}>
+                                            {item.accountCode} - {item.accountDesc}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
 
 
                             <div className="flex-1">
@@ -307,7 +316,7 @@ const PropertyTax = () => {
 
                         <button
                             className="bg-cyan-700 text-white px-2 py-2 rounded text-sm "
-                            onClick={() => exportToExcel(data, "Online_Property_Tax_Received")}
+                            onClick={() => exportToExcel(data, "online_collection")}
 
                         >
                             Download Excel

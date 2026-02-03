@@ -596,7 +596,7 @@ export const sideBarList = [
   {
     Component: PropertyTax,
     text: "PropertyTax",
-    route: "/property-tax",
+    route: "/online-collection",
     permissions: [1],
   },
 
@@ -1316,13 +1316,13 @@ export const Sidebar = () => {
           <SidebarExpand text="Register" icon="ep:document">
 
             <SidebarElement
-              to="/property-tax"
+              to="/online-collection"
               customCss={"flex justify-start pl-4 "}
             >
               <div className="text-sm items-start py-1 capitalize">
                 <span className="flex items-center space-x-4">
                   {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                  <span>Collection of Property Tax</span>
+                  <span>Online Collection</span>
                 </span>
               </div>
             </SidebarElement>

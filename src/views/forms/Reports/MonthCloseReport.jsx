@@ -242,15 +242,23 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
     };
 
     useEffect(() => {
-        const currentYear = new Date().getFullYear();
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth(); // 0 = Jan, 3 = April
+
+        // Financial year starts from April
+        const fyStartYear = currentMonth >= 3 ? currentYear : currentYear - 1;
+
         const years = [];
         for (let i = 0; i < 1; i++) {
-            const start = currentYear - i;
+            const start = fyStartYear - i;
             const end = start + 1;
             years.push(`${start}-${end}`);
         }
+
         setYearOptions(years);
     }, []);
+
 
     const totals = {
         openingBalance: 0,
