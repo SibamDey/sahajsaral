@@ -334,22 +334,23 @@ const JobWorker = () => {
                                     <div style={{ color: "red" }}>Please enter a valid Address</div>
                                 )}
                             </div>
+                            {userData?.ROLE === "9" ? "" :
 
-                            <div className="w-1/3 ">
-                                <button
-                                    type="button"
-                                    className={classNames(
-                                        "btn-submit  py-1 px-10 border mt-6 border-transparent rounded-md shadow-sm text-white hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
-                                        mutationId
-                                            ? "btn-submit  py-1 px-10 border mt-6 border-transparent rounded-md shadow-sm text-white hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                            : "btn-submit  py-1 px-10 border mt-6 border-transparent rounded-md shadow-sm text-white hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                    )}
-                                    onClick={performMutation}
+                                <div className="w-1/3 ">
+                                    <button
+                                        type="button"
+                                        className={classNames(
+                                            "btn-submit  py-1 px-10 border mt-6 border-transparent rounded-md shadow-sm text-white hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
+                                            mutationId
+                                                ? "btn-submit  py-1 px-10 border mt-6 border-transparent rounded-md shadow-sm text-white hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                                : "btn-submit  py-1 px-10 border mt-6 border-transparent rounded-md shadow-sm text-white hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                        )}
+                                        onClick={performMutation}
 
-                                >
-                                    {!mutationId ? "Submit" : "Update"}
-                                </button>
-                            </div>
+                                    >
+                                        {!mutationId ? "Submit" : "Update"}
+                                    </button>
+                                </div>}
                         </div>
 
 

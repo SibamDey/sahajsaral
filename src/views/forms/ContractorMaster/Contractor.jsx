@@ -506,21 +506,23 @@ const Contractor = () => {
               </div>
 
               {/* Submit Button */}
-              <div className="flex-none">
-                <button
-                  type="button"
-                  className={classNames(
-                    "btn-submit  py-1 px-10 border mt-6 border-transparent rounded-md shadow-sm text-white hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
-                    mutationId
-                      ? "btn-submit  py-1 px-10 border mt-6 border-transparent rounded-md shadow-sm text-white hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      : "btn-submit  py-1 px-10 border mt-6 border-transparent rounded-md shadow-sm text-white hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  )}
-                  onClick={performMutation}
+              {userData?.ROLE === "9" ? "" :
 
-                >
-                  {!mutationId ? "Submit" : "Update"}
-                </button>
-              </div>
+                <div className="flex-none">
+                  <button
+                    type="button"
+                    className={classNames(
+                      "btn-submit  py-1 px-10 border mt-6 border-transparent rounded-md shadow-sm text-white hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
+                      mutationId
+                        ? "btn-submit  py-1 px-10 border mt-6 border-transparent rounded-md shadow-sm text-white hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        : "btn-submit  py-1 px-10 border mt-6 border-transparent rounded-md shadow-sm text-white hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    )}
+                    onClick={performMutation}
+
+                  >
+                    {!mutationId ? "Submit" : "Update"}
+                  </button>
+                </div>}
             </div>
 
           </div>

@@ -487,7 +487,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
 
     // 🔹 PFP Id – untouched, NO click
     {
-      header: "PFP Id",
+      header: "Deduction PFP Id",
       accessorKey: "pfpId",
       headclass: "cursor-pointer",
     },

@@ -919,7 +919,7 @@ const NominalAccountCode = () => {
                                     Submit
                                 </button> : ""}
 
-                            {userData?.USER_LEVEL === "HQ" ? "" :
+                            {userData?.USER_LEVEL === "HQ" || userData?.ROLE === "9" ? "" :
                                 <>
                                     <button
                                         type="button"

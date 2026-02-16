@@ -7701,13 +7701,24 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                             >
                                 Next PFP ID
                             </button> : ""}
-                        {VoucherResponse?.voucherStatus && pageChange === "Add" ?
-                            <button className="bg-green-500 text-white px-4 py-1 text-xs rounded hover:bg-green-600 transition duration-200" onClick={onReset}>
-                                Reset
-                            </button> : !VoucherResponse?.voucherStatus && pageChange === "Add" ?
-                                <button className="bg-green-500 text-white px-4 py-1 text-xs rounded hover:bg-green-600 transition duration-200" onClick={onSave} disabled={VoucherResponse?.voucherStatus ? true : false}>
+                        {userData?.ROLE !== "9" && pageChange === "Add" && (
+                            VoucherResponse?.voucherStatus ? (
+                                <button
+                                    className="bg-green-500 text-white px-4 py-1 text-xs rounded hover:bg-green-600 transition duration-200"
+                                    onClick={onReset}
+                                >
+                                    Reset
+                                </button>
+                            ) : (
+                                <button
+                                    className="bg-green-500 text-white px-4 py-1 text-xs rounded hover:bg-green-600 transition duration-200"
+                                    onClick={onSave}
+                                    disabled={VoucherResponse?.voucherStatus}
+                                >
                                     Save
-                                </button> : ""}
+                                </button>
+                            )
+                        )}
                         {pageChange === "Add" && voucherModeData === "P" || voucherModeData === "N" && voucherTypeData || voucherModeData === "R" ?
 
                             < button className="bg-blue-500 text-white px-4 py-1 text-xs rounded hover:bg-blue-600 transition duration-200" onClick={onVoucherPrint} disabled={VoucherResponse?.voucherStatus ? false : true}>

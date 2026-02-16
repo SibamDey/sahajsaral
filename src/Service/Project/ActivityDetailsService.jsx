@@ -1,6 +1,10 @@
 import webApi2 from "../../WebApi/WebApi2";
 import webApi from "../../WebApi/WebApi";
 
+
+export const getDistrictList = async () => {
+    return await webApi2.post(`/api/GetDistrict`,);
+}
 export const getDistrictListforEvent = async (DistLgd) => {
     return await webApi2.get(`/api/EVNT_MGMNT/GetDistrict?DistLgd=${DistLgd}`,);
 }

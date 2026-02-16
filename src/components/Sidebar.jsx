@@ -93,6 +93,7 @@ import MonthClosingReport from "../views/forms/Reports/MonthCloseReport";
 import OSRCollectionApp from "../views/forms/Register/OSRCollectionApp";
 import PropertyTaxReport from "../views/forms/Register/PropertyTaxReport";
 import PreparationPaymentCertificate from "../views/forms/Document/IssuancePaymentCertificate";
+import ClosingBalance2425 from "../views/forms/Reports/ClosingBalance2425";
 // import PublicPaymentCertificate from "../views/forms/Document/PublicPaymentCertificate";
 
 
@@ -683,6 +684,13 @@ export const sideBarList = [
     permissions: [1],
   },
 
+  {
+    Component: ClosingBalance2425,
+    text: "ClosingBalance2425",
+    route: "/closing-balance-24-25",
+    permissions: [1],
+  },
+
   //   {
   //   Component: PublicPaymentCertificate,
   //   text: "PublicPaymentCertificate",
@@ -936,67 +944,68 @@ export const Sidebar = () => {
               </span>
             </div>
           </SidebarElement>
+          {userData?.ROLE === "9" ? "" :
+            <>
+              <SidebarElement
+                to="/nominal-account-code-delete"
+                customCss={"flex justify-start pl-4 "}
+              >
+                <div className="text-sm items-start py-2 capitalize">
+                  <span className="flex items-center space-x-4">
+                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                    <span>Nominal A/C Deletion</span>
+                  </span>
+                </div>
+              </SidebarElement>
+              <SidebarElement
+                to="/real-account-code"
+                customCss={"flex justify-start pl-4 "}
+              >
+                <div className="text-sm items-start py-2 capitalize">
+                  <span className="flex items-center space-x-4">
+                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                    <span>Real Account Code</span>
+                  </span>
+                </div>
+              </SidebarElement>
 
-          <SidebarElement
-            to="/nominal-account-code-delete"
-            customCss={"flex justify-start pl-4 "}
-          >
-            <div className="text-sm items-start py-2 capitalize">
-              <span className="flex items-center space-x-4">
-                {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                <span>Nominal A/C Deletion</span>
-              </span>
-            </div>
-          </SidebarElement>
-          <SidebarElement
-            to="/real-account-code"
-            customCss={"flex justify-start pl-4 "}
-          >
-            <div className="text-sm items-start py-2 capitalize">
-              <span className="flex items-center space-x-4">
-                {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                <span>Real Account Code</span>
-              </span>
-            </div>
-          </SidebarElement>
-
-          <SidebarElement
-            to="/mapping-with-gl-pri"
-            customCss={"flex justify-start pl-4 "}
-          >
-            <div className="text-sm items-start py-2 ">
-              <span className="flex items-center space-x-4">
-                {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                <span>Mapping with GL - PRI</span>
-              </span>
-            </div>
-          </SidebarElement>
+              <SidebarElement
+                to="/mapping-with-gl-pri"
+                customCss={"flex justify-start pl-4 "}
+              >
+                <div className="text-sm items-start py-2 ">
+                  <span className="flex items-center space-x-4">
+                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                    <span>Mapping with GL - PRI</span>
+                  </span>
+                </div>
+              </SidebarElement>
 
 
-          <SidebarElement
-            to="/nominal-mapping-with-bank-try"
-            customCss={"flex justify-start pl-4 "}
-          >
-            <div className="text-sm items-start py-2 ">
-              <span className="flex items-center space-x-4">
-                {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                <span>Mapping Nominal - Real</span>
-              </span>
-            </div>
-          </SidebarElement>
+              <SidebarElement
+                to="/nominal-mapping-with-bank-try"
+                customCss={"flex justify-start pl-4 "}
+              >
+                <div className="text-sm items-start py-2 ">
+                  <span className="flex items-center space-x-4">
+                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                    <span>Mapping Nominal - Real</span>
+                  </span>
+                </div>
+              </SidebarElement>
 
-          <SidebarElement
-            to="/request-for-nominal"
-            customCss={"flex justify-start pl-4 "}
-          >
-            <div className="text-sm items-start py-2 ">
-              <span className="flex items-center space-x-4">
-                {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                <span>Request for new Nominal A/C</span>
-              </span>
-            </div>
-          </SidebarElement>
-
+              <SidebarElement
+                to="/request-for-nominal"
+                customCss={"flex justify-start pl-4 "}
+              >
+                <div className="text-sm items-start py-2 ">
+                  <span className="flex items-center space-x-4">
+                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                    <span>Request for new Nominal A/C</span>
+                  </span>
+                </div>
+              </SidebarElement>
+            </>}
         </SidebarExpand>
 
         <SidebarExpand text="Opening Balance" icon="fluent-mdl2:radio-bullet">
@@ -1026,168 +1035,142 @@ export const Sidebar = () => {
               </span>
             </div>
           </SidebarElement>
-          <SidebarElement
-            to="/ob-for-real-account"
-            customCss={"flex justify-start pl-4 "}
-          >
-            <div className="text-sm items-start py-2 capitalize">
-              <span className="flex items-center space-x-4 text-sm">
-                {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                <span>OB for Real (Cash/Bank/Try)</span>
-              </span>
-            </div>
-          </SidebarElement>
-          <SidebarElement
-            to="/ob-liquid-cash"
-            customCss={"flex justify-start pl-4 "}
-          >
-            <div className="text-sm items-start py-2 capitalize">
-              <span className="flex items-center space-x-4 text-sm">
-                {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                <span>Headwise OB – Liquid Cash</span>
-              </span>
-            </div>
-          </SidebarElement>
-
-          {userData?.USER_LEVEL === "GP" ?
+          {userData?.ROLE === "9" ? "" :
             <>
               <SidebarElement
-                // to="/ob-cash-in-transit"
+                to="/ob-for-real-account"
                 customCss={"flex justify-start pl-4 "}
               >
                 <div className="text-sm items-start py-2 capitalize">
                   <span className="flex items-center space-x-4 text-sm">
                     {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                    <span>Headwise OB – Cash-in-Transit</span>
+                    <span>OB for Real (Cash/Bank/Try)</span>
                   </span>
                 </div>
               </SidebarElement>
-
               <SidebarElement
-                to="/ob-advance"
+                to="/ob-liquid-cash"
                 customCss={"flex justify-start pl-4 "}
               >
                 <div className="text-sm items-start py-2 capitalize">
                   <span className="flex items-center space-x-4 text-sm">
                     {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                    <span>Headwise OB – Advance</span>
+                    <span>Headwise OB – Liquid Cash</span>
                   </span>
                 </div>
               </SidebarElement>
+            </>}
+          {userData?.ROLE !== "9" && (
+            userData?.USER_LEVEL === "GP" ? (
+              <>
+                <SidebarElement customCss="flex justify-start pl-4">
+                  <div className="text-sm items-start py-2 capitalize">
+                    <span className="flex items-center space-x-4 text-sm">
+                      <span>Headwise OB – Cash-in-Transit</span>
+                    </span>
+                  </div>
+                </SidebarElement>
 
-              <SidebarElement
-                to="/unadjusted-advance-ob"
-                customCss={"flex justify-start pl-4 "}
-              >
-                <div className="text-sm items-start py-2 capitalize">
-                  <span className="flex items-center space-x-4 text-sm">
-                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                    <span>Unadjusted Advance – OB</span>
-                  </span>
-                </div>
-              </SidebarElement>
+                <SidebarElement to="/ob-advance" customCss="flex justify-start pl-4">
+                  <div className="text-sm items-start py-2 capitalize">
+                    <span className="flex items-center space-x-4 text-sm">
+                      <span>Headwise OB – Advance</span>
+                    </span>
+                  </div>
+                </SidebarElement>
 
-              <SidebarElement
-                // to="/uncashed-self-cheque-ob"
-                customCss={"flex justify-start pl-4 "}
-              >
-                <div className="text-sm items-start py-2 capitalize">
-                  <span className="flex items-center space-x-4 text-sm">
-                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                    <span>Uncashed Self cheque
-                      (Cash-in-Transit) – OB</span>
-                  </span>
-                </div>
-              </SidebarElement>
-            </>
-            :
+                <SidebarElement to="/unadjusted-advance-ob" customCss="flex justify-start pl-4">
+                  <div className="text-sm items-start py-2 capitalize">
+                    <span className="flex items-center space-x-4 text-sm">
+                      <span>Unadjusted Advance – OB</span>
+                    </span>
+                  </div>
+                </SidebarElement>
+
+                <SidebarElement customCss="flex justify-start pl-4">
+                  <div className="text-sm items-start py-2 capitalize">
+                    <span className="flex items-center space-x-4 text-sm">
+                      <span>Uncashed Self cheque (Cash-in-Transit) – OB</span>
+                    </span>
+                  </div>
+                </SidebarElement>
+              </>
+            ) : (
+              <>
+                <SidebarElement to="/ob-cash-in-transit" customCss="flex justify-start pl-4">
+                  <div className="text-sm items-start py-2 capitalize">
+                    <span className="flex items-center space-x-4 text-sm">
+                      <span>Headwise OB – Cash-in-Transit</span>
+                    </span>
+                  </div>
+                </SidebarElement>
+
+                <SidebarElement to="/ob-advance" customCss="flex justify-start pl-4">
+                  <div className="text-sm items-start py-2 capitalize">
+                    <span className="flex items-center space-x-4 text-sm">
+                      <span>Headwise OB – Advance</span>
+                    </span>
+                  </div>
+                </SidebarElement>
+
+                <SidebarElement to="/unadjusted-advance-ob" customCss="flex justify-start pl-4">
+                  <div className="text-sm items-start py-2 capitalize">
+                    <span className="flex items-center space-x-4 text-sm">
+                      <span>Unadjusted Advance – OB</span>
+                    </span>
+                  </div>
+                </SidebarElement>
+
+                <SidebarElement to="/uncashed-self-cheque-ob" customCss="flex justify-start pl-4">
+                  <div className="text-sm items-start py-2 capitalize">
+                    <span className="flex items-center space-x-4 text-sm">
+                      <span>Uncashed Self cheque (Cash-in-Transit) – OB</span>
+                    </span>
+                  </div>
+                </SidebarElement>
+              </>
+            )
+          )}
+          {userData?.ROLE === "9" ? "" :
             <>
               <SidebarElement
-                to="/ob-cash-in-transit"
+                to="/cheque-not-encashed"
                 customCss={"flex justify-start pl-4 "}
               >
                 <div className="text-sm items-start py-2 capitalize">
                   <span className="flex items-center space-x-4 text-sm">
                     {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                    <span>Headwise OB – Cash-in-Transit</span>
+                    <span>Transaction Not Reflected in passbook</span>
                   </span>
                 </div>
               </SidebarElement>
 
               <SidebarElement
-                to="/ob-advance"
+                to="/transaction-not-in-cash-book"
                 customCss={"flex justify-start pl-4 "}
               >
                 <div className="text-sm items-start py-2 capitalize">
                   <span className="flex items-center space-x-4 text-sm">
                     {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                    <span>Headwise OB – Advance</span>
-                  </span>
-                </div>
-              </SidebarElement>
-
-              <SidebarElement
-                to="/unadjusted-advance-ob"
-                customCss={"flex justify-start pl-4 "}
-              >
-                <div className="text-sm items-start py-2 capitalize">
-                  <span className="flex items-center space-x-4 text-sm">
-                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                    <span>Unadjusted Advance – OB</span>
-                  </span>
-                </div>
-              </SidebarElement>
-
-              <SidebarElement
-                to="/uncashed-self-cheque-ob"
-                customCss={"flex justify-start pl-4 "}
-              >
-                <div className="text-sm items-start py-2 capitalize">
-                  <span className="flex items-center space-x-4 text-sm">
-                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                    <span>Uncashed Self cheque
-                      (Cash-in-Transit) – OB</span>
+                    <span>Transaction Not Reflected in Cash Book</span>
                   </span>
                 </div>
               </SidebarElement>
             </>}
 
-          <SidebarElement
-            to="/cheque-not-encashed"
-            customCss={"flex justify-start pl-4 "}
-          >
-            <div className="text-sm items-start py-2 capitalize">
-              <span className="flex items-center space-x-4 text-sm">
-                {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                <span>Transaction Not Reflected in passbook</span>
-              </span>
-            </div>
-          </SidebarElement>
-
-          <SidebarElement
-            to="/transaction-not-in-cash-book"
-            customCss={"flex justify-start pl-4 "}
-          >
-            <div className="text-sm items-start py-2 capitalize">
-              <span className="flex items-center space-x-4 text-sm">
-                {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                <span>Transaction Not Reflected in Cash Book</span>
-              </span>
-            </div>
-          </SidebarElement>
-
         </SidebarExpand>
-        <SidebarElement
-          to="/cheque-master"
-          customCss={"flex justify-start pl-4 "}
-        >
-          <div className="text-sm items-start py-1 capitalize">
-            <span className="flex items-center space-x-4">
-              {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-              <span>Cheque Book</span>
-            </span>
-          </div>
-        </SidebarElement>
+        {userData?.ROLE === "9" ? "" :
+          <SidebarElement
+            to="/cheque-master"
+            customCss={"flex justify-start pl-4 "}
+          >
+            <div className="text-sm items-start py-1 capitalize">
+              <span className="flex items-center space-x-4">
+                {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                <span>Cheque Book</span>
+              </span>
+            </div>
+          </SidebarElement>}
       </SidebarExpand>
 
       {[20546, 7175, 5281, 7161, 7162, 7177, 7164, 22061, 22062, 22063].includes(Number(userData?.USER_INDEX)) && (
@@ -1241,17 +1224,18 @@ export const Sidebar = () => {
                 </span>
               </div>
             </SidebarElement>
-            <SidebarElement
-              to="/preparation-payment-certificate"
-              customCss={"flex justify-start pl-4 "}
-            >
-              <div className="text-sm  items-start py-1 capitalize">
-                <span className="flex items-center space-x-4">
-                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                  <span>Preparation of Payment Certificate</span>
-                </span>
-              </div>
-            </SidebarElement>
+            {userData?.ROLE === "9" ? "" :
+              <SidebarElement
+                to="/preparation-payment-certificate"
+                customCss={"flex justify-start pl-4 "}
+              >
+                <div className="text-sm  items-start py-1 capitalize">
+                  <span className="flex items-center space-x-4">
+                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                    <span>Preparation of Payment Certificate</span>
+                  </span>
+                </div>
+              </SidebarElement>}
 
           </SidebarExpand>
 
@@ -1631,6 +1615,18 @@ export const Sidebar = () => {
                 </div>
               </SidebarElement>
 
+              <SidebarElement
+                to="/closing-balance-24-25"
+                customCss={"flex justify-start pl-4 "}
+              >
+                <div className="text-sm items-start py-1 capitalize">
+                  <span className="flex items-center space-x-4">
+                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                    <span>Closing Balance 24-25</span>
+                  </span>
+                </div>
+              </SidebarElement>
+
 
 
 
@@ -1750,29 +1746,32 @@ export const Sidebar = () => {
 
           <SidebarExpand text="Utility" icon="grommet-icons:services">
             {/* <Icon icon="grommet-icons:services" width="1rem" height="1rem"  style={{color: black}} /> */}
-            <SidebarElement
-              to="/monthly-accounting-closing"
-              customCss={"flex justify-start pl-4 "}
-            >
-              <div className="text-sm items-start py-1 capitalize">
-                <span className="flex items-center space-x-4">
-                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                  <span>Monthly Account Closing</span>
-                </span>
-              </div>
-            </SidebarElement>
+            {userData?.ROLE === "9" ? "" :
+              <>
+                <SidebarElement
+                  to="/monthly-accounting-closing"
+                  customCss={"flex justify-start pl-4 "}
+                >
+                  <div className="text-sm items-start py-1 capitalize">
+                    <span className="flex items-center space-x-4">
+                      {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                      <span>Monthly Account Closing</span>
+                    </span>
+                  </div>
+                </SidebarElement>
 
-            <SidebarElement
-              to="/cheque-status_update"
-              customCss={"flex justify-start pl-4 "}
-            >
-              <div className="text-sm items-start py-1 capitalize">
-                <span className="flex items-center space-x-4">
-                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                  <span>Cheque Status Update</span>
-                </span>
-              </div>
-            </SidebarElement>
+                <SidebarElement
+                  to="/cheque-status_update"
+                  customCss={"flex justify-start pl-4 "}
+                >
+                  <div className="text-sm items-start py-1 capitalize">
+                    <span className="flex items-center space-x-4">
+                      {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                      <span>Cheque Status Update</span>
+                    </span>
+                  </div>
+                </SidebarElement>
+              </>}
 
             <SidebarElement
               to="/list-of-users"
@@ -1797,30 +1796,33 @@ export const Sidebar = () => {
                 </span>
               </div>
             </SidebarElement>
+            {userData?.ROLE === "9" ? "" :
+              <>
+                <SidebarElement
+                  to="/system-administration"
+                  customCss={"flex justify-start pl-4 "}
+                >
+                  <div className="text-sm items-start py-1 capitalize">
+                    <span className="flex items-center space-x-4">
+                      {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                      <span>System Administration</span>
+                    </span>
+                  </div>
+                </SidebarElement>
 
-            <SidebarElement
-              to="/system-administration"
-              customCss={"flex justify-start pl-4 "}
-            >
-              <div className="text-sm items-start py-1 capitalize">
-                <span className="flex items-center space-x-4">
-                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                  <span>System Administration</span>
-                </span>
-              </div>
-            </SidebarElement>
+                <SidebarElement
+                  to="/cheque-status-as-per-pass-book"
+                  customCss={"flex justify-start pl-4 "}
+                >
+                  <div className="text-sm items-start py-1 capitalize">
+                    <span className="flex items-center space-x-4">
+                      {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                      <span>Cheque Status as per Pass Book</span>
+                    </span>
+                  </div>
+                </SidebarElement>
+              </>}
 
-            <SidebarElement
-              to="/cheque-status-as-per-pass-book"
-              customCss={"flex justify-start pl-4 "}
-            >
-              <div className="text-sm items-start py-1 capitalize">
-                <span className="flex items-center space-x-4">
-                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                  <span>Cheque Status as per Pass Book</span>
-                </span>
-              </div>
-            </SidebarElement>
             {userData?.ROLE === "1" ?
               <SidebarElement
                 to="/unverify-pass-for-payment"

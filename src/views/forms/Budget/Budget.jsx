@@ -239,16 +239,16 @@ const Budget = () => {
                         </tbody>
                     </table>
 
-
-                    <div className="w-1/2 flex justify-end">
-                        <button
-                            type="button"
-                            className="btn-submit h-10 py-2 px-6 mt-5 shadow-sm text-white hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            onClick={onSave}
-                        >
-                            Save
-                        </button>
-                    </div>
+                    {userData?.ROLE === "9" ? "" :
+                        <div className="w-1/2 flex justify-end">
+                            <button
+                                type="button"
+                                className="btn-submit h-10 py-2 px-6 mt-5 shadow-sm text-white hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                onClick={onSave}
+                            >
+                                Save
+                            </button>
+                        </div>}
                 </> : ""}
 
             </div>

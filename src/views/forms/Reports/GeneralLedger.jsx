@@ -5,6 +5,9 @@ import LOGO from "../../../Img/logo.png";
 import { getLgdDetails } from "../../../Service/LgdCodeGet/LgdCodeService";
 import { getAllGlGroupList } from "../../../Service/Transaction/TransactionService";
 
+// ✅ IMPORTANT: update this import path to your actual service file
+import { getStatus } from "../../../Service/Reports/ReportsService";
+
 const GeneralLedger = () => {
     const getCurrentDate = () => new Date().toISOString().split("T")[0];
 
@@ -23,17 +26,20 @@ const GeneralLedger = () => {
     const [ledgerMsg, setLedgerMsg] = useState("");
     const [ledgerRows, setLedgerRows] = useState([]);
 
+    // ✅ Status state (response like {statusTag:"Verified"})
+    const [status, setStatus] = useState(null);
+
     const printRef = useRef(null);
 
     // ---- Helpers ----
     const safeText = (v) => (v === null || v === undefined ? "" : String(v).trim());
     const safeNum = (v) => {
-        const n = parseFloat(String(v || "0").replace(/,/g, ""));
+        const n = parseFloat(String(v ?? "0").replace(/,/g, ""));
         return Number.isFinite(n) ? n : 0;
     };
     const formatMoney = (v) => {
         const n = safeNum(v);
-        return n === 0 && !String(v || "").trim() ? "" : n.toFixed(2);
+        return n === 0 && !String(v ?? "").trim() ? "" : n.toFixed(2);
     };
 
     const onGlGroup = (e) => setGlGroup(e.target.value);
@@ -55,14 +61,12 @@ const GeneralLedger = () => {
         getLgdDetails(userData?.CORE_LGD).then((response) => {
             if (response.status === 200) {
                 setLgd(response.data);
-            } else {
-
             }
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // ---- NEW API CALL ----
+    // ---- SEARCH ----
     const onSearch = async () => {
         if (!glGroup) return toast.error("Please select a GL Group");
         if (!fromDate) return toast.error("Please select a From Date");
@@ -73,7 +77,30 @@ const GeneralLedger = () => {
             setLoading(true);
             setLedgerMsg("");
             setLedgerRows([]);
+            setStatus(null);
 
+            // ✅ 1) Status API call (response: { statusTag: "Verified" })
+            try {
+                const response = await getStatus(userData?.CORE_LGD, fromDate, toDate);
+
+                if (response?.status === 200) {
+                    const tag = String(response?.data?.statusTag || "").trim(); // e.g. "Verified"
+                    if (tag) {
+                        // if you want only Verified = success, use the below if block instead
+                        toast.success(`Status: ${tag}`);
+                    } else {
+                        toast.error("Status not found");
+                    }
+                    setStatus(response.data);
+                } else {
+                    toast.error("Failed to fetch status");
+                }
+            } catch (e) {
+                console.error("getStatus error:", e);
+                toast.error("Failed to fetch status");
+            }
+
+            // ✅ 2) General Ledger API fetch
             const url =
                 `https://javaapi.wbpms.in/api/GeneralLedger/Get` +
                 `?lgdCode=${encodeURIComponent(userData.CORE_LGD)}` +
@@ -81,10 +108,13 @@ const GeneralLedger = () => {
                 `&frmDate=${encodeURIComponent(fromDate)}` +
                 `&toDate=${encodeURIComponent(toDate)}`;
 
-            const res = await fetch(url, { method: "GET" });
+            const res = await fetch(url, {
+                method: "GET",
+                headers: { Accept: "application/json" },
+            });
+
             const data = await res.json();
 
-            // expected: { statusCode, message, genLedger: [] }
             if (!res.ok) {
                 toast.error("Failed to fetch data");
                 return;
@@ -109,7 +139,6 @@ const GeneralLedger = () => {
 
     const glGroupName =
         partyTypeAllList?.find((x) => String(x?.groupId) === String(glGroup))?.groupName || "-";
-
 
     // ---- PRINT (only report area) ----
     const onPrint = async () => {
@@ -144,126 +173,125 @@ const GeneralLedger = () => {
 
         win.document.open();
         win.document.write(`
-    <html>
-      <head>
-        <title>General Ledger</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 16px; color:#000; }
+      <html>
+        <head>
+          <title>General Ledger</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 16px; color:#000; }
 
-          /* ===== HEADER STYLES ===== */
-          .print-header{
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            gap:12px;
-            margin-bottom:10px;
-          }
-          .print-logo{ width:120px; }
-          .print-logo img{ height:70px; width:auto; object-fit:contain; display:block; }
+            .print-header{
+              display:flex;
+              align-items:center;
+              justify-content:space-between;
+              gap:12px;
+              margin-bottom:10px;
+            }
+            .print-logo{ width:120px; }
+            .print-logo img{ height:70px; width:auto; object-fit:contain; display:block; }
 
-          .print-title{
-            flex:1;
-            text-align:center;
-          }
-          .print-title h2{
-            margin:0;
-            font-size:18px;
-            font-weight:700;
-            line-height:1.2;
-          }
-          .print-title h3{
-            margin:4px 0 0;
-            font-size:14px;
-            font-weight:600;
-            letter-spacing:0.5px;
-            text-transform:uppercase;
-          }
+            .print-title{
+              flex:1;
+              text-align:center;
+            }
+            .print-title h2{
+              margin:0;
+              font-size:18px;
+              font-weight:700;
+              line-height:1.2;
+            }
+            .print-title h3{
+              margin:4px 0 0;
+              font-size:14px;
+              font-weight:600;
+              letter-spacing:0.5px;
+              text-transform:uppercase;
+            }
 
-          .divider{
-            border-top:2px solid #000;
-            margin:10px 0 14px;
-          }
+            .divider{
+              border-top:2px solid #000;
+              margin:10px 0 14px;
+            }
             .print-meta{
-  margin-top: 6px;
-  font-size: 12px;
-  display: flex;
-  justify-content: center;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-.print-meta span{
-  padding: 2px 8px;
-  border: 1px solid #000;
-  border-radius: 6px;
-  background: #fff;
-}
+              margin-top: 6px;
+              font-size: 12px;
+              display: flex;
+              justify-content: center;
+              gap: 14px;
+              flex-wrap: wrap;
+            }
+            .print-meta span{
+              padding: 2px 8px;
+              border: 1px solid #000;
+              border-radius: 6px;
+              background: #fff;
+            }
+
+            table { width: 100%; border-collapse: collapse; font-size: 12px; }
+            th, td { border: 1px solid #333; padding: 6px; vertical-align: top; }
+            th { background: #f3f3f3; text-align: left; }
+
+            @media print {
+              button { display:none !important; }
+              @page { size: landscape; margin: 10mm; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="print-header">
+            <div class="print-logo">
+              <img id="printLogo" src="${logoBase64}" alt="Logo" />
+            </div>
+
+            <div class="print-title">
+              <h2>${lgdName}</h2>
+              <h3>General Ledger</h3>
+              <h3> Status: ${status.statusTag}</h3>
+    
+  
 
 
-          /* ===== TABLE ===== */
-          table { width: 100%; border-collapse: collapse; font-size: 12px; }
-          th, td { border: 1px solid #333; padding: 6px; vertical-align: top; }
-          th { background: #f3f3f3; text-align: left; }
-          .right { text-align: right; }
-          .center { text-align: center; }
+              <div class="print-meta">
+                <span><b>From:</b> ${fromDate || "-"}</span>
+                <span><b>To:</b> ${toDate || "-"}</span>
+                <span><b>GL Group:</b> ${glGroupName}</span>
+              </div>
+            </div>
 
-          @media print {
-            button { display:none !important; }
-            @page { size: landscape; margin: 10mm; } /* optional: landscape for wide table */
-          }
-        </style>
-      </head>
-      <body>
-        <div class="print-header">
-          <div class="print-logo">
-            <img id="printLogo" src="${logoBase64}" alt="Logo" />
+            <div style="width:120px;"></div>
           </div>
 
-      <div class="print-title">
-            <h2>${lgdName}</h2>
-            <h3>General Ledger</h3>
+          <div class="divider"></div>
 
-        <div class="print-meta">
-            <span><b>From:</b> ${fromDate || "-"}</span>
-            <span><b>To:</b> ${toDate || "-"}</span>
-            <span><b>GL Group:</b> ${glGroupName}</span>
-        </div>
-        </div>
+          ${printContents}
 
+          <script>
+            (function(){
+              const img = document.getElementById('printLogo');
+              if (!img) { window.print(); window.close(); return; }
 
-          <div style="width:120px;"></div>
-        </div>
+              const doPrint = () => {
+                setTimeout(() => { window.print(); window.close(); }, 300);
+              };
 
-        <div class="divider"></div>
-
-        ${printContents}
-
-        <script>
-          // Wait for logo to load before printing (very important)
-          (function(){
-            const img = document.getElementById('printLogo');
-            if (!img) { window.print(); window.close(); return; }
-
-            const doPrint = () => {
-              setTimeout(() => { window.print(); window.close(); }, 300);
-            };
-
-            if (img.complete) doPrint();
-            else {
-              img.onload = doPrint;
-              img.onerror = doPrint;
-            }
-          })();
-        </script>
-      </body>
-    </html>
-  `);
+              if (img.complete) doPrint();
+              else {
+                img.onload = doPrint;
+                img.onerror = doPrint;
+              }
+            })();
+          </script>
+        </body>
+      </html>
+    `);
         win.document.close();
     };
 
-
-    // Totals (optional)
-    const totalPayment = ledgerRows.reduce((s, r) => s + safeNum(r.paymentAmount), 0);
-    const totalReceipt = ledgerRows.reduce((s, r) => s + safeNum(r.receiptAmount), 0);
+    // ✅ ONLY LAST ROW CUMULATIVE (NOT SUM)
+    const lastRow = ledgerRows?.length ? ledgerRows[ledgerRows.length - 1] : null;
+    const leftLastCumu = safeNum(lastRow?.paymentCumulitiveAmount);
+    const rightLastCumu = safeNum(lastRow?.receiptCumulitiveAmount);
+    const netLastCumu = rightLastCumu - leftLastCumu;
+    const netColorClass = netLastCumu > 0 ? "text-blue-600" : "text-red-600";
 
     return (
         <>
@@ -275,7 +303,9 @@ const GeneralLedger = () => {
                 <div className="flex flex-col space-y-2 py-3">
                     <div className="flex items-center space-x-4">
                         <div className="w-1/3">
-                            <label className="block text-sm font-medium text-gray-700">GL Group<span className="text-red-500"> * </span></label>
+                            <label className="block text-sm font-medium text-gray-700">
+                                GL Group<span className="text-red-500"> * </span>
+                            </label>
                             <select
                                 className="text-sm block w-full p-1 h-9 border border-gray-300 rounded-md"
                                 onChange={onGlGroup}
@@ -340,15 +370,10 @@ const GeneralLedger = () => {
 
                 {/* Report Area (PRINT THIS) */}
                 <div ref={printRef}>
-
-
-                    {/* Table */}
                     {ledgerRows && ledgerRows.length > 0 && (
                         <div className="border rounded-lg shadow-sm bg-white">
-                            {/* Scroll container (controls both X and Y scroll) */}
                             <div className="max-h-[70vh] overflow-auto">
                                 <table className="min-w-[1400px] w-full text-sm border-separate border-spacing-0">
-                                    {/* Sticky Header */}
                                     <thead className="sticky top-0 z-20 bg-blue-300">
                                         <tr className="text-slate-700">
                                             <th className="sticky left-0 z-30 bg-blue-300 px-3 py-2 border-b border-slate-200 text-left whitespace-nowrap">
@@ -359,116 +384,78 @@ const GeneralLedger = () => {
                                             <th className="px-3 py-2 border-b border-slate-200 text-left whitespace-nowrap">Payment Voucher ID</th>
                                             <th className="px-3 py-2 border-b border-slate-200 text-left whitespace-nowrap">Payment Voucher No</th>
                                             <th className="px-3 py-2 border-b border-slate-200 text-left">Payment Particulars</th>
-                                            <th className="px-3 py-2 border-b border-slate-200 text-right whitespace-nowrap">Payment Amount</th>
-                                            <th className="px-3 py-2 border-b border-slate-200 text-right whitespace-nowrap">
-                                                Payment Cumulative Amount
-                                            </th>
+                                            <th className="px-3 py-2 border-b border-slate-200 text-right whitespace-nowrap">Amount</th>
+                                            <th className="px-3 py-2 border-b border-slate-200 text-right whitespace-nowrap">Cumulative Amount</th>
 
                                             <th className="px-3 py-2 border-b border-slate-200 text-left whitespace-nowrap">Receipt Date</th>
                                             <th className="px-3 py-2 border-b border-slate-200 text-left whitespace-nowrap">Receipt Voucher ID</th>
                                             <th className="px-3 py-2 border-b border-slate-200 text-left whitespace-nowrap">Receipt Voucher No</th>
                                             <th className="px-3 py-2 border-b border-slate-200 text-left">Receipt Particulars</th>
-                                            <th className="px-3 py-2 border-b border-slate-200 text-right whitespace-nowrap">Receipt Amount</th>
-                                            <th className="px-3 py-2 border-b border-slate-200 text-right whitespace-nowrap">
-                                                Receipt Cumulative Amount
-                                            </th>
+                                            <th className="px-3 py-2 border-b border-slate-200 text-right whitespace-nowrap">Amount</th>
+                                            <th className="px-3 py-2 border-b border-slate-200 text-right whitespace-nowrap">Cumulative Amount</th>
                                         </tr>
                                     </thead>
 
                                     <tbody className="text-slate-800">
-                                        {ledgerRows.length === 0 ? (
-                                            <tr>
-                                                <td className="px-3 py-6 text-center text-slate-500" colSpan={13}>
-                                                    No data
+                                        {ledgerRows.map((r, idx) => (
+                                            <tr
+                                                key={idx}
+                                                className={`border-b border-slate-100 ${idx % 2 === 0 ? "bg-white" : "bg-slate-50"
+                                                    } hover:bg-cyan-50 transition text-xs`}
+                                            >
+                                                <td className="sticky left-0 z-10 px-3 py-2 border-b border-slate-100 bg-inherit font-medium whitespace-nowrap">
+                                                    {idx + 1}
                                                 </td>
+
+                                                <td className="px-3 py-2 border-b border-slate-100 whitespace-nowrap">{safeText(r.paymentVoucherDate)}</td>
+                                                <td className="px-3 py-2 border-b border-slate-100 whitespace-nowrap">{safeText(r.paymentVoucherId)}</td>
+                                                <td className="px-3 py-2 border-b border-slate-100 whitespace-nowrap">{safeText(r.paymentVoucherNo)}</td>
+                                                <td className="px-3 py-2 border-b border-slate-100 min-w-[360px] whitespace-normal">{safeText(r.paymentParticulars)}</td>
+                                                <td className="px-3 py-2 border-b border-slate-100 text-right whitespace-nowrap">{formatMoney(r.paymentAmount)}</td>
+                                                <td className="px-3 py-2 border-b border-slate-100 text-right whitespace-nowrap">{formatMoney(r.paymentCumulitiveAmount)}</td>
+
+                                                <td className="px-3 py-2 border-b border-slate-100 whitespace-nowrap">{safeText(r.receiptVoucherDate)}</td>
+                                                <td className="px-3 py-2 border-b border-slate-100 whitespace-nowrap">{safeText(r.receiptVoucherId)}</td>
+                                                <td className="px-3 py-2 border-b border-slate-100 whitespace-nowrap">{safeText(r.receiptVoucherNo)}</td>
+                                                <td className="px-3 py-2 border-b border-slate-100 min-w-[360px] whitespace-normal">{safeText(r.receiptParticulars)}</td>
+                                                <td className="px-3 py-2 border-b border-slate-100 text-right whitespace-nowrap">{formatMoney(r.receiptAmount)}</td>
+                                                <td className="px-3 py-2 border-b border-slate-100 text-right whitespace-nowrap">{formatMoney(r.receiptCumulitiveAmount)}</td>
                                             </tr>
-                                        ) : (
-                                            ledgerRows.map((r, idx) => (
-                                                <tr
-                                                    key={idx}
-                                                    className={`border-b border-slate-100 ${idx % 2 === 0 ? "bg-white" : "bg-slate-50"
-                                                        } hover:bg-cyan-50 transition text-xs`}
-                                                >
-                                                    {/* Sticky first column */}
-                                                    <td className="sticky left-0 z-10 px-3 py-2 border-b border-slate-100 bg-inherit font-medium whitespace-nowrap">
-                                                        {idx + 1}
-                                                    </td>
+                                        ))}
 
-                                                    <td className="px-3 py-2 border-b border-slate-100 whitespace-nowrap">
-                                                        {safeText(r.paymentVoucherDate)}
-                                                    </td>
-                                                    <td className="px-3 py-2 border-b border-slate-100 whitespace-nowrap">
-                                                        {safeText(r.paymentVoucherId)}
-                                                    </td>
-                                                    <td className="px-3 py-2 border-b border-slate-100 whitespace-nowrap">
-                                                        {safeText(r.paymentVoucherNo)}
-                                                    </td>
-                                                    <td className="px-3 py-2 border-b border-slate-100 min-w-[360px] whitespace-normal">
-                                                        {safeText(r.paymentParticulars)}
-                                                    </td>
-                                                    <td className="px-3 py-2 border-b border-slate-100 text-right whitespace-nowrap">
-                                                        {formatMoney(r.paymentAmount)}
-                                                    </td>
-                                                    <td className="px-3 py-2 border-b border-slate-100 text-right whitespace-nowrap">
-                                                        {formatMoney(r.paymentCumulitiveAmount)}
-                                                    </td>
+                                        {/* ✅ EXTRA ROW: Closing Balance (Right cumulative - Left cumulative) */}
+                                        {ledgerRows.length > 0 && (
+                                            <tr className="bg-white font-semibold text-xs">
+                                                <td className="sticky left-0 z-10 px-3 py-2 border-b border-slate-200 bg-inherit whitespace-nowrap">
+                                                    {ledgerRows.length + 1}
+                                                </td>
 
-                                                    <td className="px-3 py-2 border-b border-slate-100 whitespace-nowrap">
-                                                        {safeText(r.receiptVoucherDate)}
-                                                    </td>
-                                                    <td className="px-3 py-2 border-b border-slate-100 whitespace-nowrap">
-                                                        {safeText(r.receiptVoucherId)}
-                                                    </td>
-                                                    <td className="px-3 py-2 border-b border-slate-100 whitespace-nowrap">
-                                                        {safeText(r.receiptVoucherNo)}
-                                                    </td>
-                                                    <td className="px-3 py-2 border-b border-slate-100 min-w-[360px] whitespace-normal">
-                                                        {safeText(r.receiptParticulars)}
-                                                    </td>
-                                                    <td className="px-3 py-2 border-b border-slate-100 text-right whitespace-nowrap">
-                                                        {formatMoney(r.receiptAmount)}
-                                                    </td>
-                                                    <td className="px-3 py-2 border-b border-slate-100 text-right whitespace-nowrap">
-                                                        {formatMoney(r.receiptCumulitiveAmount)}
-                                                    </td>
-                                                </tr>
-                                            ))
+                                                <td className="px-3 py-2 border-b border-slate-200 whitespace-nowrap"></td>
+                                                <td className="px-3 py-2 border-b border-slate-200 whitespace-nowrap"></td>
+                                                <td className="px-3 py-2 border-b border-slate-200 whitespace-nowrap"></td>
+
+                                                <td className="px-3 py-2 border-b border-slate-200">To Closing Balance</td>
+
+                                                <td className="px-3 py-2 border-b border-slate-200 text-right whitespace-nowrap">
+                                                    <span className={netColorClass}>{netLastCumu.toFixed(2)}</span>
+                                                </td>
+
+                                                <td className="px-3 py-2 border-b border-slate-200 text-right whitespace-nowrap"></td>
+
+                                                <td className="px-3 py-2 border-b border-slate-200 whitespace-nowrap"></td>
+                                                <td className="px-3 py-2 border-b border-slate-200 whitespace-nowrap"></td>
+                                                <td className="px-3 py-2 border-b border-slate-200 whitespace-nowrap"></td>
+
+                                                <td className="px-3 py-2 border-b border-slate-200"></td>
+                                                <td className="px-3 py-2 border-b border-slate-200 text-right whitespace-nowrap"></td>
+                                                <td className="px-3 py-2 border-b border-slate-200 text-right whitespace-nowrap"></td>
+                                            </tr>
                                         )}
                                     </tbody>
-
-                                    {/* Sticky Total Row */}
-                                    {ledgerRows.length > 0 && (
-                                        <tfoot className="sticky bottom-0 z-20 bg-blue-200">
-                                            <tr className="text-slate-800">
-                                                <td className="sticky left-0 z-30 bg-blue-200 px-3 py-2 border-t border-slate-300 font-semibold whitespace-nowrap">
-                                                    Total
-                                                </td>
-
-                                                <td className="px-3 py-2 border-t border-blue-300" colSpan={4}></td>
-
-                                                <td className="px-3 py-2 border-t border-blue-300 text-right font-semibold whitespace-nowrap">
-                                                    {totalPayment.toFixed(2)}
-                                                </td>
-
-                                                <td className="px-3 py-2 border-t border-slate-300"></td>
-
-                                                <td className="px-3 py-2 border-t border-slate-300" colSpan={4}></td>
-
-                                                <td className="px-3 py-2 border-t border-slate-300 text-right font-semibold whitespace-nowrap">
-                                                    {totalReceipt.toFixed(2)}
-                                                </td>
-
-                                                <td className="px-3 py-2 border-t border-slate-300"></td>
-                                            </tr>
-                                        </tfoot>
-                                    )}
                                 </table>
                             </div>
-
-                            {/* Optional footer hint */}
-
-                        </div>)}
-
+                        </div>
+                    )}
                 </div>
             </div>
         </>

@@ -574,22 +574,24 @@ const BankBranchMaster = () => {
 
 
                             {/* Submit Button */}
-                            <div className="flex-1">
-                                <button
-                                    style={{ marginTop: "22px" }}
-                                    type="button"
-                                    className={classNames(
-                                        "py-1 px-4 border border-transparent rounded-md shadow-sm text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500",
-                                        mutationId
-                                            ? "py-1 px-4"
-                                            : "py-1 px-4"
-                                    )}
-                                    onClick={performMutation}
-                                // disabled
-                                >
-                                    {!mutationId ? "Submit" : "Update"}
-                                </button>
-                            </div>
+                            {userData?.ROLE === "9" ? "" :
+
+                                <div className="flex-1">
+                                    <button
+                                        style={{ marginTop: "22px" }}
+                                        type="button"
+                                        className={classNames(
+                                            "py-1 px-4 border border-transparent rounded-md shadow-sm text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500",
+                                            mutationId
+                                                ? "py-1 px-4"
+                                                : "py-1 px-4"
+                                        )}
+                                        onClick={performMutation}
+                                    // disabled
+                                    >
+                                        {!mutationId ? "Submit" : "Update"}
+                                    </button>
+                                </div>}
                         </div>
 
                     </div>

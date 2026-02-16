@@ -3650,10 +3650,15 @@ const PassForPayment = () => {
                             </div> : ""}
 
                         <div className="flex justify-center space-x-4 py-1">
-                            {pageChange === "Add" ?
-                                <button className="bg-green-500 text-white px-4 py-1 text-xs rounded hover:bg-green-600 transition duration-200" disabled={saveDisable ? true : false} onClick={onSave}>
+                            {userData?.ROLE !== "9" && pageChange === "Add" && (
+                                <button
+                                    className="bg-green-500 text-white px-4 py-1 text-xs rounded hover:bg-green-600 transition duration-200"
+                                    disabled={saveDisable}
+                                    onClick={onSave}
+                                >
                                     Save
-                                </button> : ""}
+                                </button>
+                            )}
                             {pageChange === "Add" ?
                                 <button className="bg-orange-500 text-white px-4 py-1 text-xs rounded hover:bg-orange-700 transition duration-200" disabled={saveDisable ? false : true} onClick={onSimilarEntry}>
                                     Similar Entry

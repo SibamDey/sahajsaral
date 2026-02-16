@@ -373,7 +373,7 @@ const GlGroupPri = () => {
 
                             </div>
                         </div>
-                        {userData?.USER_LEVEL === "HQ" ? "" :
+                        {userData?.USER_LEVEL === "HQ" || userData?.ROLE=== "9" ? "" :
                             <div className="w-1/6  ">
                                 <button
                                     type="button"
