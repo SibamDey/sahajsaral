@@ -1005,7 +1005,8 @@ export const Sidebar = () => {
                   </span>
                 </div>
               </SidebarElement>
-            </>}
+            </>
+            }
         </SidebarExpand>
 
         <SidebarExpand text="Opening Balance" icon="fluent-mdl2:radio-bullet">
@@ -1173,7 +1174,7 @@ export const Sidebar = () => {
           </SidebarElement>}
       </SidebarExpand>
 
-      {[20546, 7175, 5281, 7161, 7162, 7177, 7164, 22061, 22062, 22063].includes(Number(userData?.USER_INDEX)) && (
+      {/* {[20546, 7175, 5281, 7161, 7162, 7177, 7164, 22061, 22062, 22063].includes(Number(userData?.USER_INDEX)) && (
         <SidebarExpand text="Administrative Work" icon="material-symbols:help-center-outline-rounded">
           <SidebarElement
             to="/secure-work"
@@ -1186,7 +1187,7 @@ export const Sidebar = () => {
             </div>
           </SidebarElement>
         </SidebarExpand>
-      )}
+      )} */}
 
       {userData?.USER_LEVEL === "HQ" ? "" :
         <>

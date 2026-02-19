@@ -42,6 +42,16 @@ const CashAnalysis = () => {
     const formatDate = (date) =>
         date ? new Date(date).toLocaleDateString("en-GB").replace(/\//g, '.') : "Invalid Date";
 
+    // ✅ NEW: Hide row ONLY if ALL amounts are 0.00 (or 0 / null / undefined)
+    const shouldShowRow = (entry) => {
+        const opening = parseFloat(entry?.openingBalance) || 0;
+        const receipt = parseFloat(entry?.receiptAmount) || 0;
+        const payment = parseFloat(entry?.paymentAmount) || 0;
+        const closing = parseFloat(entry?.closingBalance) || 0;
+
+        return !(opening === 0 && receipt === 0 && payment === 0 && closing === 0);
+    };
+
 
     useEffect(() => {
         getLgdDetails(userData?.CORE_LGD).then((response) => {
@@ -567,16 +577,18 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {cashAnalysisSummaryDtls?.dtls?.map((entry, index) => (
-                                                    <tr key={index} className="text-right tbsize">
-                                                        <td className="border p-2 text-right rightall" style={{ fontFamily: "InterVariable, sans-serif" }}>{index + 1}</td>
-                                                        <td className="border p-2 text-left" style={{ fontFamily: "InterVariable, sans-serif" }}>{entry?.glGroupName}</td>
-                                                        <td className={entry?.openingBalance < 0 ? "border p-2 text-red-600 redclr rightall" : "border p-2 rightall"} style={{ fontFamily: "InterVariable, sans-serif" }}>{entry?.openingBalance}</td>
-                                                        <td className={entry?.receiptAmount < 0 ? "border p-2 text-red-600 redclr rightall" : "border p-2 rightall"} style={{ fontFamily: "InterVariable, sans-serif" }}>{entry?.receiptAmount}</td>
-                                                        <td className={entry?.paymentAmount < 0 ? "border p-2 text-red-600 redclr rightall" : "border p-2 rightall"} style={{ fontFamily: "InterVariable, sans-serif" }}>{entry?.paymentAmount}</td>
-                                                        <td className={entry?.closingBalance < 0 ? "border p-2 text-red-600 redclr rightall" : "border p-2 rightall"} style={{ fontFamily: "InterVariable, sans-serif" }}>{entry?.closingBalance}</td>
-                                                    </tr>
-                                                ))}
+                                                {cashAnalysisSummaryDtls?.dtls
+                                                    ?.filter(shouldShowRow)
+                                                    ?.map((entry, index) => (
+                                                        <tr key={index} className="text-right tbsize">
+                                                            <td className="border p-2 text-right rightall" style={{ fontFamily: "InterVariable, sans-serif" }}>{index + 1}</td>
+                                                            <td className="border p-2 text-left" style={{ fontFamily: "InterVariable, sans-serif" }}>{entry?.glGroupName}</td>
+                                                            <td className={entry?.openingBalance < 0 ? "border p-2 text-red-600 redclr rightall" : "border p-2 rightall"} style={{ fontFamily: "InterVariable, sans-serif" }}>{entry?.openingBalance}</td>
+                                                            <td className={entry?.receiptAmount < 0 ? "border p-2 text-red-600 redclr rightall" : "border p-2 rightall"} style={{ fontFamily: "InterVariable, sans-serif" }}>{entry?.receiptAmount}</td>
+                                                            <td className={entry?.paymentAmount < 0 ? "border p-2 text-red-600 redclr rightall" : "border p-2 rightall"} style={{ fontFamily: "InterVariable, sans-serif" }}>{entry?.paymentAmount}</td>
+                                                            <td className={entry?.closingBalance < 0 ? "border p-2 text-red-600 redclr rightall" : "border p-2 rightall"} style={{ fontFamily: "InterVariable, sans-serif" }}>{entry?.closingBalance}</td>
+                                                        </tr>
+                                                    ))}
                                             </tbody>
                                             <tfoot>
                                                 <tr className="bg-gray-300 font-bold text-black tbsize rightall">
@@ -606,22 +618,24 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {cashAnalysisSummaryDtls?.dtls.map((entry, index) => (
-                                                    <tr key={index} className={entry?.receiptGroupId ? "bg-blue-200 text-right" : "text-right"}>
-                                                        <td className="border p-2 text-left">{index + 1}</td>
-                                                        <td className="border p-2 text-left">
-                                                            {reportType === "Cash Analysis (PRI GL wise)" ? entry?.glGroupId : entry?.receiptGroupId}
-                                                        </td>
-                                                        <td className="border p-2 text-left">
-                                                            {reportType === "Cash Analysis (PRI GL wise)" ? entry?.glGroupName : entry?.receiptGroupName}
-                                                        </td>
-                                                        <td className="border p-2">{entry?.openingBalance}</td>
-                                                        <td className="border p-2">{entry?.receiptAmount}</td>
-                                                        <td className="border p-2">{entry?.paymentAmount}</td>
-                                                        <td className="border p-2">{entry?.closingBalance}</td>
-                                                    </tr>
+                                                {cashAnalysisSummaryDtls?.dtls
+                                                    ?.filter(shouldShowRow)
+                                                    .map((entry, index) => (
+                                                        <tr key={index} className={entry?.receiptGroupId ? "bg-blue-200 text-right" : "text-right"}>
+                                                            <td className="border p-2 text-left">{index + 1}</td>
+                                                            <td className="border p-2 text-left">
+                                                                {reportType === "Cash Analysis (PRI GL wise)" ? entry?.glGroupId : entry?.receiptGroupId}
+                                                            </td>
+                                                            <td className="border p-2 text-left">
+                                                                {reportType === "Cash Analysis (PRI GL wise)" ? entry?.glGroupName : entry?.receiptGroupName}
+                                                            </td>
+                                                            <td className="border p-2">{entry?.openingBalance}</td>
+                                                            <td className="border p-2">{entry?.receiptAmount}</td>
+                                                            <td className="border p-2">{entry?.paymentAmount}</td>
+                                                            <td className="border p-2">{entry?.closingBalance}</td>
+                                                        </tr>
 
-                                                ))}
+                                                    ))}
                                             </tbody>
 
                                         </table>

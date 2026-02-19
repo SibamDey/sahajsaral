@@ -306,6 +306,10 @@ const PaymentCertificateDocument = React.forwardRef(
             Issued on: {first.generateDate} <br />
             Printed on: {getTodayDate()}
           </div>
+          <div>
+            Pradhan <br />
+            
+          </div>
           <div className="text-right">
             {getSignatureText(userLevel)} <br />
             {officeName}

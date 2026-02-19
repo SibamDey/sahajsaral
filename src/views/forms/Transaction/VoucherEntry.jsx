@@ -161,6 +161,7 @@ const VoucherEntry = () => {
         { value: "None", label: "None" },
         { value: "Cheque", label: "Cheque" },
         { value: "Challan", label: "Challan" },
+        { value: "eChallan", label: "eChallan" },
         { value: "DD", label: "DD" },
         { value: "Advice", label: "Advice" },
         { value: "By Transfer", label: "By Transfer" },

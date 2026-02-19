@@ -905,7 +905,7 @@ const NominalAccountCode = () => {
                             >
                                 Reset
                             </button>
-                            {userData?.USER_LEVEL === "HQ" ?
+                            {userData?.USER_LEVEL === "HQ" || userData?.USER_INDEX === 7162 ?
                                 <button
                                     type="button"
                                     className={classNames(
