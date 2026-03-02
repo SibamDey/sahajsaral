@@ -62,3 +62,7 @@ export const getStatus = async (lgd,from,to) => {
 export const getGpForm26 = async (lgd,from,to) => {
     return await webApi.get(`/Form26/GP?lgdCode=${lgd}&frmDate=${from}&toDate=${to}`,);
 }
+
+export const getForm27 = async (lgd,from,to) => {
+    return await webApi.get(`/Form27/get?lgdCode=${lgd}&frmDate=${from}&toDate=${to}`,);
+}

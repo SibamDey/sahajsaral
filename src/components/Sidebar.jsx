@@ -94,6 +94,8 @@ import OSRCollectionApp from "../views/forms/Register/OSRCollectionApp";
 import PropertyTaxReport from "../views/forms/Register/PropertyTaxReport";
 import PreparationPaymentCertificate from "../views/forms/Document/IssuancePaymentCertificate";
 import ClosingBalance2425 from "../views/forms/Reports/ClosingBalance2425";
+import TaxCollectorAvailableBalance from "../views/forms/Register/TaxCollectorAvailableBalance";
+import TaxCollectorTransaction from "../views/forms/Register/TaxCollectorTransaction";
 // import PublicPaymentCertificate from "../views/forms/Document/PublicPaymentCertificate";
 
 
@@ -691,12 +693,29 @@ export const sideBarList = [
     permissions: [1],
   },
 
+    {
+    Component: TaxCollectorAvailableBalance,
+    text: "TaxCollectorAvailableBalance",
+    route: "/tax-collectors-available-balance",
+    permissions: [1],
+  },
+
+      {
+    Component: TaxCollectorTransaction,
+    text: "TaxCollectorTransaction",
+    route: "/tax-collectors-transaction",
+    permissions: [1],
+  },
+
+
+
   //   {
   //   Component: PublicPaymentCertificate,
   //   text: "PublicPaymentCertificate",
   //   route: "/payment-certificate/view",
   //   permissions: [1],
   // },
+
 
 
 
@@ -1324,6 +1343,31 @@ export const Sidebar = () => {
             </SidebarElement>
 
             <SidebarElement
+              to="/tax-collectors-available-balance"
+              customCss={"flex justify-start pl-4 "}
+            >
+              <div className="text-sm items-start py-1 capitalize">
+                <span className="flex items-center space-x-4">
+                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                  <span>Tax Collectors- Available Balance</span>
+                </span>
+              </div>
+            </SidebarElement>
+
+            <SidebarElement
+              to="/tax-collectors-transaction"
+              customCss={"flex justify-start pl-4 "}
+            >
+              <div className="text-sm items-start py-1 capitalize">
+                <span className="flex items-center space-x-4">
+                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                  <span>Tax Collectors- Transaction</span>
+                </span>
+              </div>
+            </SidebarElement>
+
+
+            <SidebarElement
               to="/cheque-receipt-issue-register"
               customCss={"flex justify-start pl-4 "}
             >
@@ -1881,7 +1925,8 @@ export const Sidebar = () => {
 
 
 
-        </>}
+        </>
+        }
     </div>
   );
 };
