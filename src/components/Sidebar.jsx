@@ -96,6 +96,7 @@ import PreparationPaymentCertificate from "../views/forms/Document/IssuancePayme
 import ClosingBalance2425 from "../views/forms/Reports/ClosingBalance2425";
 import TaxCollectorAvailableBalance from "../views/forms/Register/TaxCollectorAvailableBalance";
 import TaxCollectorTransaction from "../views/forms/Register/TaxCollectorTransaction";
+import ReceiptPayment27summaryreport from "../views/forms/Reports/ReceiptPaymentform27summaryreport";
 // import PublicPaymentCertificate from "../views/forms/Document/PublicPaymentCertificate";
 
 
@@ -509,7 +510,13 @@ export const sideBarList = [
   {
     Component: ReceiptPayment27,
     text: "ReceiptPayment27",
-    route: "/receipt-payment27",
+    route: "/receipt-payment27-details",
+    permissions: [1],
+  },
+  {
+    Component: ReceiptPayment27summaryreport,
+    text: "ReceiptPayment27summaryreport",
+    route: "/receipt-payment27-summary",
     permissions: [1],
   },
   {
@@ -1649,13 +1656,25 @@ export const Sidebar = () => {
                 </div>
               </SidebarElement> */}
               <SidebarElement
-                to="/receipt-payment27"
+                to="/receipt-payment27-details"
                 customCss={"flex justify-start pl-4 "}
               >
                 <div className="text-sm items-start py-1 capitalize">
                   <span className="flex items-center space-x-4">
                     {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                    <span>Receipt-Payment (Form-27)</span>
+                    <span>Receipt-Payment (Form-27) Details</span>
+                  </span>
+                </div>
+              </SidebarElement>
+
+              <SidebarElement
+                to="/receipt-payment27-summary"
+                customCss={"flex justify-start pl-4 "}
+              >
+                <div className="text-sm items-start py-1 capitalize">
+                  <span className="flex items-center space-x-4">
+                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                    <span>Receipt-Payment (Form-27) Summary</span>
                   </span>
                 </div>
               </SidebarElement>

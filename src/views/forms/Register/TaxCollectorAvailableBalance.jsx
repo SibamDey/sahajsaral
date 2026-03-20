@@ -21,26 +21,50 @@ import SuccessModal from "../../../components/SuccessModal";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// 🔽 Excel export imports
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 
 const TaxCollectorAvailableBalance = () => {
-  // Page size options
   const ListOptions = [10, 20, 50, "all"];
   const [items, setItems] = useState(ListOptions[0]);
 
-  // Success modal (you can change the text / usage as needed)
   const [openModal, setOpenModal] = useState(false);
 
-  // Get lgdCode from localStorage (fallback to 107946 for testing)
-  const jsonString = localStorage.getItem("SAHAJ_SARAL_USER");
-  const userData = jsonString ? JSON.parse(jsonString) : null;
-  const lgdCode = userData?.CORE_LGD ;
+  // ============================
+  // Read LGD code safely
+  // ============================
+
+  const [lgdCode, setLgdCode] = useState(null);
+
+  useEffect(() => {
+    try {
+      if (typeof window === "undefined") return;
+
+      const raw = sessionStorage.getItem("SAHAJ_SARAL_USER");
+      if (!raw) {
+        console.warn("SAHAJ_SARAL_USER not found.");
+        return;
+      }
+
+      const userData = JSON.parse(raw);
+
+      // ➤ ONLY get the key you need
+      const code = userData?.CORE_LGD;
+
+      if (code) {
+        setLgdCode(String(code));
+      } else {
+        console.warn("CORE_LGD missing in user object.");
+      }
+    } catch (err) {
+      console.error("LocalStorage parse error:", err);
+    }
+  }, []);
 
   // ============================
-  // React Query – API call
+  // React Query API Call
   // ============================
+
   const {
     data: apiData = [],
     isLoading,
@@ -48,84 +72,43 @@ const TaxCollectorAvailableBalance = () => {
     error,
   } = useQuery({
     queryKey: ["TaxCollectorAvailableBalance", lgdCode],
-    enabled: !!lgdCode, // don't call if lgdCode missing
+    enabled: Boolean(lgdCode), // API runs only when LGD exists
     queryFn: async () => {
-      try {
-        const res = await axios.get(
-          "https://javaapi.wbpms.in/api/PtaxWallet/TaxCollcetorWiseAvlBalance",
-          {
-            params: { lgdCode },
-            // If API needs auth, uncomment & fill:
-            // headers: {
-            //   Authorization: `Bearer ${token}`,
-            //   "deadlock-header": "xyz",
-            // },
-          }
-        );
+      const res = await axios.get(
+        "https://javaapi.wbpms.in/api/PtaxWallet/TaxCollcetorWiseAvlBalance",
+        { params: { lgdCode } }
+      );
 
-        console.log("API response:", res.data);
+      if (Array.isArray(res.data)) return res.data;
+      if (Array.isArray(res.data?.result)) return res.data.result;
+      if (Array.isArray(res.data?.message)) return res.data.message;
 
-        // Your API already returns the array directly:
-        // [ { tcsId, tcsName, activateDate, availableBalance } ]
-        if (Array.isArray(res.data)) return res.data;
-
-        // Fallbacks if the backend later wraps it inside result/message
-        if (Array.isArray(res.data?.result)) return res.data.result;
-        if (Array.isArray(res.data?.message)) return res.data.message;
-
-        return [];
-      } catch (err) {
-        console.error("API error:", err);
-        toast.error(
-          err?.response
-            ? `Error ${err.response.status}: ${err.response.statusText}`
-            : "Network / CORS error when calling TaxCollcetorWiseAvlBalance"
-        );
-        throw err;
-      }
+      return [];
     },
   });
 
   // ============================
-  // Table data & columns
+  // Table Data
   // ============================
 
-  const data = useMemo(() => {
-    const list = [...apiData];
-    // Example: sort by tcsName alphabetically (optional)
-    // list.sort((a, b) => a.tcsName.localeCompare(b.tcsName));
-    return list;
-  }, [apiData]);
+  const data = useMemo(() => [...apiData], [apiData]);
 
   const columns = useMemo(
     () => [
-      {
-        header: "Tax Collector ID",
-        accessorKey: "tcsId",
-        headclass: "cursor-pointer",
-      },
-      {
-        header: "Tax Collector Name",
-        accessorKey: "tcsName",
-        headclass: "cursor-pointer",
-      },
-      {
-        header: "Activation Date",
-        accessorKey: "activateDate",
-        headclass: "cursor-pointer",
-      },
+      { header: "Tax Collector ID", accessorKey: "tcsId" },
+      { header: "Tax Collector Name", accessorKey: "tcsName" },
+      { header: "Activation Date", accessorKey: "activateDate" },
       {
         header: "Available Balance (₹)",
         accessorKey: "availableBalance",
-        headclass: "cursor-pointer",
         cell: (info) => {
-          const raw = info.getValue();
-          const num = Number(raw);
-          if (Number.isNaN(num)) return raw ?? "";
-          return num.toLocaleString("en-IN", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
+          const num = Number(info.getValue());
+          return Number.isNaN(num)
+            ? info.getValue()
+            : num.toLocaleString("en-IN", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              });
         },
       },
     ],
@@ -138,40 +121,32 @@ const TaxCollectorAvailableBalance = () => {
   const table = useReactTable({
     data,
     columns,
+    state: { sorting, globalFilter: filtering },
+    onSortingChange: setSorting,
+    onGlobalFilterChange: setFiltering,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    state: {
-      sorting,
-      globalFilter: filtering,
-    },
     initialState: {
-      pagination: {
-        pageSize: parseInt(items),
-      },
+      pagination: { pageSize: parseInt(items) },
     },
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setFiltering,
   });
 
-  // Update page size when dropdown changes
   useEffect(() => {
-    if (items === "all") table.setPageSize(9999);
-    else table.setPageSize(parseInt(items));
-  }, [items, table]);
+    table.setPageSize(items === "all" ? 99999 : parseInt(items));
+  }, [items]);
 
   // ============================
-  // Excel Download Handler
+  // Excel Download
   // ============================
 
   const handleDownloadExcel = () => {
-    if (!data || data.length === 0) {
-      toast.warn("No data available to download");
+    if (!data.length) {
+      toast.warn("No data available for Excel export");
       return;
     }
 
-    // Shape data for Excel (with pretty column names)
     const exportData = data.map((row) => ({
       "Tax Collector ID": row.tcsId,
       "Tax Collector Name": row.tcsName,
@@ -179,25 +154,17 @@ const TaxCollectorAvailableBalance = () => {
       "Available Balance (₹)": row.availableBalance,
     }));
 
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(
-      workbook,
-      worksheet,
-      "TaxCollectorBalance"
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Balance");
+
+    const buffer = XLSX.write(wb, { type: "array", bookType: "xlsx" });
+    saveAs(
+      new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      }),
+      `TaxCollector_Balance_${lgdCode}.xlsx`
     );
-
-    const excelBuffer = XLSX.write(workbook, {
-      bookType: "xlsx",
-      type: "array",
-    });
-
-    const blob = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-
-    const fileName = `TaxCollector_Balance_${lgdCode}.xlsx`;
-    saveAs(blob, fileName);
   };
 
   // ============================
@@ -206,126 +173,102 @@ const TaxCollectorAvailableBalance = () => {
 
   return (
     <>
-      <SuccessModal
-        openModal={openModal}
-        setOpenModal={setOpenModal}
-        message={"Contractor Created Successfully"}
-        to="contractor-master"
-        isSuccess={true}
-      />
       <ToastContainer />
 
-      <div
-        className="bg-white rounded-lg p-2 flex flex-col flex-grow"
-        style={{ marginTop: "-50px" }}
-      >
+      <div className="bg-white rounded-lg p-2 flex flex-col flex-grow">
         <legend className="text-lg font-semibold text-cyan-700 py-4">
           Tax Collector Available Balance
         </legend>
 
-        {/* Controls row: page size + search + Excel download */}
-        <div className="flex flex-wrap gap-2 justify-between items-center h-auto mb-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-600">Rows per page:</span>
-            <select
-              className="rounded-lg border border-zinc-400 px-2 py-1 text-sm"
-              value={items}
-              onChange={(e) => setItems(e.target.value)}
-            >
-              {ListOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
+        {/* If lgdCode missing */}
+        {!lgdCode && (
+          <div className="p-3 text-sm text-red-600">
+            LGD Code not found in localStorage.  
+            API call skipped.
           </div>
-
-          <div className="flex gap-2 items-center">
-            <input
-              type="text"
-              value={filtering}
-              placeholder="Search..."
-              className="border-2 rounded-lg border-zinc-400 px-2 py-1 text-sm"
-              onChange={(e) => setFiltering(e.target.value)}
-            />
-
-            <button
-              type="button"
-              onClick={handleDownloadExcel}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium px-3 py-2 rounded-lg"
-            >
-              Download Excel
-            </button>
-          </div>
-        </div>
-
-        {/* Loading / Error / Empty states */}
-        {isLoading && (
-          <div className="p-4 text-sm text-gray-600">Loading data...</div>
         )}
+
+        {/* Controls */}
+        {lgdCode && (
+          <div className="flex justify-between items-center mb-2">
+            <div>
+              <span className="text-xs">Rows:</span>
+              <select
+                className="border px-2 py-1 ml-2 text-sm"
+                value={items}
+                onChange={(e) => setItems(e.target.value)}
+              >
+                {ListOptions.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                className="border px-2 py-1 text-sm"
+                placeholder="Search..."
+                value={filtering}
+                onChange={(e) => setFiltering(e.target.value)}
+              />
+
+              <button
+                onClick={handleDownloadExcel}
+                className="bg-green-600 text-white px-3 py-1 rounded text-xs"
+              >
+                Download Excel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* API States */}
+        {isLoading && <div className="p-4 text-sm">Loading...</div>}
 
         {isError && (
-          <div className="p-4 text-sm text-red-600">
-            Failed to load data. Check console / Network tab for details.
-            <br />
-            {error?.response && (
-              <>
-                Status: {error.response.status} –{" "}
-                {error.response.statusText || "Error"}
-              </>
-            )}
+          <div className="p-4 text-red-600 text-sm">
+            API Error — {error?.message}
           </div>
         )}
 
-        {!isLoading && !isError && data.length === 0 && (
+        {!isLoading && lgdCode && !data.length && (
           <div className="p-4 text-sm text-gray-600">
             No records found for LGD Code: {lgdCode}
           </div>
         )}
 
         {/* Table */}
-        {!isLoading && !isError && data.length > 0 && (
-          <div className="px-2 flex flex-col">
-            <Table style={{ border: "1px solid #444" }}>
-              {/* Header */}
-              {table.getHeaderGroups().map((headerGroup) => (
-                <Table.Head key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
+        {lgdCode && !isLoading && data.length > 0 && (
+          <div>
+            <Table>
+              <Table.Head>
+                {table.getHeaderGroups().map((hg) =>
+                  hg.headers.map((header) => (
                     <Table.HeadCell
                       key={header.id}
-                      className="p-2 bg-cyan-400/100 text-xs text-white font-semibold"
-                      style={{ border: "1px solid #444", cursor: "pointer" }}
                       onClick={header.column.getToggleSortingHandler()}
+                      className="bg-cyan-500 text-white cursor-pointer text-xs"
                     >
-                      {header.isPlaceholder ? null : (
-                        <div className="flex items-center justify-between space-x-2">
-                          <span className="normal-case">
-                            {flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                          </span>
-                          <SortIcon sort={header.column.getIsSorted()} />
-                        </div>
-                      )}
+                      <div className="flex justify-between">
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                        <SortIcon sort={header.column.getIsSorted()} />
+                      </div>
                     </Table.HeadCell>
-                  ))}
-                </Table.Head>
-              ))}
+                  ))
+                )}
+              </Table.Head>
 
-              {/* Body */}
-              <Table.Body
-                className="divide-y"
-                style={{ border: "1px solid #444" }}
-              >
+              <Table.Body>
                 {table.getRowModel().rows.map((row) => (
-                  <Table.Row key={row.id} style={{ border: "1px solid #444" }}>
+                  <Table.Row key={row.id}>
                     {row.getVisibleCells().map((cell) => (
-                      <Table.Cell
-                        key={cell.id}
-                        className="p-1 text-xs"
-                        style={{ border: "1px solid #444" }}
-                      >
+                      <Table.Cell key={cell.id} className="text-xs">
                         {flexRender(
                           cell.column.columnDef.cell ??
                             ((ctx) => ctx.getValue()),
@@ -338,7 +281,6 @@ const TaxCollectorAvailableBalance = () => {
               </Table.Body>
             </Table>
 
-            {/* Pagination component (your existing one) */}
             <Pagination data={data} table={table} />
           </div>
         )}

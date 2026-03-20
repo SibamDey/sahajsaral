@@ -11,10 +11,10 @@ import {
 } from "../../../Service/Project/ActivityDetailsService";
 
 import { getLgdDetails } from "../../../Service/LgdCodeGet/LgdCodeService";
-import { getForm27Details } from "../../../Service/Reports/ReportsService";
+import { getForm27Summary } from "../../../Service/Reports/ReportsService";
 import { getStatus } from "../../../Service/Reports/ReportsService";
 
-const ReceiptPayment27 = () => {
+const ReceiptPayment27summaryreport = () => {
     const [fromDate, setFromDate] = useState("");
     const [toDate, setToDate] = useState(new Date().toISOString().split("T")[0]);
 
@@ -35,15 +35,14 @@ const ReceiptPayment27 = () => {
 
     const jsonString = sessionStorage.getItem("SAHAJ_SARAL_USER");
     const userData = JSON.parse(jsonString);
-    console.log("User Data:", userData?.CORE_LGD);
 
-    // useEffect(() => {
-    //     getLgdDetails(userData?.CORE_LGD).then((res) => {
-    //         if (res.status === 200) {
-    //             setLgd(res.data);
-    //         }
-    //     });
-    // }, []);
+    useEffect(() => {
+        getLgdDetails(userData?.CORE_LGD).then((res) => {
+            if (res.status === 200) {
+                setLgd(res.data);
+            }
+        });
+    }, []);
 
     useEffect(() => {
         const user = userData;
@@ -96,15 +95,14 @@ const ReceiptPayment27 = () => {
         }
 
         if (!fromDate) {
-            toast.error ("Please Choose From Date");
+            toast.error("Please Choose From Date");
             return;
         }
 
         if (!toDate) {
-            toast.error ("Please Choose To Date");
+            toast.error("Please Choose To Date");
             return;
         }
-
 
         const normalizeLgd = (val) => {
             if (val === "" || val === null || val === undefined || val === "0" || val === 0) {
@@ -134,7 +132,7 @@ const ReceiptPayment27 = () => {
             }
         });
 
-        getForm27Details(selectedLgd, fromDate, toDate)
+        getForm27Summary(selectedLgd, fromDate, toDate)
             .then((res) => {
                 setForm27Data(res.data);
                 toast.success("Data Loaded Successfully");
@@ -169,7 +167,7 @@ const ReceiptPayment27 = () => {
         myWindow.document.write(`
         <html>
         <head>
-            <title>Form 27 Details</title>
+            <title>Form 27 Summary</title>
             <style>
                 * {
                     box-sizing: border-box;
@@ -328,7 +326,7 @@ const ReceiptPayment27 = () => {
             <div className="bg-white rounded-2xl shadow-md border border-cyan-100 p-4">
                 <div className="flex items-center justify-between mb-2">
                     <div>
-                        <h2 className="text-2xl font-bold text-cyan-800">GP Form-27 Details</h2>
+                        <h2 className="text-2xl font-bold text-cyan-800">GP Form-27 Summary</h2>
                     </div>
                 </div>
 
@@ -360,7 +358,7 @@ const ReceiptPayment27 = () => {
                             value={block}
                             onChange={onBlock}
                         >
-                            <option value="">Select Block</option>
+                            <option value="0">Select Block</option>
                             {blockList.map((b) => (
                                 <option key={b.BlockLgd} value={b.BlockLgd}>
                                     {b.BlockName}
@@ -378,7 +376,7 @@ const ReceiptPayment27 = () => {
                             value={gp}
                             onChange={(e) => setGp(e.target.value)}
                         >
-                            <option value="">Select GP</option>
+                            <option value="0">Select GP</option>
                             {gpList.map((g) => (
                                 <option key={g.GPLgd} value={g.GPLgd}>
                                     {g.GPName}
@@ -534,4 +532,4 @@ const ReceiptPayment27 = () => {
     );
 };
 
-export default ReceiptPayment27;
+export default ReceiptPayment27summaryreport;
