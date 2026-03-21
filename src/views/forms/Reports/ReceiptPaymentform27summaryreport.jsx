@@ -326,7 +326,7 @@ const ReceiptPayment27summaryreport = () => {
             <div className="bg-white rounded-2xl shadow-md border border-cyan-100 p-4">
                 <div className="flex items-center justify-between mb-2">
                     <div>
-                        <h2 className="text-2xl font-bold text-cyan-800">GP Form-27 Summary</h2>
+                        <h2 className="text-2xl font-bold text-cyan-800">Receipt-Payment Form-27 Summary</h2>
                     </div>
                 </div>
 
