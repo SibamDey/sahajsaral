@@ -15,7 +15,7 @@ import { getForm27Summary } from "../../../Service/Reports/ReportsService";
 import { getStatus } from "../../../Service/Reports/ReportsService";
 
 const ReceiptPayment27summaryreport = () => {
-    const [fromDate, setFromDate] = useState("");
+    const [fromDate, setFromDate] = useState("2025-05-01");
     const [toDate, setToDate] = useState(new Date().toISOString().split("T")[0]);
 
     const [districtList, setDistrictList] = useState([]);
@@ -319,6 +319,42 @@ const ReceiptPayment27summaryreport = () => {
         }, 500);
     };
 
+    const flagClassMap = {
+        E: "font-bold text-blue-700",
+        A: "font-bold bg-green-400",
+        B: "font-bold text-green-500",
+        C: "font-bold text-gray-700", // add if needed
+    };
+
+    const grandTotal = form27Data.reduce(
+        (acc, row) => {
+            if (row.visibleFlag === "E" || row.visibleFlag === "A") {
+                acc.receiptBudget += Number(row.receiptBudget || 0);
+                acc.receiptOB += Number(row.receiptOB || 0);
+                acc.receiptDuringPeriod += Number(row.receiptDuringPeriod || 0);
+                acc.receiptLastBalance += Number(row.receiptLastBalance || 0);
+
+                acc.paymentBudget += Number(row.paymentBudget || 0);
+                acc.paymentOB += Number(row.paymentOB || 0);
+                acc.paymentDuringPeriod += Number(row.paymentDuringPeriod || 0);
+                acc.paymentLastBalance += Number(row.paymentLastBalance || 0);
+            }
+
+            return acc;
+        },
+        {
+            receiptBudget: 0,
+            receiptOB: 0,
+            receiptDuringPeriod: 0,
+            receiptLastBalance: 0,
+            paymentBudget: 0,
+            paymentOB: 0,
+            paymentDuringPeriod: 0,
+            paymentLastBalance: 0,
+        }
+    );
+    const finalBalance = grandTotal.receiptLastBalance - grandTotal.paymentLastBalance;
+
     return (
         <div className="p-2 bg-white rounded">
             <ToastContainer />
@@ -326,7 +362,7 @@ const ReceiptPayment27summaryreport = () => {
             <div className="bg-white rounded-2xl shadow-md border border-cyan-100 p-4">
                 <div className="flex items-center justify-between mb-2">
                     <div>
-                        <h2 className="text-2xl font-bold text-cyan-800">Receipt-Payment Form-27 Summary</h2>
+                        <h2 className="text-2xl font-bold text-cyan-800">Receipt-Payment Form-27 Details</h2>
                     </div>
                 </div>
 
@@ -358,7 +394,7 @@ const ReceiptPayment27summaryreport = () => {
                             value={block}
                             onChange={onBlock}
                         >
-                            <option value="0">Select Block</option>
+                            <option value="">Select Block</option>
                             {blockList.map((b) => (
                                 <option key={b.BlockLgd} value={b.BlockLgd}>
                                     {b.BlockName}
@@ -376,7 +412,7 @@ const ReceiptPayment27summaryreport = () => {
                             value={gp}
                             onChange={(e) => setGp(e.target.value)}
                         >
-                            <option value="0">Select GP</option>
+                            <option value="">Select GP</option>
                             {gpList.map((g) => (
                                 <option key={g.GPLgd} value={g.GPLgd}>
                                     {g.GPName}
@@ -454,7 +490,7 @@ const ReceiptPayment27summaryreport = () => {
                                 </p>
 
                                 <p className="text-cyan-700 font-bold text-lg mt-1">
-                                    Receipts & Payments Accounts
+                                    Receipts & Payments Accounts - Summary (Form No. 27)
                                 </p>
 
                                 <p className="text-gray-600 font-semibold">
@@ -489,31 +525,53 @@ const ReceiptPayment27summaryreport = () => {
                             <tbody>
                                 {form27Data.map((row, index) => {
                                     const cumulativeReceipt =
-                                        Number(row.receiptLastBalance || 0) +
-                                        Number(row.receiptDuringPeriod || 0);
-
+                                        Number(row.receiptLastBalance || 0);
                                     const cumulativePayment =
-                                        Number(row.paymentLastBalance || 0) +
-                                        Number(row.paymentDuringPeriod || 0);
+                                        Number(row.paymentLastBalance || 0);
 
                                     const balance = cumulativeReceipt - cumulativePayment;
 
+                                    const receiptTotal = row.visibleFlag === "E" || row.visibleFlag === "A" ?
+                                        [
+                                            row.receiptBudget || 0,
+                                            row.receiptOB || 0,
+                                            row.receiptDuringPeriod || 0,
+                                            row.receiptLastBalance || 0
+                                        ].reduce((sum, val) => sum + Number(val || 0), 0) : "";
+
                                     return (
-                                        <tr key={index}>
+                                        <tr key={index} className={flagClassMap[row.visibleFlag] || ""}>
+                                            {/* <td className="border p-2 text-left">{row.receiptDetails}</td> */}
                                             <td className="border p-2 text-left">{row.receiptDetails}</td>
-                                            <td className="border p-2">{row.receiptBudget}</td>
-                                            <td className="border p-2">{row.receiptLastBalance}</td>
-                                            <td className="border p-2">{row.receiptDuringPeriod}</td>
-                                            <td className="border p-2">{cumulativeReceipt.toFixed(2)}</td>
+                                            <td className="border p-2">{row.receiptBudget == 0.00 ? "" : row.receiptBudget}</td>
+                                            <td className="border p-2">{row.receiptOB == 0.00 ? "" : row.receiptOB}</td>
+                                            <td className="border p-2">{row.receiptDuringPeriod == 0.00 ? "" : row.receiptDuringPeriod}</td>
+                                            <td className="border p-2">{row.receiptLastBalance == 0.00 ? "" : row.receiptLastBalance}</td>
+                                            {/* <td className="border p-2">{cumulativeReceipt.toFixed(2)}</td> */}
                                             <td className="border p-2 text-left">{row.paymentDetails}</td>
-                                            <td className="border p-2">{row.paymentBudget}</td>
-                                            <td className="border p-2">{row.paymentLastBalance}</td>
-                                            <td className="border p-2">{row.paymentDuringPeriod}</td>
-                                            <td className="border p-2">{cumulativePayment.toFixed(2)}</td>
-                                            <td className="border p-2 font-bold">{balance.toFixed(2)}</td>
+                                            <td className="border p-2">{row.paymentBudget == 0.00 ? "" : row.paymentBudget}</td>
+                                            <td className="border p-2">{row.paymentOB == 0.00 ? "" : row.paymentOB}</td>
+                                            <td className="border p-2">{row.paymentDuringPeriod == 0.00 ? "" : row.paymentDuringPeriod}</td>
+                                            <td className="border p-2">{row.paymentLastBalance == 0.00 ? "" : row.paymentLastBalance}</td>
+                                            {/* <td className="border p-2">{cumulativePayment == 0.00 ? "" : cumulativePayment.toFixed(2)}</td> */}
+                                            <td className="border p-2 font-bold">{row.visibleFlag === "E" || row.visibleFlag === "C" ? "" : balance.toFixed(2)}</td>
                                         </tr>
                                     );
                                 })}
+
+                                <tr className="font-bold bg-yellow-200">
+                                    <td className="border p-2 text-left">Grand Total</td>
+                                    <td className="border p-2">{grandTotal.receiptBudget.toFixed(2)}</td>
+                                    <td className="border p-2">{grandTotal.receiptOB.toFixed(2)}</td>
+                                    <td className="border p-2">{grandTotal.receiptDuringPeriod.toFixed(2)}</td>
+                                    <td className="border p-2">{grandTotal.receiptLastBalance.toFixed(2)}</td>
+                                    <td className="border p-2 text-left">Grand Total</td>
+                                    <td className="border p-2">{grandTotal.paymentBudget.toFixed(2)}</td>
+                                    <td className="border p-2">{grandTotal.paymentOB.toFixed(2)}</td>
+                                    <td className="border p-2">{grandTotal.paymentDuringPeriod.toFixed(2)}</td>
+                                    <td className="border p-2">{grandTotal.paymentLastBalance.toFixed(2)}</td>
+                                    <td className="border p-2"></td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
