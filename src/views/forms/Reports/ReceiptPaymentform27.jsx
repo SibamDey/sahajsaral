@@ -15,7 +15,7 @@ import { getForm27Details } from "../../../Service/Reports/ReportsService";
 import { getStatus } from "../../../Service/Reports/ReportsService";
 
 const ReceiptPayment27 = () => {
-    const [fromDate, setFromDate] = useState("2025-05-01");
+    const [fromDate, setFromDate] = useState("2025-04-01");
     const [toDate, setToDate] = useState(new Date().toISOString().split("T")[0]);
 
     const [districtList, setDistrictList] = useState([]);
@@ -30,20 +30,13 @@ const ReceiptPayment27 = () => {
     const [lgd, setLgd] = useState([]);
 
     const [statusData, setStatus] = useState();
+    const [loading, setLoading] = useState(false);
 
     const printRef = useRef();
 
     const jsonString = sessionStorage.getItem("SAHAJ_SARAL_USER");
     const userData = JSON.parse(jsonString);
     console.log("User Data:", userData?.CORE_LGD);
-
-    // useEffect(() => {
-    //     getLgdDetails(userData?.CORE_LGD).then((res) => {
-    //         if (res.status === 200) {
-    //             setLgd(res.data);
-    //         }
-    //     });
-    // }, []);
 
     useEffect(() => {
         const user = userData;
@@ -106,7 +99,13 @@ const ReceiptPayment27 = () => {
         }
 
         const normalizeLgd = (val) => {
-            if (val === "" || val === null || val === undefined || val === "0" || val === 0) {
+            if (
+                val === "" ||
+                val === null ||
+                val === undefined ||
+                val === "0" ||
+                val === 0
+            ) {
                 return null;
             }
             return val;
@@ -127,6 +126,8 @@ const ReceiptPayment27 = () => {
             return;
         }
 
+        setLoading(true);
+
         getLgdDetails(selectedLgd).then((res) => {
             if (res.status === 200) {
                 setLgd(res.data);
@@ -138,7 +139,8 @@ const ReceiptPayment27 = () => {
                 setForm27Data(res.data);
                 toast.success("Data Loaded Successfully");
             })
-            .catch(() => toast.error("Error loading data"));
+            .catch(() => toast.error("Error loading data"))
+            .finally(() => setLoading(false));
 
         getStatus(selectedLgd, fromDate, toDate)
             .then((response) => {
@@ -163,7 +165,7 @@ const ReceiptPayment27 = () => {
             return;
         }
 
-        const myWindow = window.open("", "prnt_area", "height=900,width=900");
+        const myWindow = window.open("", "prnt_area", "height=900,width=1400");
 
         myWindow.document.write(`
         <html>
@@ -174,14 +176,15 @@ const ReceiptPayment27 = () => {
                     box-sizing: border-box;
                     -webkit-print-color-adjust: exact !important;
                     print-color-adjust: exact !important;
+                    color-adjust: exact !important;
                 }
 
                 body {
                     margin: 0;
                     padding: 10px;
                     font-family: "Times New Roman", serif;
-                    color: #000;
-                    background: #fff;
+                    color: #000000;
+                    background: #ffffff;
                     font-size: 11px;
                 }
 
@@ -221,14 +224,24 @@ const ReceiptPayment27 = () => {
                 .text-lg { font-size: 14px !important; }
                 .text-xs { font-size: 10px !important; }
 
-                .text-cyan-700 { color: #000 !important; }
-                .text-gray-600 { color: #000 !important; }
-                .bg-gray-100 { background: #fff !important; }
+                /* print-safe colors */
+                .text-cyan-700 { color: #0f766e !important; }
+                .text-cyan-800 { color: #155e75 !important; }
+                .text-gray-600 { color: #475569 !important; }
+                .text-gray-700 { color: #374151 !important; }
+                .text-blue-700 { color: #1d4ed8 !important; }
+                .text-green-500 { color: #15803d !important; }
+
+                .bg-gray-100 { background: #dbeafe !important; }
+                .bg-yellow-200 { background: #fde68a !important; }
+                .bg-green-400 { background: #bbf7d0 !important; }
 
                 .w-20 { width: 70px !important; }
                 .ml-auto { margin-left: auto !important; }
 
-                img { display: block; }
+                img {
+                    display: block;
+                }
 
                 table {
                     width: 100% !important;
@@ -253,6 +266,8 @@ const ReceiptPayment27 = () => {
                     text-align: center !important;
                     font-weight: bold !important;
                     line-height: 1.15 !important;
+                    background: #dbeafe !important;
+                    color: #000 !important;
                 }
 
                 td {
@@ -260,23 +275,30 @@ const ReceiptPayment27 = () => {
                     line-height: 1.15 !important;
                 }
 
-                td.text-left { text-align: left !important; }
+                td.text-left {
+                    text-align: left !important;
+                }
 
-                tr { page-break-inside: avoid !important; }
+                tr {
+                    page-break-inside: avoid !important;
+                }
 
                 .print-wrap {
                     width: 94%;
                     margin: 0 auto;
                 }
 
-                /* ✅ LANDSCAPE FIX */
                 @page {
                     size: A4 landscape;
                     margin: 10mm;
                 }
 
                 @media print {
-                    body { padding: 0; }
+                    html, body {
+                        width: 100%;
+                        margin: 0;
+                        padding: 0;
+                    }
 
                     .print-wrap {
                         width: 100%;
@@ -296,10 +318,16 @@ const ReceiptPayment27 = () => {
                         padding: 4px 3px !important;
                     }
 
-                    /* ✅ FORCE LANDSCAPE AGAIN (for Chrome reliability) */
-                    @page {
-                        size: A4 landscape;
-                    }
+                    .bg-gray-100 { background: #dbeafe !important; }
+                    .bg-yellow-200 { background: #fde68a !important; }
+                    .bg-green-400 { background: #bbf7d0 !important; }
+
+                    .text-cyan-700 { color: #0f766e !important; }
+                    .text-cyan-800 { color: #155e75 !important; }
+                    .text-gray-600 { color: #475569 !important; }
+                    .text-gray-700 { color: #374151 !important; }
+                    .text-blue-700 { color: #1d4ed8 !important; }
+                    .text-green-500 { color: #15803d !important; }
                 }
             </style>
         </head>
@@ -317,26 +345,26 @@ const ReceiptPayment27 = () => {
         setTimeout(() => {
             myWindow.print();
             myWindow.close();
-        }, 500);
+        }, 700);
     };
 
     const flagClassMap = {
         E: "font-bold text-blue-700",
         A: "font-bold bg-green-400",
         B: "font-bold text-green-500",
-        C: "font-bold text-gray-700", // add if needed
+        C: "font-bold text-gray-700",
     };
 
     const grandTotal = form27Data.reduce(
         (acc, row) => {
             if (row.visibleFlag === "E" || row.visibleFlag === "A") {
                 acc.receiptBudget += Number(row.receiptBudget || 0);
-                acc.receiptOB += Number(row.receiptOB || 0);
+                acc.receiptLastBalanceRevised += Number(row.receiptLastBalanceRevised || 0);
                 acc.receiptDuringPeriod += Number(row.receiptDuringPeriod || 0);
                 acc.receiptLastBalance += Number(row.receiptLastBalance || 0);
 
                 acc.paymentBudget += Number(row.paymentBudget || 0);
-                acc.paymentOB += Number(row.paymentOB || 0);
+                acc.paymentLastBalanceRevised += Number(row.paymentLastBalanceRevised || 0);
                 acc.paymentDuringPeriod += Number(row.paymentDuringPeriod || 0);
                 acc.paymentLastBalance += Number(row.paymentLastBalance || 0);
             }
@@ -345,25 +373,47 @@ const ReceiptPayment27 = () => {
         },
         {
             receiptBudget: 0,
-            receiptOB: 0,
+            receiptLastBalanceRevised: 0,
             receiptDuringPeriod: 0,
             receiptLastBalance: 0,
             paymentBudget: 0,
-            paymentOB: 0,
+            paymentLastBalanceRevised: 0,
             paymentDuringPeriod: 0,
             paymentLastBalance: 0,
         }
     );
-    const finalBalance = grandTotal.receiptLastBalance - grandTotal.paymentLastBalance;
+
+    const finalBalance =
+        grandTotal.receiptLastBalance - grandTotal.paymentLastBalance;
+
+
+    const formatDate = (dateString) => {
+        if (!dateString) return "";
+        const [year, month, day] = dateString.split("-");
+        return `${day}-${month}-${year}`;
+    };
 
     return (
         <div className="p-2 bg-white rounded">
             <ToastContainer />
 
+            {loading && (
+                <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+                    <div className="bg-white px-6 py-4 rounded-xl shadow-lg flex items-center gap-3">
+                        <div className="w-6 h-6 border-4 border-cyan-600 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-sm font-semibold text-gray-700">
+                            Loading...
+                        </span>
+                    </div>
+                </div>
+            )}
+
             <div className="bg-white rounded-2xl shadow-md border border-cyan-100 p-4">
                 <div className="flex items-center justify-between mb-2">
                     <div>
-                        <h2 className="text-2xl font-bold text-cyan-800">Receipt-Payment Form-27 Details</h2>
+                        <h2 className="text-2xl font-bold text-cyan-800">
+                            Receipt-Payment Form-27 Details
+                        </h2>
                     </div>
                 </div>
 
@@ -450,10 +500,11 @@ const ReceiptPayment27 = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-end">
                     <div className="lg:col-span-4 flex justify-end gap-3">
                         <button
-                            className="rounded-xl bg-cyan-700 px-6 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-cyan-800 focus:outline-none focus:ring-2 focus:ring-cyan-300"
+                            className="rounded-xl bg-cyan-700 px-6 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-cyan-800 focus:outline-none focus:ring-2 focus:ring-cyan-300 disabled:opacity-70 disabled:cursor-not-allowed"
                             onClick={onSearch}
+                            disabled={loading}
                         >
-                            Search
+                            {loading ? "Loading..." : "Search"}
                         </button>
 
                         <button
@@ -501,7 +552,7 @@ const ReceiptPayment27 = () => {
 
                             <div className="absolute left-0 bottom-0">
                                 <p className="text-cyan-700 font-semibold">
-                                    Period: {fromDate} to {toDate}
+                                    Period: {formatDate(fromDate)} to {formatDate(toDate)}
                                 </p>
                             </div>
                         </div>
@@ -525,53 +576,126 @@ const ReceiptPayment27 = () => {
 
                             <tbody>
                                 {form27Data.map((row, index) => {
-                                    const cumulativeReceipt =
-                                        Number(row.receiptLastBalance || 0);
-                                    const cumulativePayment =
-                                        Number(row.paymentLastBalance || 0);
-
-                                    const balance = cumulativeReceipt - cumulativePayment;
-
-                                    const receiptTotal = row.visibleFlag === "E" || row.visibleFlag === "A" ?
-                                        [
-                                            row.receiptBudget || 0,
-                                            row.receiptOB || 0,
-                                            row.receiptDuringPeriod || 0,
-                                            row.receiptLastBalance || 0
-                                        ].reduce((sum, val) => sum + Number(val || 0), 0) : "";
+                                    const receiptDuringPeriod = Number(row.receiptDuringPeriod || 0);
+                                    const paymentDuringPeriod = Number(row.paymentDuringPeriod || 0);
+                                    const balance = (Number(row.hideOB || 0) + receiptDuringPeriod )- paymentDuringPeriod;
 
                                     return (
-                                        <tr key={index} className={flagClassMap[row.visibleFlag] || ""}>
-                                            {/* <td className="border p-2 text-left">{row.receiptDetails}</td> */}
-                                            <td className="border p-2 text-left">{row.receiptDetails}</td>
-                                            <td className="border p-2">{row.receiptBudget == 0.00 ? "" : row.receiptBudget}</td>
-                                            <td className="border p-2">{row.receiptOB == 0.00 ? "" : row.receiptOB}</td>
-                                            <td className="border p-2">{row.receiptDuringPeriod == 0.00 ? "" : row.receiptDuringPeriod}</td>
-                                            <td className="border p-2">{row.receiptLastBalance == 0.00 ? "" : row.receiptLastBalance}</td>
-                                            {/* <td className="border p-2">{cumulativeReceipt.toFixed(2)}</td> */}
-                                            <td className="border p-2 text-left">{row.paymentDetails}</td>
-                                            <td className="border p-2">{row.paymentBudget == 0.00 ? "" : row.paymentBudget}</td>
-                                            <td className="border p-2">{row.paymentOB == 0.00 ? "" : row.paymentOB}</td>
-                                            <td className="border p-2">{row.paymentDuringPeriod == 0.00 ? "" : row.paymentDuringPeriod}</td>
-                                            <td className="border p-2">{row.paymentLastBalance == 0.00 ? "" : row.paymentLastBalance}</td>
-                                            {/* <td className="border p-2">{cumulativePayment == 0.00 ? "" : cumulativePayment.toFixed(2)}</td> */}
-                                            <td className="border p-2 font-bold">{row.visibleFlag === "E" || row.visibleFlag === "C" ? "" : balance.toFixed(2)}</td>
+                                        <tr
+                                            key={index}
+                                            className={flagClassMap[row.visibleFlag] || ""}
+                                        >
+                                            <td className="border p-2 text-left">
+                                                {row.receiptDetails}
+                                            </td>
+                                            <td className="border p-2">
+                                                {row.receiptBudget == 0.0 ? "" : row.receiptBudget}
+                                            </td>
+                                            <td className="border p-2">
+                                                {row.receiptDetails === "To Opening Balance b/d : Cash at Bank" || row.receiptDetails === "Cash in Hand" || row.receiptDetails === "Fund with Treasury L/F Account"
+                                                    ? Number(row.receiptLastBalanceRevised) === 0
+                                                        ? "0.00"
+                                                        : row.receiptLastBalanceRevised
+                                                    : Number(row.receiptLastBalanceRevised) === 0
+                                                        ? ""
+                                                        : row.receiptLastBalanceRevised}
+                                            </td>
+
+                                            <td className="border p-2">
+                                                {row.receiptDetails === "To Opening Balance b/d : Cash at Bank" || row.receiptDetails === "Cash in Hand" || row.receiptDetails === "Fund with Treasury L/F Account"
+                                                    ? Number(row.receiptDuringPeriod) === 0
+                                                        ? "0.00"
+                                                        : row.receiptDuringPeriod
+                                                    : Number(row.receiptDuringPeriod) === 0
+                                                        ? ""
+                                                        : row.receiptDuringPeriod}
+                                            </td>
+
+                                            <td className="border p-2">
+                                                {row.receiptDetails === "To Opening Balance b/d : Cash at Bank" || row.receiptDetails === "Cash in Hand" || row.receiptDetails === "Fund with Treasury L/F Account"
+                                                    ? Number(row.receiptLastBalance) === 0
+                                                        ? "0.00"
+                                                        : row.receiptLastBalance
+                                                    : Number(row.receiptLastBalance) === 0
+                                                        ? ""
+                                                        : row.receiptLastBalance}
+                                            </td>
+
+                                            <td className="border p-2 text-left">
+                                                {row.paymentDetails}
+                                            </td>
+                                            <td className="border p-2">
+                                                {row.paymentBudget == 0.0 ? "" : row.paymentBudget}
+                                            </td>
+                                            <td className="border p-2">
+                                                {row.paymentDetails === "To Closing Balance b/d : Cash at Bank" || row.paymentDetails === "Cash in Hand" || row.paymentDetails === "Fund with Treasury L/F Account"
+                                                    ? Number(row.paymentLastBalanceRevised) === 0
+                                                        ? "0.00"
+                                                        : row.paymentLastBalanceRevised
+                                                    : Number(row.paymentLastBalanceRevised) === 0
+                                                        ? ""
+                                                        : row.paymentLastBalanceRevised}
+                                            </td>
+
+                                            <td className="border p-2">
+                                                {row.paymentDetails === "To Closing Balance b/d : Cash at Bank" || row.paymentDetails === "Cash in Hand" || row.paymentDetails === "Fund with Treasury L/F Account"
+                                                    ? Number(row.paymentDuringPeriod) === 0
+                                                        ? "0.00"
+                                                        : row.paymentDuringPeriod
+                                                    : Number(row.paymentDuringPeriod) === 0
+                                                        ? ""
+                                                        : row.paymentDuringPeriod}
+                                            </td>
+
+                                            <td className="border p-2">
+                                                {row.paymentDetails === "To Closing Balance b/d : Cash at Bank" || row.paymentDetails === "Cash in Hand" || row.paymentDetails === "Fund with Treasury L/F Account"
+                                                    ? Number(row.paymentLastBalance) === 0
+                                                        ? "0.00"
+                                                        : row.paymentLastBalance
+                                                    : Number(row.paymentLastBalance) === 0
+                                                        ? ""
+                                                        : row.paymentLastBalance}
+                                            </td>
+
+                                            <td className="border p-2 font-bold">
+                                                {row.visibleFlag === "E" || row.visibleFlag === "C"
+                                                    ? ""
+                                                    : balance.toFixed(2)}
+                                            </td>
                                         </tr>
                                     );
                                 })}
 
                                 <tr className="font-bold bg-yellow-200">
                                     <td className="border p-2 text-left">Grand Total</td>
-                                    <td className="border p-2">{grandTotal.receiptBudget.toFixed(2)}</td>
-                                    <td className="border p-2">{grandTotal.receiptOB.toFixed(2)}</td>
-                                    <td className="border p-2">{grandTotal.receiptDuringPeriod.toFixed(2)}</td>
-                                    <td className="border p-2">{grandTotal.receiptLastBalance.toFixed(2)}</td>
+                                    <td className="border p-2">
+                                        {grandTotal.receiptBudget.toFixed(2)}
+                                    </td>
+                                    <td className="border p-2">
+                                        {grandTotal.receiptLastBalanceRevised.toFixed(2)}
+                                    </td>
+                                    <td className="border p-2">
+                                        {grandTotal.receiptDuringPeriod.toFixed(2)}
+                                    </td>
+                                    <td className="border p-2">
+                                        {grandTotal.receiptLastBalance.toFixed(2)}
+                                    </td>
                                     <td className="border p-2 text-left">Grand Total</td>
-                                    <td className="border p-2">{grandTotal.paymentBudget.toFixed(2)}</td>
-                                    <td className="border p-2">{grandTotal.paymentOB.toFixed(2)}</td>
-                                    <td className="border p-2">{grandTotal.paymentDuringPeriod.toFixed(2)}</td>
-                                    <td className="border p-2">{grandTotal.paymentLastBalance.toFixed(2)}</td>
-                                    <td className="border p-2"></td>
+                                    <td className="border p-2">
+                                        {grandTotal.paymentBudget.toFixed(2)}
+                                    </td>
+                                    <td className="border p-2">
+                                        {grandTotal.paymentLastBalanceRevised.toFixed(2)}
+                                    </td>
+                                    <td className="border p-2">
+                                        {grandTotal.paymentDuringPeriod.toFixed(2)}
+                                    </td>
+                                    <td className="border p-2">
+                                        {grandTotal.paymentLastBalance.toFixed(2)}
+                                    </td>
+                                    <td className="border p-2 font-bold">
+                                        {/* {finalBalance.toFixed(2)} */}
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>

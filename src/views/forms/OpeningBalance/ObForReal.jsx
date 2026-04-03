@@ -679,7 +679,8 @@ const ObForReal = () => {
                                 </label>
                                 <select value={currentFinancialYear}
                                     disabled className="block w-full p-2 border border-gray-300 rounded-md">
-                                    <option value={currentFinancialYear}>{currentFinancialYear}</option>
+                                    {/* <option value={currentFinancialYear}>{currentFinancialYear}</option> */}
+                                    <option value="2025-2026">2025-2026</option>
                                 </select>
                             </div>
 
