@@ -153,6 +153,7 @@ const ObForNominalHQ = () => {
                                 <select value={currentFinancialYear}
                                     disabled className="text-sm block w-full p-1 h-9 border border-gray-300 ">
                                     <option value={currentFinancialYear}>{currentFinancialYear}</option>
+                                    <option value="2025-2026">2025-2026</option>
                                 </select>
 
                             </div>

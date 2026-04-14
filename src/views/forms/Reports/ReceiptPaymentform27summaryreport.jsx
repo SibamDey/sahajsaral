@@ -143,10 +143,26 @@ const ReceiptPayment27summaryreport = () => {
 
         getForm27Summary(selectedLgd, fromDate, toDate)
             .then((res) => {
-                setForm27Data(res.data);
-                toast.success("Data Loaded Successfully");
+                // when API returns error object
+                if (res?.data?.statusCode === 1) {
+                    setForm27Data([]);
+                    toast.error(res?.data?.message || "No data found");
+                    return;
+                }
+
+                // when API returns array data
+                if (Array.isArray(res?.data)) {
+                    setForm27Data(res.data);
+                    toast.success("Data Loaded Successfully");
+                } else {
+                    setForm27Data([]);
+                    toast.error("Invalid data format");
+                }
             })
-            .catch(() => toast.error("Error loading data"))
+            .catch(() => {
+                setForm27Data([]);
+                toast.error("Error loading data");
+            })
             .finally(() => setLoading(false));
 
         getStatus(selectedLgd, fromDate, toDate)
@@ -590,7 +606,7 @@ const ReceiptPayment27summaryreport = () => {
                                 {form27Data.map((row, index) => {
                                     const receiptDuringPeriod = Number(row.receiptDuringPeriod || 0);
                                     const paymentDuringPeriod = Number(row.paymentDuringPeriod || 0);
-                                    const balance = (Number(row.hideOB || 0) + receiptDuringPeriod )- paymentDuringPeriod;
+                                    const balance = (Number(row.hideOB || 0) + receiptDuringPeriod) - paymentDuringPeriod;
 
                                     return (
                                         <tr

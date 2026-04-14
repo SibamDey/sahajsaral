@@ -10,7 +10,9 @@ import { getLgdDetails } from "../../../Service/LgdCodeGet/LgdCodeService";
 import { getStatus } from "../../../Service/Reports/ReportsService";
 
 const MonthClosingModule = () => {
-    const [financialYear, setFinancialYear] = useState('');
+    const [loadingFy, setLoadingFy] = useState(false);
+    const [currentFinancialYear, setCurrentFinancialYear] = useState("");
+    const [financialYears, setFinancialYears] = useState([]);
     const [data, setData] = useState([]);
     const [yearOptions, setYearOptions] = useState([]);
     const [district, setDistrict] = useState();
@@ -44,6 +46,36 @@ const MonthClosingModule = () => {
 
 
     useEffect(() => {
+        const fetchFinancialYears = async () => {
+            if (!userData?.CORE_LGD) return;
+
+            try {
+                setLoadingFy(true);
+
+                const response = await axios.get(
+                    `https://javaapi.wbpms.in/api/MonthClose/FinYear?lgdCode=${userData?.CORE_LGD}`
+                );
+
+                if (response?.data?.finYears && Array.isArray(response.data.finYears)) {
+                    setFinancialYears(response.data.finYears);
+
+                    // Default select first financial year
+                    if (response.data.finYears.length > 0) {
+                        setCurrentFinancialYear(response.data.finYears[0].finYear);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching financial years:", error);
+                toast.error("Failed to load financial years");
+            } finally {
+                setLoadingFy(false);
+            }
+        };
+
+        fetchFinancialYears();
+    }, [userData?.CORE_LGD]);
+
+    useEffect(() => {
 
         if (popupData?.lgdCode && popupData?.fromDate && popupData?.toDate) {
             setLoading(true);
@@ -55,7 +87,7 @@ const MonthClosingModule = () => {
                 }
             });
 
-            getCashAnalysisSummaryCB(popupData?.lgdCode, financialYear, popupData.fromDate, popupData.toDate,).then((response) => {
+            getCashAnalysisSummaryCB(popupData?.lgdCode, financialYears.find(fy => fy.finYear === currentFinancialYear)?.finYear || '', popupData.fromDate, popupData.toDate,).then((response) => {
                 if (response.status === 200) {
                     setCashAnalysisSummaryCB(response.data);
                 } else {
@@ -81,7 +113,7 @@ const MonthClosingModule = () => {
                 }
             });
 
-            getCashAnalysisSummaryOB(popupData?.lgdCode, financialYear, popupData.fromDate, popupData.toDate,).then((response) => {
+            getCashAnalysisSummaryOB(popupData?.lgdCode, financialYears.find(fy => fy.finYear === currentFinancialYear)?.finYear || '', popupData.fromDate, popupData.toDate,).then((response) => {
                 if (response.status === 200) {
                     setCashAnalysisSummaryOB(response.data);
                 } else {
@@ -194,12 +226,12 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
     };
 
     const handleMonthClick = (monthKey, row) => {
-        if (!financialYear) {
-            toast.error("Please select financial year first");
-            return;
-        }
+        // if (!financialYear) {
+        //     toast.error("Please select financial year first");
+        //     return;
+        // }
 
-        const [startYear, endYear] = financialYear.split("-").map(Number);
+        const [startYear, endYear] = financialYears.find(fy => fy.finYear === currentFinancialYear)?.finYear.split("-").map(Number);
 
         const monthMap = {
             april: 3,
@@ -278,9 +310,6 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
     const fetchData = async () => {
         if (!tier) {
             toast.error("Please select a Tier")
-        } else if (!financialYear) {
-            toast.error('Please select a financial year');
-            return;
         }
 
         try {
@@ -289,7 +318,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                     distLgd: district || 0,
                     blkLgd: block || 0,
                     gpLgd: gp || 0,
-                    finYear: financialYear,
+                    finYear: financialYears.find(fy => fy.finYear === currentFinancialYear)?.finYear || '',
                     lgdType: tier
                 }
             });
@@ -381,10 +410,15 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                 </div>
                 <div>
                     <label className="text-sm font-medium">Financial Year<span className="text-red-500">*</span></label>
-                    <select className="text-sm block w-full p-1 h-9 border border-gray-300 rounded-md" value={financialYear} onChange={e => setFinancialYear(e.target.value)}>
-                        <option value="">--Select Year--</option>
-                        {yearOptions.map((y, i) => (
-                            <option key={i} value={y}>{y}</option>
+                    <select className="text-sm block w-full p-1 h-9 border border-gray-300 rounded-md" value={currentFinancialYear} >
+                        <option value="">
+                            {loadingFy ? "Loading..." : "--Select Financial Year--"}
+                        </option>
+
+                        {financialYears.map((item, index) => (
+                            <option key={index} value={item.finYear}>
+                                {item.finYear}
+                            </option>
                         ))}
                     </select>
                 </div>

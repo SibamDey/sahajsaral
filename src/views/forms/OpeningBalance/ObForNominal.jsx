@@ -2,38 +2,15 @@ import React from "react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { getNominalAccountForOBList, addInsertNominalAccountOB } from "../../../Service/OpeningBalance/OpeningBalance";
+import axios from "axios";
 
 
 const ObForNominal = () => {
     const jsonString = sessionStorage.getItem("SAHAJ_SARAL_USER");
     const userData = JSON.parse(jsonString);
-
     const [currentFinancialYear, setCurrentFinancialYear] = useState("");
-
-    // Calculate the current financial year dynamically
-    useEffect(() => {
-        const currentDate = new Date();
-        const currentYear = currentDate.getFullYear();
-        const currentMonth = currentDate.getMonth(); // 0-indexed, so 3 = April
-
-        // Determine the start and end years of the current financial year
-        const startYear = currentMonth >= 3 ? currentYear : currentYear - 1; // April onwards belongs to the next FY
-        const endYear = startYear + 1;
-
-        setCurrentFinancialYear(`${startYear}-${endYear}`);
-    }, []);
-
-    // useEffect(() => {
-    //     const currentDate = new Date();
-    //     const currentYear = currentDate.getFullYear();
-    //     const currentMonth = currentDate.getMonth(); // 0-indexed (Jan = 0, Feb = 1, ..., Dec = 11)
-
-    //     // Determine the start and end years of the previous financial year
-    //     const startYear = currentMonth >= 3 ? currentYear - 1 : currentYear - 2; // Shift back by one FY
-    //     const endYear = startYear + 1;
-
-    //     setCurrentFinancialYear(`${startYear}-${endYear}`);
-    // }, []);
+    const [loadingFy, setLoadingFy] = useState(false);
+    const [financialYears, setFinancialYears] = useState([]);
 
     const [selectedMonth, setSelectedMonth] = useState("");
 
@@ -106,6 +83,36 @@ const ObForNominal = () => {
         }
     };
 
+    useEffect(() => {
+        const fetchFinancialYears = async () => {
+            if (!userData?.CORE_LGD) return;
+
+            try {
+                setLoadingFy(true);
+
+                const response = await axios.get(
+                    `https://javaapi.wbpms.in/api/MonthClose/FinYear?lgdCode=${userData?.CORE_LGD}`
+                );
+
+                if (response?.data?.finYears && Array.isArray(response.data.finYears)) {
+                    setFinancialYears(response.data.finYears);
+
+                    // Default select first financial year
+                    if (response.data.finYears.length > 0) {
+                        setCurrentFinancialYear(response.data.finYears[0].finYear);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching financial years:", error);
+                toast.error("Failed to load financial years");
+            } finally {
+                setLoadingFy(false);
+            }
+        };
+
+        fetchFinancialYears();
+    }, [userData?.CORE_LGD]);
+
     return (
         <>
             <ToastContainer />
@@ -129,8 +136,15 @@ const ObForNominal = () => {
                                 </label>
                                 <select value={currentFinancialYear}
                                     disabled className="text-sm block w-full p-1 h-9 border border-gray-300 ">
-                                    <option value={currentFinancialYear}>{currentFinancialYear}</option>
-                                </select>
+                                    <option value="">
+                                        {loadingFy ? "Loading..." : "--Select Financial Year--"}
+                                    </option>
+
+                                    {financialYears.map((item, index) => (
+                                        <option key={index} value={item.finYear}>
+                                            {item.finYear}
+                                        </option>
+                                    ))}                                </select>
 
                             </div>
                             <div className="w-1/5 px-2">

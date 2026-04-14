@@ -128,18 +128,38 @@ const ReceiptPayment27 = () => {
 
         setLoading(true);
 
-        getLgdDetails(selectedLgd).then((res) => {
-            if (res.status === 200) {
-                setLgd(res.data);
-            }
-        });
+        getLgdDetails(selectedLgd)
+            .then((res) => {
+                if (res.status === 200) {
+                    setLgd(res.data);
+                }
+            })
+            .catch(() => {
+                toast.error("Error loading LGD details");
+            });
 
         getForm27Details(selectedLgd, fromDate, toDate)
             .then((res) => {
-                setForm27Data(res.data);
-                toast.success("Data Loaded Successfully");
+                // when API returns error object
+                if (res?.data?.statusCode === 1) {
+                    setForm27Data([]);
+                    toast.error(res?.data?.message || "No data found");
+                    return;
+                }
+
+                // when API returns array data
+                if (Array.isArray(res?.data)) {
+                    setForm27Data(res.data);
+                    toast.success("Data Loaded Successfully");
+                } else {
+                    setForm27Data([]);
+                    toast.error("Invalid data format");
+                }
             })
-            .catch(() => toast.error("Error loading data"))
+            .catch(() => {
+                setForm27Data([]);
+                toast.error("Error loading data");
+            })
             .finally(() => setLoading(false));
 
         getStatus(selectedLgd, fromDate, toDate)
@@ -355,7 +375,7 @@ const ReceiptPayment27 = () => {
         C: "font-bold text-gray-700",
     };
 
-    const grandTotal = form27Data.reduce(
+    const grandTotal = (Array.isArray(form27Data) ? form27Data : []).reduce(
         (acc, row) => {
             if (row.visibleFlag === "E" || row.visibleFlag === "A") {
                 acc.receiptBudget += Number(row.receiptBudget || 0);
@@ -578,7 +598,7 @@ const ReceiptPayment27 = () => {
                                 {form27Data.map((row, index) => {
                                     const receiptDuringPeriod = Number(row.receiptDuringPeriod || 0);
                                     const paymentDuringPeriod = Number(row.paymentDuringPeriod || 0);
-                                    const balance = (Number(row.hideOB || 0) + receiptDuringPeriod )- paymentDuringPeriod;
+                                    const balance = (Number(row.hideOB || 0) + receiptDuringPeriod) - paymentDuringPeriod;
 
                                     return (
                                         <tr

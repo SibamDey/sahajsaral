@@ -68,7 +68,7 @@ const GeneralLedger = () => {
 
     // ---- SEARCH ----
     const onSearch = async () => {
-        if (!glGroup) return toast.error("Please select a GL Group");
+        // if (!glGroup) return toast.error("Please select a GL Group");
         if (!fromDate) return toast.error("Please select a From Date");
         if (!toDate) return toast.error("Please select a To Date");
         if (!userData?.CORE_LGD) return toast.error("LGD not found in session");
@@ -104,7 +104,7 @@ const GeneralLedger = () => {
             const url =
                 `https://javaapi.wbpms.in/api/GeneralLedger/Get` +
                 `?lgdCode=${encodeURIComponent(userData.CORE_LGD)}` +
-                `&glGroup=${encodeURIComponent(glGroup)}` +
+                `&glGroup=${encodeURIComponent(glGroup ? glGroup : 0)}` +
                 `&frmDate=${encodeURIComponent(fromDate)}` +
                 `&toDate=${encodeURIComponent(toDate)}`;
 
@@ -304,7 +304,8 @@ const GeneralLedger = () => {
                     <div className="flex items-center space-x-4">
                         <div className="w-1/3">
                             <label className="block text-sm font-medium text-gray-700">
-                                GL Group<span className="text-red-500"> * </span>
+                                GL Group
+                                
                             </label>
                             <select
                                 className="text-sm block w-full p-1 h-9 border border-gray-300 rounded-md"
@@ -423,34 +424,7 @@ const GeneralLedger = () => {
                                             </tr>
                                         ))}
 
-                                        {/* ✅ EXTRA ROW: Closing Balance (Right cumulative - Left cumulative) */}
-                                        {ledgerRows.length > 0 && (
-                                            <tr className="bg-white font-semibold text-xs">
-                                                <td className="sticky left-0 z-10 px-3 py-2 border-b border-slate-200 bg-inherit whitespace-nowrap">
-                                                    {ledgerRows.length + 1}
-                                                </td>
-
-                                                <td className="px-3 py-2 border-b border-slate-200 whitespace-nowrap"></td>
-                                                <td className="px-3 py-2 border-b border-slate-200 whitespace-nowrap"></td>
-                                                <td className="px-3 py-2 border-b border-slate-200 whitespace-nowrap"></td>
-
-                                                <td className="px-3 py-2 border-b border-slate-200">To Closing Balance</td>
-
-                                                <td className="px-3 py-2 border-b border-slate-200 text-right whitespace-nowrap">
-                                                    <span className={netColorClass}>{netLastCumu.toFixed(2)}</span>
-                                                </td>
-
-                                                <td className="px-3 py-2 border-b border-slate-200 text-right whitespace-nowrap"></td>
-
-                                                <td className="px-3 py-2 border-b border-slate-200 whitespace-nowrap"></td>
-                                                <td className="px-3 py-2 border-b border-slate-200 whitespace-nowrap"></td>
-                                                <td className="px-3 py-2 border-b border-slate-200 whitespace-nowrap"></td>
-
-                                                <td className="px-3 py-2 border-b border-slate-200"></td>
-                                                <td className="px-3 py-2 border-b border-slate-200 text-right whitespace-nowrap"></td>
-                                                <td className="px-3 py-2 border-b border-slate-200 text-right whitespace-nowrap"></td>
-                                            </tr>
-                                        )}
+                           
                                     </tbody>
                                 </table>
                             </div>
