@@ -52,18 +52,18 @@ const BankTryReconciliation = () => {
       userData?.USER_LEVEL === "DIST"
         ? userData?.DIST_LGD
         : userData?.USER_LEVEL === "BLOCK"
-        ? userData?.BLOCK_LGD
-        : userData?.USER_LEVEL === "GP"
-        ? userData?.GP_LGD
-        : 0
+          ? userData?.BLOCK_LGD
+          : userData?.USER_LEVEL === "GP"
+            ? userData?.GP_LGD
+            : 0
     ).then((result) => {
       setRealAccList(result?.data);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 🔹 Helper to compute "CLOSING BALANCE AS PER PASSBOOK"
-  // Formula: slNo 1 amount + 2 amount + 4 amount - 3 amount
+  // CLOSING BALANCE AS PER PASSBOOK
+  // Formula: OPENING BALANCE + TOTAL RECEIPT - TOTAL PAYMENT
   const getClosingBalanceFromPartInfo = () => {
     if (!data?.partInfo || !data.partInfo.length) return null;
 
@@ -74,12 +74,21 @@ const BankTryReconciliation = () => {
       return item ? Number(item.particularsAmount) || 0 : 0;
     };
 
-    const amt1 = getAmountBySlNo(1);
-    const amt2 = getAmountBySlNo(2);
-    const amt3 = getAmountBySlNo(3);
-    const amt4 = getAmountBySlNo(4);
+    // Step 1: existing reconciliation closing balance
+    const opening = getAmountBySlNo(1);
+    const chequeIssued = getAmountBySlNo(2);
+    const receiptNotInPassbook = getAmountBySlNo(3);
+    const receiptNotInCashbook = getAmountBySlNo(4);
 
-    return amt1 + amt2 + amt4 - amt3;
+    const closingBalance =
+      opening + chequeIssued - receiptNotInPassbook + receiptNotInCashbook;
+
+    // Step 2: total receipt & payment
+    const totalReceipt = getAmountBySlNo(5);
+    const totalPayment = getAmountBySlNo(6);
+
+    // Step 3: final calculation
+    return closingBalance + totalReceipt - totalPayment;
   };
 
   // 🔹 Ensure sheet name is valid for Excel (max 31 chars)
@@ -335,12 +344,12 @@ const BankTryReconciliation = () => {
 
       {data?.acInfo && (
         <div className="mb-4 font-medium text-center text-gray-700">
-          {data.acInfo.accountDesc} <br/>
+          {data.acInfo.accountDesc} <br />
           <span className="ml-2 text-sm text-gray-700">
             Period : {fromDate} to {toDate}
-            </span>
+          </span>
         </div>
-        
+
       )}
 
       {/* Particulars Info (with Closing balance row) */}
