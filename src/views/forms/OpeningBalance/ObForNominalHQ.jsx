@@ -8,32 +8,6 @@ const ObForNominalHQ = () => {
     const jsonString = sessionStorage.getItem("SAHAJ_SARAL_USER");
     const userData = JSON.parse(jsonString);
 
-    const [currentFinancialYear, setCurrentFinancialYear] = useState("");
-
-    // Calculate the current financial year dynamically
-    useEffect(() => {
-        const currentDate = new Date();
-        const currentYear = currentDate.getFullYear();
-        const currentMonth = currentDate.getMonth(); // 0-indexed, so 3 = April
-
-        // Determine the start and end years of the current financial year
-        const startYear = currentMonth >= 3 ? currentYear : currentYear - 1; // April onwards belongs to the next FY
-        const endYear = startYear + 1;
-
-        setCurrentFinancialYear(`${startYear}-${endYear}`);
-    }, []);
-
-    // useEffect(() => {
-    //     const currentDate = new Date();
-    //     const currentYear = currentDate.getFullYear();
-    //     const currentMonth = currentDate.getMonth(); // 0-indexed (Jan = 0, Feb = 1, ..., Dec = 11)
-
-    //     // Determine the start and end years of the previous financial year
-    //     const startYear = currentMonth >= 3 ? currentYear - 1 : currentYear - 2; // Shift back by one FY
-    //     const endYear = startYear + 1;
-
-    //     setCurrentFinancialYear(`${startYear}-${endYear}`);
-    // }, []);
 
     const [selectedMonth, setSelectedMonth] = useState("");
     const [lgd, setLGD] = useState("");
@@ -77,7 +51,7 @@ const ObForNominalHQ = () => {
             toast.error("Please select month");
 
         } else {
-            getNominalAccountForOBList(lgd, currentFinancialYear, selectedMonth).then((response) => {
+            getNominalAccountForOBList(lgd, "2025-2026", selectedMonth).then((response) => {
                 if (response.status === 200) {
                     setData(response.data);
                 } else {
@@ -97,7 +71,7 @@ const ObForNominalHQ = () => {
             toast.error("All opening balance fields must be filled!")
         } else {
 
-            addInsertNominalAccountOB(lgd, currentFinancialYear, selectedMonth, 1, data,
+            addInsertNominalAccountOB(lgd, "2025-2026", selectedMonth, 1, data,
                 (r) => {
                     console.log(r, "dd");
                     if (r.status == 0) {
@@ -150,9 +124,8 @@ const ObForNominalHQ = () => {
                                     Financial Year <span className="text-red-500 "> * </span>
 
                                 </label>
-                                <select value={currentFinancialYear}
+                                <select 
                                     disabled className="text-sm block w-full p-1 h-9 border border-gray-300 ">
-                                    <option value={currentFinancialYear}>{currentFinancialYear}</option>
                                     <option value="2025-2026">2025-2026</option>
                                 </select>
 

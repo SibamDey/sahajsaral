@@ -24,7 +24,7 @@ const MonthClosingModule = () => {
     const [popupData, setPopupData] = useState(null);
     const [selectedMonth, setSelectedMonth] = useState('');
     const [reportData, setReportData] = useState(null);
-    const [loading, setLoading] = useState(false);
+    // const [loading, setLoading] = useState(false);
     const [lgd, setLgd] = useState([]);
     const [statusData, setStatus] = useState();
     const [cashAnalysisSummaryOB, setCashAnalysisSummaryOB] = useState();
@@ -36,13 +36,15 @@ const MonthClosingModule = () => {
     const printRef = useRef();
     const formatDate = (date) =>
         date ? new Date(date).toLocaleDateString("en-GB").replace(/\//g, '.') : "Invalid Date";
-
+    const [selectedFinancialYear, setSelectedFinancialYear] = useState("");
+    // const [currentFinancialYear, setCurrentFinancialYear] = useState("");
     const monthList = [
         'april', 'may', 'june', 'july',
         'august', 'september',
         'october', 'november', 'december',
         'january', 'february', 'march'
     ];
+    const [loading, setLoading] = useState(false);
 
 
     useEffect(() => {
@@ -309,23 +311,35 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
 
     const fetchData = async () => {
         if (!tier) {
-            toast.error("Please select a Tier")
+            toast.error("Please select a Tier");
+            return;
         }
 
+        setLoading(true);
+
+        // update financial year only after search
+        setCurrentFinancialYear(selectedFinancialYear);
+
         try {
-            const res = await axios.get('https://javaapi.wbpms.in/api/MonthClose/MonthClosing', {
-                params: {
-                    distLgd: district || 0,
-                    blkLgd: block || 0,
-                    gpLgd: gp || 0,
-                    finYear: financialYears.find(fy => fy.finYear === currentFinancialYear)?.finYear || '',
-                    lgdType: tier
+            const res = await axios.get(
+                "https://javaapi.wbpms.in/api/MonthClose/MonthClosing",
+                {
+                    params: {
+                        distLgd: district || 0,
+                        blkLgd: block || 0,
+                        gpLgd: gp || 0,
+                        finYear: selectedFinancialYear,
+                        lgdType: tier,
+                    },
                 }
-            });
+            );
+
             setData(res.data);
         } catch (error) {
             console.error(error);
-            toast.error('Error fetching data');
+            toast.error("Error fetching data");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -410,7 +424,11 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                 </div>
                 <div>
                     <label className="text-sm font-medium">Financial Year<span className="text-red-500">*</span></label>
-                    <select className="text-sm block w-full p-1 h-9 border border-gray-300 rounded-md" value={currentFinancialYear} >
+                    <select
+                        className="text-sm block w-full p-1 h-9 border border-gray-300 rounded-md"
+                        value={selectedFinancialYear}
+                        onChange={(e) => setSelectedFinancialYear(e.target.value)}
+                    >
                         <option value="">
                             {loadingFy ? "Loading..." : "--Select Financial Year--"}
                         </option>
@@ -427,55 +445,166 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
 
             </div>
             <div className="flex justify-center items-end mb-4">
-                <button onClick={fetchData} className="bg-cyan-600 text-white px-2 py-2 rounded hover:bg-cyan-700">
-                    Search
+                <button
+                    onClick={fetchData}
+                    disabled={loading}
+                    className="bg-cyan-600 text-white px-4 py-2 rounded hover:bg-cyan-700 disabled:opacity-50"
+                >
+                    {loading ? "Loading..." : "Search"}
                 </button>
             </div>
 
             {/* Table */}
-            {data.length > 0 && (
-                <div className="overflow-auto">
-                    <table className="min-w-full border text-sm text-center">
-                        <thead className="bg-blue-200">
-                            <tr>
-                                <th className="border p-2">District</th>
-                                <th className="border p-2">Block</th>
-                                <th className="border p-2">PRI Name</th>
-                                {monthList.map(month => (
-                                    <th key={month} className="border p-2 capitalize">{month}</th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {data.map((row, i) => (
-                                <tr key={i} className="hover:bg-blue-50">
-                                    <td className="border p-2">{row.distName}</td>
-                                    <td className="border p-2">{row.blockName || '-'}</td>
-                                    <td className="border p-2">{row.lgdName}</td>
-                                    {monthList.map(month => (
-                                        <td
-                                            key={month}
-                                            className={`border p-2 cursor-pointer ${row[month] !== 'Y' ? 'pointer-events-none opacity-50' : ''}`}
-                                            onClick={() => handleMonthClick(month, row)} // ✅ Correct order
-                                        >
-                                            {row[month] === 'Y' ? (
-                                                <span className="inline-block px-2 py-1 bg-green-100 text-green-700 font-bold rounded">
-                                                    ✓
-                                                </span>
-                                            ) : (
-                                                <span className="inline-block px-2 py-1 bg-red-100 text-red-700 font-bold rounded">
-                                                    ✗
-                                                </span>
-                                            )}
-                                        </td>
-
-
-                                    ))}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+            {loading ? (
+                <div className="flex justify-center items-center py-10">
+                    <div className="w-10 h-10 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
                 </div>
+            ) : (
+                data.length > 0 && (
+                    currentFinancialYear === "2025-2026" ? (
+                        <div className="overflow-auto">
+                            <table className="min-w-full border text-sm text-center">
+                                <thead className="bg-blue-200">
+                                    <tr>
+                                        <th className="border p-2">District</th>
+                                        <th className="border p-2">Block</th>
+                                        <th className="border p-2">PRI Name</th>
+
+                                        {monthList.map((month) => (
+                                            <th key={month} className="border p-2 capitalize">
+                                                {month}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {data.map((row, i) => (
+                                        <tr key={i} className="hover:bg-blue-50">
+                                            <td className="border p-2">{row.distName}</td>
+
+                                            <td className="border p-2">
+                                                {row.blockName || "-"}
+                                            </td>
+
+                                            <td className="border p-2">{row.lgdName}</td>
+
+                                            {monthList.map((month) => {
+                                                const value = row[month];
+
+                                                const hasData =
+                                                    value !== null &&
+                                                    value !== undefined &&
+                                                    value !== "" &&
+                                                    value !== "null" &&
+                                                    value !== "-" &&
+                                                    value !== "---";
+
+                                                return (
+                                                    <td
+                                                        key={month}
+                                                        className={`border p-2 text-center ${hasData
+                                                                ? "cursor-pointer"
+                                                                : "pointer-events-none opacity-60"
+                                                            }`}
+                                                        onClick={() =>
+                                                            hasData && handleMonthClick(month, row)
+                                                        }
+                                                    >
+                                                        {hasData ? (
+                                                            <div className="flex flex-col items-center">
+                                                                <span className="inline-block px-2 py-1 bg-green-100 text-green-700 font-bold rounded">
+                                                                    ✓
+                                                                </span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="inline-block px-2 py-1 bg-red-100 text-red-700 font-bold rounded">
+                                                                ✗
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="overflow-auto">
+                            <table className="min-w-full border text-sm text-center">
+                                <thead className="bg-blue-200">
+                                    <tr>
+                                        <th className="border p-2">District</th>
+                                        <th className="border p-2">Block</th>
+                                        <th className="border p-2">PRI Name</th>
+
+                                        {monthList.map((month) => (
+                                            <th key={month} className="border p-2 capitalize">
+                                                {month}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {data.map((row, i) => (
+                                        <tr key={i} className="hover:bg-blue-50">
+                                            <td className="border p-2">{row.distName}</td>
+
+                                            <td className="border p-2">
+                                                {row.blockName || "-"}
+                                            </td>
+
+                                            <td className="border p-2">{row.lgdName}</td>
+
+                                            {monthList.map((month) => {
+                                                const value = row[month];
+
+                                                const hasData =
+                                                    value !== null &&
+                                                    value !== undefined &&
+                                                    value !== "" &&
+                                                    value !== "null" &&
+                                                    value !== "-" &&
+                                                    value !== "---";
+
+                                                return (
+                                                    <td
+                                                        key={month}
+                                                        className={`border p-2 text-center ${hasData
+                                                                ? "cursor-pointer"
+                                                                : "pointer-events-none opacity-60"
+                                                            }`}
+                                                        onClick={() =>
+                                                            hasData && handleMonthClick(month, row)
+                                                        }
+                                                    >
+                                                        {hasData ? (
+                                                            <div className="flex flex-col items-center">
+                                                                <span className="inline-block px-2 py-1 bg-green-100 text-green-700 font-bold rounded">
+                                                                    ✓
+                                                                </span>
+
+                                                                <span className="text-xs mt-1 text-gray-600">
+                                                                    {value}
+                                                                </span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="inline-block px-2 py-1 bg-red-100 text-red-700 font-bold rounded">
+                                                                ✗
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )
+                )
             )}
 
             {/* Popup */}

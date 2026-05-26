@@ -60,6 +60,7 @@ const GlGroupPri = () => {
     const groupName = useRef(null);
     const groupDesc = useRef(null);
     const lfId = useRef(null);
+    const lgdCode = useRef(null);
     const queryClient = useQueryClient();
 
     const { mutate: addPed, isPending: addPending } = useMutation({
@@ -81,46 +82,75 @@ const GlGroupPri = () => {
         mutationFn: (newTodo) => {
             return fetch.post(
                 newTodo,
-                "/glGroup/update/" + mutationId
+                "/GlGroupPRI/Update/"
             );
         },
         onSuccess: () => {
             queryClient.invalidateQueries("schemeList");
-            // designation.current.value = "";
+
+            lgdCode.current.value = "";
             groupId.current.value = "";
             groupName.current.value = "";
             groupDesc.current.value = "";
             lfId.current.value = "";
+
             setMutationId(null);
         },
         mutationKey: ["updatedesignation"],
     });
 
     function performMutation() {
+
+        function clearFields() {
+            groupId.current.value = "";
+            groupName.current.value = "";
+            lfId.current.value = "";
+            groupDesc.current.value = "";
+        }
+
         if (groupId.current.value === "") {
-            toast.error("Please Type Group Id")
+            toast.error("Please Type Group Id");
+
         } else if (groupId.current.value.length != 4) {
-            toast.error("Group Id should be 4 digit")
+            toast.error("Group Id should be 4 digit");
+
         } else if (groupName.current.value === "") {
-            toast.error("Please Type Group Name")
+            toast.error("Please Type Group Name");
+
         } else if (lfId.current.value === "") {
-            toast.error("Please Type LF Id")
+            toast.error("Please Type LF Id");
+
         } else {
-            if (mutationId === null)
+
+            if (mutationId === null) {
+
                 addPed({
-                    "lgdCode": userData?.CORE_LGD,
-                    "groupId": groupId.current.value,
-                    "groupName": groupName.current.value,
-                    "lfId": lfId.current.value,
-                    "groupDesc": groupDesc.current.value,
+                    lgdCode: userData?.CORE_LGD,
+                    groupId: groupId.current.value,
+                    groupName: groupName.current.value,
+                    lfId: lfId.current.value,
+                    groupDesc: groupDesc.current.value,
                 });
-            else
+
+                // Optional: clear after add too
+                clearFields();
+
+            } else {
+
                 updatePed({
-                    "groupId": groupId.current.value,
-                    "groupName": groupName.current.value,
-                    "lfId": lfId.current.value,
-                    "groupDesc": groupDesc.current.value,
+                    lgdCode: userData?.CORE_LGD,
+                    groupId: groupId.current.value,
+                    groupName: groupName.current.value,
+                    lfId: lfId.current.value,
+                    groupDesc: groupDesc.current.value,
                 });
+
+                // Clear after update
+                clearFields();
+
+                // Optional reset edit mode
+                setMutationId(null);
+            }
         }
     }
     useEffect(() => {
@@ -373,7 +403,7 @@ const GlGroupPri = () => {
 
                             </div>
                         </div>
-                        {userData?.USER_LEVEL === "HQ" || userData?.ROLE=== "9" ? "" :
+                        {userData?.USER_LEVEL === "HQ" || userData?.ROLE === "90" ? "" :
                             <div className="w-1/6  ">
                                 <button
                                     type="button"

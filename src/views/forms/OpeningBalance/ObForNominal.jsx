@@ -144,7 +144,8 @@ const ObForNominal = () => {
                                         <option key={index} value={item.finYear}>
                                             {item.finYear}
                                         </option>
-                                    ))}                                </select>
+                                    ))}
+                                </select>
 
                             </div>
                             <div className="w-1/5 px-2">

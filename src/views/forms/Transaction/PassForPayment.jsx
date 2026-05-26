@@ -69,8 +69,25 @@ const PassForPayment = () => {
     const [documentType, setDocumentType] = useState();
     const [base64String, setBase64String] = useState('');
     const [imagePreview, setImagePreview] = useState(null);
-    const [selectedDate, setPaymentDate] = useState("");
-    const [financialYear, setFinancialYear] = useState("");
+    const [selectedDate, setPaymentDate] = useState(
+        new Date().toISOString().split("T")[0]
+    );
+
+    const getCurrentFinancialYear = () => {
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth() + 1;
+
+        // Financial year starts from April
+        if (currentMonth >= 4) {
+            return `${currentYear}-${currentYear + 1}`;
+        } else {
+            return `${currentYear - 1}-${currentYear}`;
+        }
+    };
+    const [financialYear, setFinancialYear] = useState(
+        getCurrentFinancialYear()
+    );
     console.log(financialYear, "financialYear")
 
     const [passForPaymentDetailsById, setPassForPaymentDetailsById] = useState([]);
@@ -82,8 +99,12 @@ const PassForPayment = () => {
     const [modalPassForPaymentId, setModalPassForPaymentId] = useState(false);
     const [getPassForPaymentDataById, setGetPassForPaymentDataById] = useState("");
     const [groupOfContractors, setGroupOfContractors] = useState(false);
-    const [groupOfContractorsStartDate, setGroupOfContractorsStartDate] = useState("");
-    const [groupOfContractorsEndDate, setGroupOfContractorsEndDate] = useState("");
+    const [groupOfContractorsStartDate, setGroupOfContractorsStartDate] = useState(
+        new Date().toISOString().split("T")[0]
+    );
+    const [groupOfContractorsEndDate, setGroupOfContractorsEndDate] = useState(
+        new Date().toISOString().split("T")[0]
+    );
     const [accountHead, setAccountHead] = useState("")
     const [contractorName, setContractorName] = useState("")
     const [headShowDropdown, setHeadShowDropdown] = useState(false);
@@ -2515,6 +2536,7 @@ const PassForPayment = () => {
                                                 <span class="px-2 bg-gray-200 text-xs">Date <span className="text-red-500 ">* </span></span>
                                                 <input
                                                     type="date"
+                                                    value={selectedDate}
                                                     id="activity"
                                                     placeholder="dd/MM/yyyy"
                                                     max={new Date().toISOString().split("T")[0]} // Set max date to today

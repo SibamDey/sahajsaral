@@ -42,8 +42,8 @@ const ObForReal = () => {
     const [bank, setBank] = useState();
     const [branch, setBranch] = useState();
     const [accountNo, setAccountNo] = useState();
-    const [balance, setBalance] = useState();
-    const [passBookBalance, setPassBookBalance] = useState();
+    const [balance, setBalance] = useState("0");
+    const [passBookBalance, setPassBookBalance] = useState("0");
     const [month, setMonth] = useState();
     const [openModal, setOpenModal] = useState(false);
     const [year, setYear] = useState();
@@ -52,7 +52,8 @@ const ObForReal = () => {
     const userData = JSON.parse(jsonString);
 
     const [currentFinancialYear, setCurrentFinancialYear] = useState("");
-
+    const [loadingFy, setLoadingFy] = useState(false);
+    const [financialYears, setFinancialYears] = useState([]);
     const currentYear = new Date().getFullYear();
 
     const generateYearRanges = (startYear, rangeCount) => {
@@ -79,17 +80,37 @@ const ObForReal = () => {
         setCurrentFinancialYear(`${startYear}-${endYear}`);
     }, []);
 
-    // useEffect(() => {
-    //     const currentDate = new Date();
-    //     const currentYear = currentDate.getFullYear();
-    //     const currentMonth = currentDate.getMonth(); // 0-indexed (Jan = 0, Feb = 1, ..., Dec = 11)
+    useEffect(() => {
+        const fetchFinancialYears = async () => {
+            if (!userData?.CORE_LGD) return;
 
-    //     // Determine the start and end years of the previous financial year
-    //     const startYear = currentMonth >= 3 ? currentYear - 1 : currentYear - 2; // Shift back by one FY
-    //     const endYear = startYear + 1;
+            try {
+                setLoadingFy(true);
 
-    //     setCurrentFinancialYear(`${startYear}-${endYear}`);
-    // }, []);
+                const response = await axios.get(
+                    `https://javaapi.wbpms.in/api/MonthClose/FinYear?lgdCode=${userData?.CORE_LGD}`
+                );
+
+                if (response?.data?.finYears && Array.isArray(response.data.finYears)) {
+                    setFinancialYears(response.data.finYears);
+
+                    // Default select first financial year
+                    if (response.data.finYears.length > 0) {
+                        setCurrentFinancialYear(
+                            response.data.finYears[response.data.finYears.length - 1].finYear
+                        );
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching financial years:", error);
+                toast.error("Failed to load financial years");
+            } finally {
+                setLoadingFy(false);
+            }
+        };
+
+        fetchFinancialYears();
+    }, [userData?.CORE_LGD]);
 
     const yearRanges = generateYearRanges(currentYear + 1, 5);
 
@@ -678,9 +699,16 @@ const ObForReal = () => {
                                     <span className="text-red-500"> *</span>
                                 </label>
                                 <select value={currentFinancialYear}
-                                    disabled className="block w-full p-2 border border-gray-300 rounded-md">
-                                    {/* <option value={currentFinancialYear}>{currentFinancialYear}</option> */}
-                                    <option value="2025-2026">2025-2026</option>
+                                    disabled className="text-sm block w-full p-1 h-9 border border-gray-300 ">
+                                    <option value="">
+                                        {loadingFy ? "Loading..." : "--Select Financial Year--"}
+                                    </option>
+
+                                    {financialYears.map((item, index) => (
+                                        <option key={index} value={item.finYear}>
+                                            {item.finYear}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
 
@@ -730,6 +758,7 @@ const ObForReal = () => {
                                     placeholder="Balance"
                                     onChange={onBalance}
                                     value={balance}
+                                    disabled
                                 />
 
                             </div>
@@ -751,7 +780,8 @@ const ObForReal = () => {
                                     placeholder="Passbook Balance"
                                     onChange={onPassBookBalance}
                                     value={passBookBalance}
-                                    disabled={accountCode == 900000601 ? true : false}
+                                    // disabled={accountCode == 900000601 ? true : false}
+                                    disabled
                                 />
 
                             </div>

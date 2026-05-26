@@ -55,7 +55,7 @@ import BeneficiaryMaster from "../views/forms/Beneficiary/BeneficiaryMaster";
 import AcitivityWiseWorkOrder from "../views/forms/Project/ActivityWiseWorkOrder";
 import SectorWiseAllocation from "../views/forms/Project/SectorWiseAllocation";
 import Form3536 from "../views/forms/Project/Form3536";
-import AdvanceRegister from "../views/forms/Register/AdvanceRegister";
+import ListOfAdjustmentUnadjustment from "../views/forms/Register/ListOfAdjustmentUnadjustment";
 import ContractorPaymentCertificate from "../views/forms/Document/PreparationPaymentCertificate";
 import ActivityWiseExpenditure from "../views/forms/Reports/ActivityWiseExpenditure";
 import AllotmentWiseExpenditure from "../views/forms/Reports/AllotmentWiseExpenditure";
@@ -97,6 +97,8 @@ import ClosingBalance2425 from "../views/forms/Reports/ClosingBalance2425";
 import TaxCollectorAvailableBalance from "../views/forms/Register/TaxCollectorAvailableBalance";
 import TaxCollectorTransaction from "../views/forms/Register/TaxCollectorTransaction";
 import ReceiptPayment27summaryreport from "../views/forms/Reports/ReceiptPaymentform27summaryreport";
+import BankInterestCharges from "../views/forms/Register/BankInterestCharges";
+import AdvanceRegister from "../views/forms/Register/AdvanceRegister";
 // import PublicPaymentCertificate from "../views/forms/Document/PublicPaymentCertificate";
 
 
@@ -470,9 +472,9 @@ export const sideBarList = [
     permissions: [1],
   },
   {
-    Component: AdvanceRegister,
-    text: "AdvanceRegister",
-    route: "/advance-register",
+    Component: ListOfAdjustmentUnadjustment,
+    text: "ListOfAdjustmentUnadjustment",
+    route: "/list-of-adjustment-unadjustment",
     permissions: [1],
   },
 
@@ -700,17 +702,31 @@ export const sideBarList = [
     permissions: [1],
   },
 
-    {
+  {
     Component: TaxCollectorAvailableBalance,
     text: "TaxCollectorAvailableBalance",
     route: "/tax-collectors-available-balance",
     permissions: [1],
   },
 
-      {
+  {
     Component: TaxCollectorTransaction,
     text: "TaxCollectorTransaction",
     route: "/tax-collectors-transaction",
+    permissions: [1],
+  },
+
+  {
+    Component: BankInterestCharges,
+    text: "BankInterestCharges",
+    route: "/bank-interest-charges",
+    permissions: [1],
+  },
+
+    {
+    Component: AdvanceRegister,
+    text: "AdvanceRegister",
+    route: "/advance-register",
     permissions: [1],
   },
 
@@ -1032,7 +1048,7 @@ export const Sidebar = () => {
                 </div>
               </SidebarElement>
             </>
-            }
+          }
         </SidebarExpand>
 
         <SidebarExpand text="Opening Balance" icon="fluent-mdl2:radio-bullet">
@@ -1385,6 +1401,7 @@ export const Sidebar = () => {
                 </span>
               </div>
             </SidebarElement>
+
             <SidebarElement
               to="/advance-register"
               customCss={"flex justify-start pl-4 "}
@@ -1393,6 +1410,18 @@ export const Sidebar = () => {
                 <span className="flex items-center space-x-4">
                   {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
                   <span>Advance Register</span>
+                </span>
+              </div>
+            </SidebarElement>
+
+            <SidebarElement
+              to="/list-of-adjustment-unadjustment"
+              customCss={"flex justify-start pl-4 "}
+            >
+              <div className="text-sm items-start py-1 capitalize">
+                <span className="flex items-center space-x-4">
+                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                  <span>List of Adjustment/Unadjustment</span>
                 </span>
               </div>
             </SidebarElement>
@@ -1427,6 +1456,18 @@ export const Sidebar = () => {
                 <span className="flex items-center space-x-4">
                   {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
                   <span>OSR Collection - Mobile App</span>
+                </span>
+              </div>
+            </SidebarElement>
+
+            <SidebarElement
+              to="/bank-interest-charges"
+              customCss={"flex justify-start pl-4 "}
+            >
+              <div className="text-sm items-start py-1 capitalize">
+                <span className="flex items-center space-x-4">
+                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                  <span>Bank Interest Charges</span>
                 </span>
               </div>
             </SidebarElement>
@@ -1945,7 +1986,7 @@ export const Sidebar = () => {
 
 
         </>
-        }
+      }
     </div>
   );
 };

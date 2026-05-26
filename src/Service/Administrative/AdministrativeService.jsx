@@ -72,6 +72,7 @@ export const getPfpUnverified = async (
 
 export const getMonthOpen = async (
     lgd,
+    financialYear,
     month,
     onSuccess,
     onFailure) => {
@@ -80,7 +81,7 @@ export const getMonthOpen = async (
             `/AdminRectify/MonthOpen`,
             {
                 "lgdCode": lgd,
-                "finYear": "2025-2026",
+                "finYear": financialYear,
                 "month": month,
                 "securityCode": 9539
             },

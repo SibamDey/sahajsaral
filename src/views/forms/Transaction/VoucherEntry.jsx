@@ -105,8 +105,12 @@ const VoucherEntry = () => {
     const [matches801, setMatches801] = useState(false);
     const [matches601, setMatches601] = useState(false);
     const [matches000, setMatches000] = useState(false);
-    const [voucherDate, setVoucherDate] = useState();
-    const [receiptPaymentDate, setReceiptPaymentDate] = useState();
+    const [voucherDate, setVoucherDate] = useState(
+        new Date().toISOString().split("T")[0]
+        );
+    const [receiptPaymentDate, setReceiptPaymentDate] = useState(
+        new Date().toISOString().split("T")[0]
+    );
     const [financialYear, setFinancialYear] = useState("");
     const [voucherNo, setVoucherNo] = useState("");
     const [payto, setPayto] = useState("");
@@ -171,7 +175,7 @@ const VoucherEntry = () => {
         { value: "Bank Charges", label: "Bank Charges" },
         { value: "Fund Transfer", label: "Fund Transfer" },
         { value: "Certificate", label: "Certificate" },
-        { value: "Online", label: "Online" },
+        // { value: "Online", label: "Online" },
         { value: "ECS", label: "ECS" },
         { value: "PFMS", label: "PFMS" },
         { value: "Bill", label: "Bill" },
@@ -187,18 +191,24 @@ const VoucherEntry = () => {
             if (voucherTypeData === "R" && ["Token", "Bank Charges", "Bill", "PFMS"].includes(item.value)) {
                 return false; // Exclude these for "R"
             }
-            if (voucherTypeData === "N" && ["Online", "PFMS", "Allotment Receipt"].includes(item.value)) {
+            if (voucherTypeData === "N" && [
+                // "Online",
+                 "PFMS", "Allotment Receipt"].includes(item.value)) {
                 return false; // Exclude these for "N"
             }
             if (voucherTypeData === "R" && voucherType === "B" && ["None", "Token", "Bank Charges", "Bill", "PFMS"].includes(item.value)) {
                 return false; // Exclude these for "R" and "Bank"
             }
 
-            if (voucherTypeData === "P" && ["Bank Interest", "Direct Deposit", "Online", "Allotment Receipt"].includes(item.value)) {
+            if (voucherTypeData === "P" && ["Bank Interest", "Direct Deposit",
+                //  "Online",
+                "Allotment Receipt"].includes(item.value)) {
                 return false; // Exclude these for "R"
             }
 
-            if (voucherTypeData === "P" && voucherType === "T" && ["None", "Online", "Allotment Receipt"].includes(item.value)) {
+            if (voucherTypeData === "P" && voucherType === "T" && ["None",
+                // "Online",
+                "Allotment Receipt"].includes(item.value)) {
                 return false; // Exclude these for "R"
             }
 
@@ -206,11 +216,15 @@ const VoucherEntry = () => {
                 return false; // Exclude these for "R"
             }
 
-            if (voucherTypeData === "P" && voucherType === "B" && ["None", "Online", "Allotment Receipt"].includes(item.value)) {
+            if (voucherTypeData === "P" && voucherType === "B" && ["None",
+                //  "Online",
+                "Allotment Receipt"].includes(item.value)) {
                 return false; // Exclude these for "R"
             }
 
-            if (voucherTypeData === "P" && voucherType === "C" && ["Bank Interest", "Fund Transfer", "UPI Trn ID", "Online", "Allotment Receipt"].includes(item.value)) {
+            if (voucherTypeData === "P" && voucherType === "C" && ["Bank Interest", "Fund Transfer", "UPI Trn ID", 
+                // "Online",
+                 "Allotment Receipt"].includes(item.value)) {
                 return false; // Exclude these for "R"
             }
 
@@ -835,6 +849,8 @@ const VoucherEntry = () => {
             setFinancialYear(`${year - 1}-${year}`);
         }
     }
+
+    console.log(financialYear, "financialYear")
 
     const onVoucherNo = (e) => {
         setVoucherNo(e.target.value);
