@@ -99,6 +99,10 @@ import TaxCollectorTransaction from "../views/forms/Register/TaxCollectorTransac
 import ReceiptPayment27summaryreport from "../views/forms/Reports/ReceiptPaymentform27summaryreport";
 import BankInterestCharges from "../views/forms/Register/BankInterestCharges";
 import AdvanceRegister from "../views/forms/Register/AdvanceRegister";
+import UploadBankStatement from "../views/forms/Auditor/UploadBankStatement";
+import UploadBRS from "../views/forms/Auditor/UploadBRS";
+
+
 // import PublicPaymentCertificate from "../views/forms/Document/PublicPaymentCertificate";
 
 
@@ -723,12 +727,27 @@ export const sideBarList = [
     permissions: [1],
   },
 
-    {
+  {
     Component: AdvanceRegister,
     text: "AdvanceRegister",
     route: "/advance-register",
     permissions: [1],
   },
+  {
+    Component: UploadBankStatement,
+    text: "UploadBankStatement",
+    route: "/upload-bank-statement",
+    permissions: [1],
+  },
+
+  {
+    Component: UploadBRS,
+    text: "UploadBRS",
+    route: "/upload-brs",
+    permissions: [1],
+  },
+
+
 
 
 
@@ -1342,52 +1361,6 @@ export const Sidebar = () => {
 
           <SidebarExpand text="Register" icon="ep:document">
 
-            <SidebarElement
-              to="/online-collection"
-              customCss={"flex justify-start pl-4 "}
-            >
-              <div className="text-sm items-start py-1 capitalize">
-                <span className="flex items-center space-x-4">
-                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                  <span>Online Collection</span>
-                </span>
-              </div>
-            </SidebarElement>
-            <SidebarElement
-              to="/property-tax-report"
-              customCss={"flex justify-start pl-4 "}
-            >
-              <div className="text-sm items-start py-1 capitalize">
-                <span className="flex items-center space-x-4">
-                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                  <span>Tax Collectors Commision</span>
-                </span>
-              </div>
-            </SidebarElement>
-
-            <SidebarElement
-              to="/tax-collectors-available-balance"
-              customCss={"flex justify-start pl-4 "}
-            >
-              <div className="text-sm items-start py-1 capitalize">
-                <span className="flex items-center space-x-4">
-                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                  <span>Tax Collectors- Available Balance</span>
-                </span>
-              </div>
-            </SidebarElement>
-
-            <SidebarElement
-              to="/tax-collectors-transaction"
-              customCss={"flex justify-start pl-4 "}
-            >
-              <div className="text-sm items-start py-1 capitalize">
-                <span className="flex items-center space-x-4">
-                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                  <span>Tax Collectors- Transaction</span>
-                </span>
-              </div>
-            </SidebarElement>
 
 
             <SidebarElement
@@ -1471,6 +1444,56 @@ export const Sidebar = () => {
                 </span>
               </div>
             </SidebarElement>
+
+            <SidebarExpand text="Tax Collection" icon="fluent-mdl2:radio-bullet">
+
+              <SidebarElement
+                to="/online-collection"
+                customCss={"flex justify-start pl-4 "}
+              >
+                <div className="text-sm items-start py-1 capitalize">
+                  <span className="flex items-center space-x-4">
+                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                    <span>Online Collection</span>
+                  </span>
+                </div>
+              </SidebarElement>
+              <SidebarElement
+                to="/property-tax-report"
+                customCss={"flex justify-start pl-4 "}
+              >
+                <div className="text-sm items-start py-1 capitalize">
+                  <span className="flex items-center space-x-4">
+                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                    <span>Tax Collectors Commision</span>
+                  </span>
+                </div>
+              </SidebarElement>
+
+              <SidebarElement
+                to="/tax-collectors-available-balance"
+                customCss={"flex justify-start pl-4 "}
+              >
+                <div className="text-sm items-start py-1 capitalize">
+                  <span className="flex items-center space-x-4">
+                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                    <span>Tax Collectors- Available Balance</span>
+                  </span>
+                </div>
+              </SidebarElement>
+
+              <SidebarElement
+                to="/tax-collectors-transaction"
+                customCss={"flex justify-start pl-4 "}
+              >
+                <div className="text-sm items-start py-1 capitalize">
+                  <span className="flex items-center space-x-4">
+                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                    <span>Tax Collectors- Transaction</span>
+                  </span>
+                </div>
+              </SidebarElement>
+            </SidebarExpand>
 
           </SidebarExpand>
 
@@ -1963,6 +1986,33 @@ export const Sidebar = () => {
                 <span className="flex items-center space-x-4">
                   {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
                   <span>GP Accounts Rule</span>
+                </span>
+              </div>
+            </SidebarElement>
+          </SidebarExpand>
+
+
+          <SidebarExpand text="Auditor" icon="material-symbols:fact-check-outline-rounded">
+            <SidebarElement
+              to="/upload-bank-statement"
+              customCss={"flex justify-start pl-4 "}
+            >
+              <div className="text-sm items-start py-1 capitalize">
+                <span className="flex items-center space-x-4">
+                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                  <span>Upload Bank Statement</span>
+                </span>
+              </div>
+            </SidebarElement>
+
+            <SidebarElement
+              to="/upload-brs"
+              customCss={"flex justify-start pl-4 "}
+            >
+              <div className="text-sm items-start py-1 capitalize">
+                <span className="flex items-center space-x-4">
+                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                  <span>Upload BRS</span>
                 </span>
               </div>
             </SidebarElement>

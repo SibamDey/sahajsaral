@@ -433,11 +433,9 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                             {loadingFy ? "Loading..." : "--Select Financial Year--"}
                         </option>
 
-                        {financialYears.map((item, index) => (
-                            <option key={index} value={item.finYear}>
-                                {item.finYear}
-                            </option>
-                        ))}
+                        <option value="2025-2026">2025-2026</option>
+                        <option value="2026-2027">2026-2027</option>
+
                     </select>
                 </div>
 
@@ -504,8 +502,8 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                                                     <td
                                                         key={month}
                                                         className={`border p-2 text-center ${hasData
-                                                                ? "cursor-pointer"
-                                                                : "pointer-events-none opacity-60"
+                                                            ? "cursor-pointer"
+                                                            : "pointer-events-none opacity-60"
                                                             }`}
                                                         onClick={() =>
                                                             hasData && handleMonthClick(month, row)
@@ -573,8 +571,8 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                                                     <td
                                                         key={month}
                                                         className={`border p-2 text-center ${hasData
-                                                                ? "cursor-pointer"
-                                                                : "pointer-events-none opacity-60"
+                                                            ? "cursor-pointer"
+                                                            : "pointer-events-none opacity-60"
                                                             }`}
                                                         onClick={() =>
                                                             hasData && handleMonthClick(month, row)

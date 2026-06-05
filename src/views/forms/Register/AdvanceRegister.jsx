@@ -76,8 +76,13 @@ const AdvanceRegister = () => {
   };
 
   const onSearch = async () => {
-    if (!glGroup) {
-      toast.error("Please select GL Group");
+    // if (!glGroup) {
+    //   toast.error("Please select GL Group");
+    //   return;
+    // }
+
+    if (!partyType) {
+      toast.error("Please select Party Type");
       return;
     }
 
@@ -91,15 +96,12 @@ const AdvanceRegister = () => {
       return;
     }
 
-    if (!partyType) {
-      toast.error("Please select Party Type");
-      return;
-    }
 
-    if (!partyCode) {
-      toast.error("Please select Party");
-      return;
-    }
+
+    // if (!partyCode) {
+    //   toast.error("Please select Party");
+    //   return;
+    // }
 
     try {
       setLoadingSearch(true);
@@ -110,8 +112,9 @@ const AdvanceRegister = () => {
         `?lgdCode=${lgdCode}` +
         `&frmDate=${fromDate}` +
         `&toDate=${toDate}` +
-        `&glGroup=${glGroup}` +
-        `&partyCode=${partyCode}`;
+        `&glGroup=${glGroup ? glGroup : 0}` +
+        `&partyType=${partyType}` +
+        `&partyCode=${partyCode ? partyCode : 0}`;
 
       const response = await fetch(url);
       const result = await response.json();
@@ -216,7 +219,8 @@ const AdvanceRegister = () => {
 
               <div className="w-1/5 px-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  Party<span className="text-red-500"> * </span>
+                  Party
+                  {/* <span className="text-red-500"> * </span> */}
                 </label>
 
                 <select
@@ -304,9 +308,11 @@ const AdvanceRegister = () => {
                   <tr>
                     <th className="border px-2 py-1">Sl No.</th>
                     <th className="border px-2 py-1">Type</th>
-                    <th className="border px-2 py-1">Date</th>
+                    <th className="border px-2 py-1">Adj Date</th>
                     <th className="border px-2 py-1">Voucher ID</th>
                     <th className="border px-2 py-1">Narration</th>
+                    <th className="border px-2 py-1">GL Group Name</th>
+                    <th className="border px-2 py-1">Party Name</th>
                     <th className="border px-2 py-1">Amount</th>
                     <th className="border px-2 py-1">Mode</th>
                   </tr>
@@ -314,8 +320,7 @@ const AdvanceRegister = () => {
 
                 <tbody>
                   {advanceRegisterData.map((item, index) => {
-
-                    // 🔴 Skip all Unadjusted Amount except LAST one
+                    // Skip all Unadjusted Amount except LAST one
                     if (
                       item?.type === "Unadjusted Amount" &&
                       index !== advanceRegisterData.length - 1
@@ -323,7 +328,7 @@ const AdvanceRegister = () => {
                       return null;
                     }
 
-                    // 🔴 Last Unadjusted Amount → show under narration
+                    // Last Unadjusted Amount row
                     if (item?.type === "Unadjusted Amount") {
                       return (
                         <tr key={index}>
@@ -331,16 +336,16 @@ const AdvanceRegister = () => {
                             {index + 1}
                           </td>
 
-                          {/* Type column empty */}
+                          <td className="border px-2 py-1"></td>
+                          <td className="border px-2 py-1"></td>
                           <td className="border px-2 py-1"></td>
 
-                          <td className="border px-2 py-1"></td>
-                          <td className="border px-2 py-1"></td>
-
-                          {/* Show only here */}
                           <td className="border px-2 py-1 text-left">
                             Unadjusted Amount
                           </td>
+
+                          <td className="border px-2 py-1"></td>
+                          <td className="border px-2 py-1"></td>
 
                           <td className="border px-2 py-1 text-right">
                             {item?.advAdjAmount}
@@ -351,20 +356,44 @@ const AdvanceRegister = () => {
                       );
                     }
 
-                    // 🟢 Normal rows (no change)
+                    // Normal rows
                     return (
                       <tr key={index}>
                         <td className="border px-2 py-1 text-center">
                           {index + 1}
                         </td>
-                        <td className="border px-2 py-1">{item?.type}</td>
-                        <td className="border px-2 py-1">{item?.advAdjDate}</td>
-                        <td className="border px-2 py-1">{item?.voucherId}</td>
-                        <td className="border px-2 py-1">{item?.voucherNarration}</td>
+
+                        <td className="border px-2 py-1">
+                          {item?.type}
+                        </td>
+
+                        <td className="border px-2 py-1">
+                          {item?.advAdjDate}
+                        </td>
+
+                        <td className="border px-2 py-1">
+                          {item?.voucherId}
+                        </td>
+
+                        <td className="border px-2 py-1">
+                          {item?.voucherNarration}
+                        </td>
+
+                        <td className="border px-2 py-1">
+                          {item?.glGroupName}
+                        </td>
+
+                        <td className="border px-2 py-1">
+                          {item?.partyName}
+                        </td>
+
                         <td className="border px-2 py-1 text-right">
                           {item?.advAdjAmount}
                         </td>
-                        <td className="border px-2 py-1">{item?.mode}</td>
+
+                        <td className="border px-2 py-1">
+                          {item?.mode}
+                        </td>
                       </tr>
                     );
                   })}

@@ -130,7 +130,7 @@ const PaymentCertificateDocument = React.forwardRef(
 
     const first = rows[0]; // use first row for header information
     const financialYear = getFinancialYearLabel(
-      first.generateDate || first.voucherDate
+       first.voucherDate
     );
 
     return (
