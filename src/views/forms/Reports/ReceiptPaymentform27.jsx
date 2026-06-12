@@ -12,11 +12,15 @@ import {
 
 import { getLgdDetails } from "../../../Service/LgdCodeGet/LgdCodeService";
 import { getForm27Details } from "../../../Service/Reports/ReportsService";
-import { getStatus } from "../../../Service/Reports/ReportsService";
+import {
+    getStatus,
+    getCashAnalysisUtilization,
+} from "../../../Service/Reports/ReportsService";
 
 const ReceiptPayment27 = () => {
     const [fromDate, setFromDate] = useState("2025-04-01");
     const [toDate, setToDate] = useState(new Date().toISOString().split("T")[0]);
+    const [cashAnalysisUtilization, setCashAnalysisUtilization] = useState();
 
     const [districtList, setDistrictList] = useState([]);
     const [blockList, setBlockList] = useState([]);
@@ -138,16 +142,32 @@ const ReceiptPayment27 = () => {
                 toast.error("Error loading LGD details");
             });
 
+        getCashAnalysisUtilization(
+            district != 0 && block != 0 && gp != 0
+                ? gp
+                : district != 0 && block != 0 && gp == 0
+                ? block
+                : district != 0 && block == 0 && gp == 0
+                ? district
+                : 0,
+            fromDate,
+            toDate
+        ).then((response) => {
+            if (response.status === 200) {
+                setCashAnalysisUtilization(response.data);
+            } else {
+                toast.error("Failed to fetch data");
+            }
+        });
+
         getForm27Details(selectedLgd, fromDate, toDate)
             .then((res) => {
-                // when API returns error object
                 if (res?.data?.statusCode === 1) {
                     setForm27Data([]);
                     toast.error(res?.data?.message || "No data found");
                     return;
                 }
 
-                // when API returns array data
                 if (Array.isArray(res?.data)) {
                     setForm27Data(res.data);
                     toast.success("Data Loaded Successfully");
@@ -235,6 +255,7 @@ const ReceiptPayment27 = () => {
                 .pb-4 { padding-bottom: 12px !important; }
                 .mb-4 { margin-bottom: 12px !important; }
                 .mt-1 { margin-top: 4px !important; }
+                .mt-4 { margin-top: 18px !important; }
                 .mt-6 { margin-top: 8px !important; }
 
                 .p-2 { padding: 4px 3px !important; }
@@ -242,7 +263,23 @@ const ReceiptPayment27 = () => {
 
                 .text-xl { font-size: 16px !important; }
                 .text-lg { font-size: 14px !important; }
+                .text-sm { font-size: 12px !important; }
                 .text-xs { font-size: 10px !important; }
+
+                .flex { display: flex !important; }
+                .justify-between { justify-content: space-between !important; }
+
+                .space-y-1 > :not([hidden]) ~ :not([hidden]) {
+                    margin-top: 4px !important;
+                }
+
+                .tbsize {
+                    font-size: 12px !important;
+                }
+
+                .vv {
+                    margin-top: 0 !important;
+                }
 
                 /* print-safe colors */
                 .text-cyan-700 { color: #0f766e !important; }
@@ -338,6 +375,10 @@ const ReceiptPayment27 = () => {
                         padding: 4px 3px !important;
                     }
 
+                    .mt-4 {
+                        margin-top: 18px !important;
+                    }
+
                     .bg-gray-100 { background: #dbeafe !important; }
                     .bg-yellow-200 { background: #fde68a !important; }
                     .bg-green-400 { background: #bbf7d0 !important; }
@@ -379,12 +420,16 @@ const ReceiptPayment27 = () => {
         (acc, row) => {
             if (row.visibleFlag === "E" || row.visibleFlag === "A") {
                 acc.receiptBudget += Number(row.receiptBudget || 0);
-                acc.receiptLastBalanceRevised += Number(row.receiptLastBalanceRevised || 0);
+                acc.receiptLastBalanceRevised += Number(
+                    row.receiptLastBalanceRevised || 0
+                );
                 acc.receiptDuringPeriod += Number(row.receiptDuringPeriod || 0);
                 acc.receiptLastBalance += Number(row.receiptLastBalance || 0);
 
                 acc.paymentBudget += Number(row.paymentBudget || 0);
-                acc.paymentLastBalanceRevised += Number(row.paymentLastBalanceRevised || 0);
+                acc.paymentLastBalanceRevised += Number(
+                    row.paymentLastBalanceRevised || 0
+                );
                 acc.paymentDuringPeriod += Number(row.paymentDuringPeriod || 0);
                 acc.paymentLastBalance += Number(row.paymentLastBalance || 0);
             }
@@ -405,7 +450,6 @@ const ReceiptPayment27 = () => {
 
     const finalBalance =
         grandTotal.receiptLastBalance - grandTotal.paymentLastBalance;
-
 
     const formatDate = (dateString) => {
         if (!dateString) return "";
@@ -581,12 +625,16 @@ const ReceiptPayment27 = () => {
                             <thead>
                                 <tr className="bg-gray-100 font-bold text-center">
                                     <th className="border p-2">Receipt Particulars</th>
-                                    <th className="border p-2">Budget Provision for the year</th>
+                                    <th className="border p-2">
+                                        Budget Provision for the year
+                                    </th>
                                     <th className="border p-2">Up to Last Month</th>
                                     <th className="border p-2">During this Period</th>
                                     <th className="border p-2">Cumulative total</th>
                                     <th className="border p-2">Payment Particulars</th>
-                                    <th className="border p-2">Budget Provision for the year</th>
+                                    <th className="border p-2">
+                                        Budget Provision for the year
+                                    </th>
                                     <th className="border p-2">Up to Last Month</th>
                                     <th className="border p-2">During this Period</th>
                                     <th className="border p-2">Cumulative total</th>
@@ -596,9 +644,16 @@ const ReceiptPayment27 = () => {
 
                             <tbody>
                                 {form27Data.map((row, index) => {
-                                    const receiptDuringPeriod = Number(row.receiptDuringPeriod || 0);
-                                    const paymentDuringPeriod = Number(row.paymentDuringPeriod || 0);
-                                    const balance = (Number(row.hideOB || 0) + receiptDuringPeriod) - paymentDuringPeriod;
+                                    const receiptDuringPeriod = Number(
+                                        row.receiptDuringPeriod || 0
+                                    );
+                                    const paymentDuringPeriod = Number(
+                                        row.paymentDuringPeriod || 0
+                                    );
+                                    const balance =
+                                        Number(row.hideOB || 0) +
+                                        receiptDuringPeriod -
+                                        paymentDuringPeriod;
 
                                     return (
                                         <tr
@@ -608,77 +663,110 @@ const ReceiptPayment27 = () => {
                                             <td className="border p-2 text-left">
                                                 {row.receiptDetails}
                                             </td>
+
                                             <td className="border p-2">
-                                                {row.receiptBudget == 0.0 ? "" : row.receiptBudget}
+                                                {row.receiptBudget == 0.0
+                                                    ? ""
+                                                    : row.receiptBudget}
                                             </td>
+
                                             <td className="border p-2">
-                                                {row.receiptDetails === "To Opening Balance b/d : Cash at Bank" || row.receiptDetails === "Cash in Hand" || row.receiptDetails === "Fund with Treasury L/F Account"
+                                                {row.receiptDetails ===
+                                                    "To Opening Balance b/d : Cash at Bank" ||
+                                                row.receiptDetails === "Cash in Hand" ||
+                                                row.receiptDetails ===
+                                                    "Fund with Treasury L/F Account"
                                                     ? Number(row.receiptLastBalanceRevised) === 0
                                                         ? "0.00"
                                                         : row.receiptLastBalanceRevised
                                                     : Number(row.receiptLastBalanceRevised) === 0
-                                                        ? ""
-                                                        : row.receiptLastBalanceRevised}
+                                                    ? ""
+                                                    : row.receiptLastBalanceRevised}
                                             </td>
 
                                             <td className="border p-2">
-                                                {row.receiptDetails === "To Opening Balance b/d : Cash at Bank" || row.receiptDetails === "Cash in Hand" || row.receiptDetails === "Fund with Treasury L/F Account"
+                                                {row.receiptDetails ===
+                                                    "To Opening Balance b/d : Cash at Bank" ||
+                                                row.receiptDetails === "Cash in Hand" ||
+                                                row.receiptDetails ===
+                                                    "Fund with Treasury L/F Account"
                                                     ? Number(row.receiptDuringPeriod) === 0
                                                         ? "0.00"
                                                         : row.receiptDuringPeriod
                                                     : Number(row.receiptDuringPeriod) === 0
-                                                        ? ""
-                                                        : row.receiptDuringPeriod}
+                                                    ? ""
+                                                    : row.receiptDuringPeriod}
                                             </td>
 
                                             <td className="border p-2">
-                                                {row.receiptDetails === "To Opening Balance b/d : Cash at Bank" || row.receiptDetails === "Cash in Hand" || row.receiptDetails === "Fund with Treasury L/F Account"
+                                                {row.receiptDetails ===
+                                                    "To Opening Balance b/d : Cash at Bank" ||
+                                                row.receiptDetails === "Cash in Hand" ||
+                                                row.receiptDetails ===
+                                                    "Fund with Treasury L/F Account"
                                                     ? Number(row.receiptLastBalance) === 0
                                                         ? "0.00"
                                                         : row.receiptLastBalance
                                                     : Number(row.receiptLastBalance) === 0
-                                                        ? ""
-                                                        : row.receiptLastBalance}
+                                                    ? ""
+                                                    : row.receiptLastBalance}
                                             </td>
 
                                             <td className="border p-2 text-left">
                                                 {row.paymentDetails}
                                             </td>
+
                                             <td className="border p-2">
-                                                {row.paymentBudget == 0.0 ? "" : row.paymentBudget}
+                                                {row.paymentBudget == 0.0
+                                                    ? ""
+                                                    : row.paymentBudget}
                                             </td>
+
                                             <td className="border p-2">
-                                                {row.paymentDetails === "To Closing Balance b/d : Cash at Bank" || row.paymentDetails === "Cash in Hand" || row.paymentDetails === "Fund with Treasury L/F Account"
+                                                {row.paymentDetails ===
+                                                    "To Closing Balance b/d : Cash at Bank" ||
+                                                row.paymentDetails === "Cash in Hand" ||
+                                                row.paymentDetails ===
+                                                    "Fund with Treasury L/F Account"
                                                     ? Number(row.paymentLastBalanceRevised) === 0
                                                         ? "0.00"
                                                         : row.paymentLastBalanceRevised
                                                     : Number(row.paymentLastBalanceRevised) === 0
-                                                        ? ""
-                                                        : row.paymentLastBalanceRevised}
+                                                    ? ""
+                                                    : row.paymentLastBalanceRevised}
                                             </td>
 
                                             <td className="border p-2">
-                                                {row.paymentDetails === "To Closing Balance b/d : Cash at Bank" || row.paymentDetails === "Cash in Hand" || row.paymentDetails === "Fund with Treasury L/F Account"
+                                                {row.paymentDetails ===
+                                                    "To Closing Balance b/d : Cash at Bank" ||
+                                                row.paymentDetails === "Cash in Hand" ||
+                                                row.paymentDetails ===
+                                                    "Fund with Treasury L/F Account"
                                                     ? Number(row.paymentDuringPeriod) === 0
                                                         ? "0.00"
                                                         : row.paymentDuringPeriod
                                                     : Number(row.paymentDuringPeriod) === 0
-                                                        ? ""
-                                                        : row.paymentDuringPeriod}
+                                                    ? ""
+                                                    : row.paymentDuringPeriod}
                                             </td>
 
                                             <td className="border p-2">
-                                                {row.paymentDetails === "To Closing Balance b/d : Cash at Bank" || row.paymentDetails === "Cash in Hand" || row.paymentDetails === "Fund with Treasury L/F Account"
+                                                {row.paymentDetails ===
+                                                    "To Closing Balance b/d : Cash at Bank" ||
+                                                row.paymentDetails === "Cash in Hand" ||
+                                                row.paymentDetails ===
+                                                    "Fund with Treasury L/F Account"
                                                     ? Number(row.paymentLastBalance) === 0
                                                         ? "0.00"
                                                         : row.paymentLastBalance
                                                     : Number(row.paymentLastBalance) === 0
-                                                        ? ""
-                                                        : row.paymentLastBalance}
+                                                    ? ""
+                                                    : row.paymentLastBalance}
                                             </td>
 
                                             <td className="border p-2 font-bold">
-                                                {row.visibleFlag === "E" || row.visibleFlag === "C"
+                                                {row.visibleFlag === "E" ||
+                                                row.visibleFlag === "C"
                                                     ? ""
                                                     : balance.toFixed(2)}
                                             </td>
@@ -688,37 +776,90 @@ const ReceiptPayment27 = () => {
 
                                 <tr className="font-bold bg-yellow-200">
                                     <td className="border p-2 text-left">Grand Total</td>
+
                                     <td className="border p-2">
                                         {grandTotal.receiptBudget.toFixed(2)}
                                     </td>
+
                                     <td className="border p-2">
                                         {grandTotal.receiptLastBalanceRevised.toFixed(2)}
                                     </td>
+
                                     <td className="border p-2">
                                         {grandTotal.receiptDuringPeriod.toFixed(2)}
                                     </td>
+
                                     <td className="border p-2">
                                         {grandTotal.receiptLastBalance.toFixed(2)}
                                     </td>
+
                                     <td className="border p-2 text-left">Grand Total</td>
+
                                     <td className="border p-2">
                                         {grandTotal.paymentBudget.toFixed(2)}
                                     </td>
+
                                     <td className="border p-2">
                                         {grandTotal.paymentLastBalanceRevised.toFixed(2)}
                                     </td>
+
                                     <td className="border p-2">
                                         {grandTotal.paymentDuringPeriod.toFixed(2)}
                                     </td>
+
                                     <td className="border p-2">
                                         {grandTotal.paymentLastBalance.toFixed(2)}
                                     </td>
+
                                     <td className="border p-2 font-bold">
                                         {/* {finalBalance.toFixed(2)} */}
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
+
+                        <div
+                            className="mt-4 text-sm flex justify-between"
+                            style={{ marginTop: "18px" }}
+                        >
+                            <div className="space-y-1 text-left vv">
+                                <p style={{ fontFamily: "InterVariable, sans-serif" }}>
+                                    <span
+                                        className="tbsize font-bold text-cyan-700"
+                                        style={{
+                                            fontFamily: "InterVariable, sans-serif",
+                                        }}
+                                    >
+                                        Available Fund:{" "}
+                                        {cashAnalysisUtilization?.availableFund}
+                                    </span>
+                                </p>
+
+                                <p style={{ fontFamily: "InterVariable, sans-serif" }}>
+                                    <span
+                                        className="tbsize font-bold text-cyan-700"
+                                        style={{
+                                            fontFamily: "InterVariable, sans-serif",
+                                        }}
+                                    >
+                                        Expenditure:{" "}
+                                        {cashAnalysisUtilization?.expenditureAmount}
+                                    </span>
+                                </p>
+
+                                <p style={{ fontFamily: "InterVariable, sans-serif" }}>
+                                    <span
+                                        className="tbsize font-bold text-cyan-700"
+                                        style={{
+                                            fontFamily: "InterVariable, sans-serif",
+                                        }}
+                                    >
+                                        Percentage of utilization:{" "}
+                                        {cashAnalysisUtilization?.percentageUtilization}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="text-center py-3">

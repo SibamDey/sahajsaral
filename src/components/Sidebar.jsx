@@ -1789,17 +1789,16 @@ export const Sidebar = () => {
             </SidebarExpand>
 
             <SidebarExpand text="Report Viewer" icon="fluent-mdl2:radio-bullet">
-              <SidebarElement
+              {/* <SidebarElement
                 to="/check-balance-real-nominal"
                 customCss={"flex justify-start pl-4 "}
               >
                 <div className="text-sm items-start py-1 capitalize">
                   <span className="flex items-center space-x-4">
-                    {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
                     <span>Check Balance Real/Nominal</span>
                   </span>
                 </div>
-              </SidebarElement>
+              </SidebarElement> */}
 
               <SidebarElement
                 to="/month-closing-report"
@@ -1965,6 +1964,32 @@ export const Sidebar = () => {
               </SidebarElement> : ""}
           </SidebarExpand>
 
+          <SidebarExpand text="For Auditor" icon="material-symbols:fact-check-outline-rounded">
+            <SidebarElement
+              to="/upload-bank-statement"
+              customCss={"flex justify-start pl-4 "}
+            >
+              <div className="text-sm items-start py-1 capitalize">
+                <span className="flex items-center space-x-4">
+                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                  <span>Bank Account wise Statement</span>
+                </span>
+              </div>
+            </SidebarElement>
+
+            <SidebarElement
+              to="/upload-brs"
+              customCss={"flex justify-start pl-4 "}
+            >
+              <div className="text-sm items-start py-1 capitalize">
+                <span className="flex items-center space-x-4">
+                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                  <span>Combined Bank BRS</span>
+                </span>
+              </div>
+            </SidebarElement>
+          </SidebarExpand>
+
           <SidebarExpand text="Help" icon="material-symbols:help-center-outline-rounded">
             <SidebarElement
               to="/zp-ps-account-rule"
@@ -1992,31 +2017,7 @@ export const Sidebar = () => {
           </SidebarExpand>
 
 
-          <SidebarExpand text="Auditor" icon="material-symbols:fact-check-outline-rounded">
-            <SidebarElement
-              to="/upload-bank-statement"
-              customCss={"flex justify-start pl-4 "}
-            >
-              <div className="text-sm items-start py-1 capitalize">
-                <span className="flex items-center space-x-4">
-                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                  <span>Upload Bank Statement</span>
-                </span>
-              </div>
-            </SidebarElement>
 
-            <SidebarElement
-              to="/upload-brs"
-              customCss={"flex justify-start pl-4 "}
-            >
-              <div className="text-sm items-start py-1 capitalize">
-                <span className="flex items-center space-x-4">
-                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
-                  <span>Upload BRS</span>
-                </span>
-              </div>
-            </SidebarElement>
-          </SidebarExpand>
 
           {[20546, 7175, 5281, 7161, 7162, 7177, 7164, 22061, 22062, 22063].includes(Number(userData?.USER_INDEX)) && (
             <SidebarExpand text="Administrative Work" icon="material-symbols:help-center-outline-rounded">

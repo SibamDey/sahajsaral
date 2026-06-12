@@ -96,6 +96,17 @@ const UploadBankStatement = () => {
         }
     };
 
+    const getCurrentFinancialYear = () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth() + 1;
+
+        const startYear = month >= 4 ? year : year - 1;
+        const endYear = startYear + 1;
+
+        return `${startYear}-${endYear}`;
+    };
+
     useEffect(() => {
         const fetchFinancialYears = async () => {
             if (!userData?.CORE_LGD) return;
@@ -108,10 +119,18 @@ const UploadBankStatement = () => {
                 );
 
                 if (response?.data?.finYears && Array.isArray(response.data.finYears)) {
-                    setFinancialYears(response.data.finYears);
+                    const currentFy = getCurrentFinancialYear();
 
-                    if (response.data.finYears.length > 0) {
-                        setCurrentFinancialYear(response.data.finYears[0].finYear);
+                    const filteredFinancialYears = response.data.finYears.filter(
+                        (item) => String(item?.finYear) !== String(currentFy)
+                    );
+
+                    setFinancialYears(filteredFinancialYears);
+
+                    if (filteredFinancialYears.length > 0) {
+                        setCurrentFinancialYear(filteredFinancialYears[0].finYear);
+                    } else {
+                        setCurrentFinancialYear("");
                     }
                 }
             } catch (error) {
@@ -312,10 +331,7 @@ const UploadBankStatement = () => {
             return;
         }
 
-        if (!accountCode) {
-            toast.error("Please select bank account");
-            return;
-        }
+
 
         fetchBankStatementList(currentFinancialYear, accountCode);
     };
@@ -358,7 +374,7 @@ const UploadBankStatement = () => {
                 style={{ marginTop: "-40px" }}
             >
                 <legend className="text-lg font-semibold text-cyan-700">
-                    Upload Bank Statement
+                    Bank Account wise Statement
                 </legend>
 
                 {userData?.ROLE === "9" ? "" :
@@ -369,7 +385,7 @@ const UploadBankStatement = () => {
                             </div>
 
                             <div className="rounded-md border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                                <span className="font-semibold">Important:</span> User must close the month of March for the current financial year before uploading the bank statement.
+                                <span className="font-semibold">Important:</span> User must close the month of March for the Selected financial year before uploading the bank statement.
                             </div>
                         </div>
 
@@ -516,7 +532,7 @@ const UploadBankStatement = () => {
                 <div className="mt-4 bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden">
                     <div className="flex justify-between items-center px-4 py-2 bg-cyan-50 border-b border-gray-200">
                         <h2 className="text-sm font-semibold text-cyan-800">
-                            Uploaded Bank Statement List
+                            Uploaded Bank Account wise Statement List
                         </h2>
                         {loadingList && (
                             <span className="text-xs text-gray-500">Loading...</span>

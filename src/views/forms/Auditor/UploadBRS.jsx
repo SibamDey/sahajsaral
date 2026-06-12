@@ -84,6 +84,18 @@ const UploadBRS = () => {
         }
     };
 
+    const getCurrentFinancialYear = () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth() + 1;
+
+        const startYear = month >= 4 ? year : year - 1;
+        const endYear = startYear + 1;
+
+        return `${startYear}-${endYear}`;
+    };
+
+
     useEffect(() => {
         const fetchFinancialYears = async () => {
             if (!userData?.CORE_LGD) return;
@@ -96,10 +108,18 @@ const UploadBRS = () => {
                 );
 
                 if (response?.data?.finYears && Array.isArray(response.data.finYears)) {
-                    setFinancialYears(response.data.finYears);
+                    const currentFy = getCurrentFinancialYear();
 
-                    if (response.data.finYears.length > 0) {
-                        setCurrentFinancialYear(response.data.finYears[0].finYear);
+                    const filteredFinancialYears = response.data.finYears.filter(
+                        (item) => String(item?.finYear) !== String(currentFy)
+                    );
+
+                    setFinancialYears(filteredFinancialYears);
+
+                    if (filteredFinancialYears.length > 0) {
+                        setCurrentFinancialYear(filteredFinancialYears[0].finYear);
+                    } else {
+                        setCurrentFinancialYear("");
                     }
                 }
             } catch (error) {
@@ -261,6 +281,8 @@ const UploadBRS = () => {
         fetchBRSList("0");
     };
 
+    const brsFormatPdfUrl = `https://wbpms.in/SahajSaral/CombinedBRSFormats.pdf`;
+
     const onUpdateClick = (item) => {
         if (!canShowUpdateButton(item?.uploadDate)) {
             toast.error("Update time expired. You can update only within 12 hours from upload time.");
@@ -307,12 +329,13 @@ const UploadBRS = () => {
                 style={{ marginTop: "-40px" }}
             >
                 <legend className="text-lg font-semibold text-cyan-700">
-                    Upload BRS
+                    Combined Bank BRS
                 </legend>
                 {userData?.ROLE === "9" ? "" : <>
                     <div className="mb-3 grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div className="rounded-md border-l-4 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-800">
                             <span className="font-semibold">Important:</span> Update option is available only within 12 hours from upload time. After 12 hours, the Update button will hide automatically.
+                            <br></br><span className="font-semibold">Important:</span> Uploaded Report must be signed by competent authority.
                         </div>
 
                         <div className="rounded-md border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -391,7 +414,7 @@ const UploadBRS = () => {
                                     <button
                                         type="button"
                                         disabled={uploading}
-                                        className={`h-10 px-8 rounded-md text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 ${isUpdateMode
+                                        className={`h-10 px-4 rounded-md text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 ${isUpdateMode
                                             ? "bg-amber-600 hover:bg-amber-700 focus:ring-amber-500"
                                             : "bg-cyan-600 hover:bg-cyan-700 focus:ring-cyan-500"
                                             }`}
@@ -404,7 +427,7 @@ const UploadBRS = () => {
                                         <button
                                             type="button"
                                             disabled={uploading}
-                                            className="h-10 px-5 rounded-md bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 focus:outline-none disabled:opacity-60"
+                                            className="h-10 px-3 rounded-md bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 focus:outline-none disabled:opacity-60"
                                             onClick={onCancelUpdate}
                                         >
                                             Cancel
@@ -414,7 +437,7 @@ const UploadBRS = () => {
                                     <button
                                         type="button"
                                         disabled={loadingList || isUpdateMode}
-                                        className="h-10 px-6 rounded-md bg-slate-700 text-white font-medium hover:bg-slate-800 focus:outline-none disabled:opacity-60"
+                                        className="h-10 px-3 rounded-md bg-slate-700 text-white font-medium hover:bg-slate-800 focus:outline-none disabled:opacity-60"
                                         onClick={onSearchBRSList}
                                     >
                                         {loadingList ? "Searching..." : "Search"}
@@ -423,11 +446,20 @@ const UploadBRS = () => {
                                     <button
                                         type="button"
                                         disabled={loadingList}
-                                        className="h-10 px-5 rounded-md bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 focus:outline-none disabled:opacity-60"
+                                        className="h-10 px-3 rounded-md bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 focus:outline-none disabled:opacity-60"
                                         onClick={onResetSearch}
                                     >
                                         Reset
                                     </button>
+
+                                    <a
+                                        href={brsFormatPdfUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="h-10 px-3 rounded-md bg-emerald-600 text-white font-medium hover:bg-emerald-700 focus:outline-none flex items-center justify-center"
+                                    >
+                                        Download Template
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -438,7 +470,7 @@ const UploadBRS = () => {
                 <div className="mt-4 bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden">
                     <div className="flex justify-between items-center px-4 py-2 bg-cyan-50 border-b border-gray-200">
                         <h2 className="text-sm font-semibold text-cyan-800">
-                            Uploaded BRS List
+                            Uploaded Combined Bank BRS List
                         </h2>
                         {loadingList && (
                             <span className="text-xs text-gray-500">Loading...</span>
