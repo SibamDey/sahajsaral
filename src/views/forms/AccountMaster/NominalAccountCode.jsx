@@ -30,8 +30,9 @@ const NominalAccountCode = () => {
     const accCode = useRef(null);
     const jsonString = sessionStorage.getItem("SAHAJ_SARAL_USER");
     const userData = JSON.parse(jsonString);
+
     const receiptPayment = useRef(null);
-    const receiptType = useRef(null); // ✅ NEW: mandatory field ref (Account Code Type)
+    const receiptType = useRef(null);
     const department = useRef(null);
     const scheme = useRef(null);
     const accountCodeDesc = useRef(null);
@@ -46,10 +47,15 @@ const NominalAccountCode = () => {
     const objCode = useRef(null);
     const schemeUid = useRef(null);
     const schemeChildUid = useRef(null);
+
     const queryClient = useQueryClient();
+
     const [glGroupName, setGlGroupName] = useState("");
     const [glGroupAllList, setGlGroupNameAllList] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
+
+    // ISGP ID default selected 20
+    const [selectedIsgppId, setSelectedIsgppId] = useState("20");
 
 
     const { data: nominalAccList } = useQuery({
@@ -60,23 +66,38 @@ const NominalAccountCode = () => {
         },
     });
 
+
+    const { data: isgppMappingList } = useQuery({
+        queryKey: ["isgppMappingList"],
+        queryFn: async () => {
+            const data = await axios.get(
+                "https://javaapi.wbpms.in/api/StateAccountCode/GetIsgppMapping"
+            );
+            return data?.data;
+        },
+    });
+
+
     const { data: getdata, mutate: addPed, isPending: addPending } = useMutation({
         mutationFn: (newTodo) => {
             return fetch.post(newTodo, "/StateAccountCode/Insert");
         },
         onSuccess: () => {
             queryClient.invalidateQueries("nominalAccList");
+
             if (receiptPayment.current.value === "R") {
                 receiptPayment.current.value = "";
+                setSelectedIsgppId("20");
             } else {
                 setGlGroupName("");
                 receiptPayment.current.value = "";
-                receiptType.current.value = ""; // ✅ NEW reset
+                receiptType.current.value = "";
                 department.current.value = "";
                 scheme.current.value = "";
                 accountCodeDesc.current.value = "";
                 receiptPaymentNature.current.value = "";
                 fundType.current.value = "";
+                setSelectedIsgppId("20");
                 glGroup.current.value = "";
                 receiptPaymentGroup.current.value = "";
                 receiptPaymentGp.current.value = "";
@@ -87,13 +108,14 @@ const NominalAccountCode = () => {
                 schemeUid.current.value = "";
                 schemeChildUid.current.value = "";
             }
-
         },
         mutationKey: ["adddesignation"],
     });
 
-    console.log(getdata, "getdata")
-    console.log(mutationId, "mutationId")
+    console.log(getdata, "getdata");
+    console.log(mutationId, "mutationId");
+
+
     const { mutate: updatePed, isPending: updatePending } = useMutation({
         mutationFn: (newTodo) => {
             return fetch.post(
@@ -103,13 +125,15 @@ const NominalAccountCode = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries("nominalAccList");
+
             receiptPayment.current.value = "";
-            receiptType.current.value = ""; // ✅ NEW reset
+            receiptType.current.value = "";
             department.current.value = "";
             scheme.current.value = "";
             accountCodeDesc.current.value = "";
             receiptPaymentNature.current.value = "";
             fundType.current.value = "";
+            setSelectedIsgppId("20");
             glGroup.current.value = "";
             receiptPaymentGroup.current.value = "";
             receiptPaymentGp.current.value = "";
@@ -124,69 +148,70 @@ const NominalAccountCode = () => {
         mutationKey: ["updatedesignation"],
     });
 
+
     function performMutation() {
         if (receiptPayment.current.value === "") {
-            toast.error("Please Select Receipt/Payment")
+            toast.error("Please Select Receipt/Payment");
 
-        } else if (receiptType.current.value === "") { // ✅ NEW validation
-            toast.error("Please Select Account Code Type")
+        } else if (receiptType.current.value === "") {
+            toast.error("Please Select Account Code Type");
 
         } else if (department.current.value === "") {
-            toast.error("Please Select Department")
+            toast.error("Please Select Department");
 
         } else if (scheme.current.value === "") {
-            toast.error("Please Select Scheme")
+            toast.error("Please Select Scheme");
 
         } else if (receiptPaymentNature.current.value === "") {
-            toast.error("Please Select Receipt/Payment Nature")
+            toast.error("Please Select Receipt/Payment Nature");
 
         } else if (fundType.current.value === "") {
-            toast.error("Please Select Fund Type")
+            toast.error("Please Select Fund Type");
 
         } else if (glGroup.current.value === "") {
-            toast.error("Please Select GL Group")
+            toast.error("Please Select GL Group");
 
         } else if (receiptPaymentGroup.current.value === "") {
-            toast.error("Please Select Receipt/Payment Group")
+            toast.error("Please Select Receipt/Payment Group");
 
         } else if (receiptPaymentGp.current.value === "") {
-            toast.error("Please Select Head Classification")
+            toast.error("Please Select Head Classification");
 
         } else if (majorCode.current.value === "") {
-            toast.error("Please Type Major Code")
+            toast.error("Please Type Major Code");
 
         } else if (majorCode.current.value.length != 4) {
-            toast.error("Major code should be 4 Digit")
+            toast.error("Major code should be 4 Digit");
 
         } else if (minorCode.current.value === "") {
-            toast.error("Please Type Minor Code")
+            toast.error("Please Type Minor Code");
 
         } else if (minorCode.current.value.length != 3) {
-            toast.error("Minor code should be 3 Digit")
+            toast.error("Minor code should be 3 Digit");
 
         } else if (subGroup.current.value === "") {
-            toast.error("Please Type Sub Group")
+            toast.error("Please Type Sub Group");
 
         } else if (subGroup.current.value.length != 4) {
-            toast.error("Sub Group should be 4 Digit")
+            toast.error("Sub Group should be 4 Digit");
 
         } else if (objCode.current.value === "") {
-            toast.error("Please Type Object Code")
+            toast.error("Please Type Object Code");
 
         } else if (objCode.current.value.length != 2) {
-            toast.error("object Code should be 2 Digit")
+            toast.error("object Code should be 2 Digit");
 
         } else if (schemeUid.current.value === "") {
-            toast.error("Please Type Scheme Uid")
+            toast.error("Please Type Scheme Uid");
 
         } else if (schemeUid.current.value.length != 4) {
-            toast.error("Scheme Uid should be 4 Digit")
+            toast.error("Scheme Uid should be 4 Digit");
 
         } else if (schemeChildUid.current.value === "") {
-            toast.error("Please Type Scheme Child Uid")
+            toast.error("Please Type Scheme Child Uid");
 
         } else if (schemeChildUid.current.value.length != 4) {
-            toast.error("Scheme Child Uid should be 4 Digit")
+            toast.error("Scheme Child Uid should be 4 Digit");
 
         } else {
             addPed({
@@ -194,9 +219,14 @@ const NominalAccountCode = () => {
                 "deptId": department.current.value,
                 "schemeId": scheme.current.value,
                 "rcptpmntFlag": receiptPayment.current.value,
-                "accountCodeType": receiptType.current.value, // ✅ NEW param
+                "accountCodeType": receiptType.current.value,
                 "rcptpmntNature": receiptPaymentNature.current.value,
                 "fundType": fundType.current.value,
+
+                // ISGP ID passed here
+                // Default will be 20
+                "isgppId": selectedIsgppId,
+
                 "rcptGroup": receiptPaymentGroup.current.value,
                 "rcptGroupGP": receiptPaymentGp.current.value,
                 "glGroup": glGroupAllList.find((c) => c.groupName === glGroup.current.value)?.groupId,
@@ -208,9 +238,10 @@ const NominalAccountCode = () => {
                 "schemechildUid": schemeChildUid.current.value,
                 "userIndex": userData?.USER_INDEX
             });
-
         }
     }
+
+
     useEffect(() => {
         const preventScroll = () => {
             document.body.style.overflow = "hidden";
@@ -231,8 +262,10 @@ const NominalAccountCode = () => {
         };
     }, [addPending, updatePending]);
 
+
     const ListOptions = [10, 20, 50, "all"];
     const [items, setItems] = useState(ListOptions[0]);
+
 
     const data = useMemo(() => {
         const sortedList = [...(nominalAccList ?? [])];
@@ -240,8 +273,8 @@ const NominalAccountCode = () => {
         return sortedList;
     }, [nominalAccList]);
 
-    const list = [
 
+    const list = [
         {
             header: "GL Group",
             accessorKey: "glGroupName",
@@ -256,7 +289,6 @@ const NominalAccountCode = () => {
             header: "Account Code Desc",
             accessorKey: "accountCodeDesc",
             className: "text-left cursor-pointer px-2",
-
         },
         {
             header: "Receipt Pay Group",
@@ -270,8 +302,10 @@ const NominalAccountCode = () => {
         },
     ];
 
+
     const [sorting, setSorting] = useState([]);
     const [filtering, setFiltering] = useState("");
+
 
     const table = useReactTable({
         data,
@@ -293,12 +327,13 @@ const NominalAccountCode = () => {
         onGlobalFilterChange: setFiltering,
     });
 
+
     useEffect(() => {
         if (items == "all") table.setPageSize(9999);
         else table.setPageSize(parseInt(items));
     }, [items]);
 
-    //department list
+
     const { data: departmentList } = useQuery({
         queryKey: ["departmentList"],
         queryFn: async () => {
@@ -334,25 +369,29 @@ const NominalAccountCode = () => {
         },
     });
 
+
     const onDelete = () => {
         if (!accCode.current.value) {
-            toast.error("Please Select a Account Code No")
+            toast.error("Please Select a Account Code No");
         } else {
             addDeletePriAcc(
                 userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : 0 || userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : 0 || userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
                 accCode.current.value,
                 (r) => {
                     console.log(r, "dd");
+
                     if (r.status == 0) {
                         toast.success(r.message);
                         queryClient.invalidateQueries("nominalAccList");
+
                         receiptPayment.current.value = "";
-                        receiptType.current.value = ""; // ✅ NEW reset
+                        receiptType.current.value = "";
                         department.current.value = "";
                         scheme.current.value = "";
                         accountCodeDesc.current.value = "";
                         receiptPaymentNature.current.value = "";
                         fundType.current.value = "";
+                        setSelectedIsgppId("20");
                         glGroup.current.value = "";
                         receiptPaymentGroup.current.value = "";
                         receiptPaymentGp.current.value = "";
@@ -372,30 +411,32 @@ const NominalAccountCode = () => {
                 }
             );
         }
-    }
+    };
+
 
     const onAddedPri = () => {
-
         if (!accCode.current.value) {
-            toast.error("Please Select a Account Code No")
-
-
+            toast.error("Please Select a Account Code No");
         } else {
             addAddedPriAcc(
                 userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : 0 || userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : 0 || userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
-                accCode.current.value, userData?.USER_INDEX,
+                accCode.current.value,
+                userData?.USER_INDEX,
                 (r) => {
                     console.log(r, "dd");
+
                     if (r.status == 0) {
                         toast.success(r.message);
                         queryClient.invalidateQueries("nominalAccList");
+
                         receiptPayment.current.value = "";
-                        receiptType.current.value = ""; // ✅ NEW reset
+                        receiptType.current.value = "";
                         department.current.value = "";
                         scheme.current.value = "";
                         accountCodeDesc.current.value = "";
                         receiptPaymentNature.current.value = "";
                         fundType.current.value = "";
+                        setSelectedIsgppId("20");
                         glGroup.current.value = "";
                         receiptPaymentGroup.current.value = "";
                         receiptPaymentGp.current.value = "";
@@ -415,32 +456,37 @@ const NominalAccountCode = () => {
                 }
             );
         }
-    }
+    };
+
 
     const onGlGroupName = (e) => {
-        const value = e.target.value
-        setGlGroupName(value)
+        const value = e.target.value;
+        setGlGroupName(value);
 
-        setShowDropdown(true)
-        getGlGroupList(value,
-        ).then(function (result) {
+        setShowDropdown(true);
+
+        getGlGroupList(value).then(function (result) {
             const response = result?.data;
-            console.log(response, "report")
+            console.log(response, "report");
             setGlGroupNameAllList(response);
-        })
-    }
+        });
+    };
+
 
     const onSetPartType = (i) => {
-        setGlGroupName(i?.groupName)
-        setShowDropdown(false)
+        setGlGroupName(i?.groupName);
+        setShowDropdown(false);
+    };
 
-    }
-    const gst = glGroupAllList.find((c) => c.groupName === glGroup.current.value)
-        ?.groupId;
-    console.log(gst, "sisisisisi")
 
-    console.log(glGroupAllList.find((c) => c.groupName === glGroup.current.value)
-        ?.groupId, "glGroupAllList")
+    const gst = glGroupAllList.find((c) => c.groupName === glGroup.current.value)?.groupId;
+    console.log(gst, "sisisisisi");
+
+    console.log(
+        glGroupAllList.find((c) => c.groupName === glGroup.current.value)?.groupId,
+        "glGroupAllList"
+    );
+
 
     const exportToExcel = (tableData, fileName) => {
         const ws = XLSX.utils.json_to_sheet(tableData);
@@ -448,6 +494,7 @@ const NominalAccountCode = () => {
         XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
         XLSX.writeFile(wb, `${fileName}.xlsx`);
     };
+
 
     return (
         <>
@@ -458,6 +505,7 @@ const NominalAccountCode = () => {
                 to="contractor-master"
                 isSuccess={true}
             />
+
             <ToastContainer />
 
             <div className="bg-white rounded-lg p-1 flex flex-col flex-grow" style={{ marginTop: "-40px" }}>
@@ -465,6 +513,7 @@ const NominalAccountCode = () => {
 
                 <div className=" flex flex-col space-y-2 py-1">
                     <div className="flex flex-col w-full mb-1 space-y-2">
+
                         <div className="flex items-center space-x-4">
 
                             {/* Receipt / Payment */}
@@ -475,6 +524,7 @@ const NominalAccountCode = () => {
                                 >
                                     Receipt / Payment <span className="text-red-500">*</span>
                                 </label>
+
                                 <select
                                     id="receipt_name"
                                     name="receipt_name"
@@ -490,6 +540,7 @@ const NominalAccountCode = () => {
                                 </select>
                             </div>
 
+
                             {/* Receipt Type */}
                             <div className="w-1/4">
                                 <label
@@ -498,6 +549,7 @@ const NominalAccountCode = () => {
                                 >
                                     Account Code Type <span className="text-red-500">*</span>
                                 </label>
+
                                 <select
                                     id="receipt_type"
                                     name="receipt_type"
@@ -514,6 +566,7 @@ const NominalAccountCode = () => {
                                 </select>
                             </div>
 
+
                             {/* Department */}
                             <div className="w-1/4">
                                 <label
@@ -522,6 +575,7 @@ const NominalAccountCode = () => {
                                 >
                                     Department <span className="text-red-500">*</span>
                                 </label>
+
                                 <select
                                     id="department_name"
                                     name="department_name"
@@ -532,6 +586,7 @@ const NominalAccountCode = () => {
                                     <option value="" disabled hidden>
                                         Select Department
                                     </option>
+
                                     {departmentList?.map((d) => (
                                         <option key={d.deptId} value={d.deptId}>
                                             {d.deptName}
@@ -539,6 +594,7 @@ const NominalAccountCode = () => {
                                     ))}
                                 </select>
                             </div>
+
 
                             {/* Scheme */}
                             <div className="w-1/4">
@@ -548,6 +604,7 @@ const NominalAccountCode = () => {
                                 >
                                     Scheme <span className="text-red-500">*</span>
                                 </label>
+
                                 <select
                                     id="scheme_name"
                                     name="scheme_name"
@@ -558,6 +615,7 @@ const NominalAccountCode = () => {
                                     <option value="" disabled hidden>
                                         Select Scheme
                                     </option>
+
                                     {schemeList?.map((d) => (
                                         <option key={d.schemeId} value={d.schemeId}>
                                             {d.schemeName}
@@ -570,14 +628,16 @@ const NominalAccountCode = () => {
 
 
                         <div className="flex items-center space-x-4">
+
                             {/* Account Code Desc */}
-                            <div className="w-1/3">
+                            <div className="w-1/4">
                                 <label
                                     htmlFor="account_code_desc"
                                     className="block text-xsm font-medium text-gray-700"
                                 >
                                     Account Code Desc
                                 </label>
+
                                 <input
                                     ref={accountCodeDesc}
                                     id="account_code_desc"
@@ -591,8 +651,9 @@ const NominalAccountCode = () => {
                                 />
                             </div>
 
+
                             {/* Receipt Payment Nature */}
-                            <div className="w-1/3">
+                            <div className="w-1/4">
                                 <label
                                     htmlFor="receipt_payment_nature"
                                     className="block text-xsm font-medium text-gray-700"
@@ -600,6 +661,7 @@ const NominalAccountCode = () => {
                                     Receipt Payment Nature
                                     <span className="text-red-500"> *</span>
                                 </label>
+
                                 <select
                                     id="receipt_payment_nature"
                                     name="receipt_payment_nature"
@@ -620,8 +682,9 @@ const NominalAccountCode = () => {
                                 </select>
                             </div>
 
+
                             {/* Fund Type */}
-                            <div className="w-1/3">
+                            <div className="w-1/4">
                                 <label
                                     htmlFor="fund_type"
                                     className="block text-xsm font-medium text-gray-700"
@@ -629,6 +692,7 @@ const NominalAccountCode = () => {
                                     Fund Type
                                     <span className="text-red-500"> *</span>
                                 </label>
+
                                 <select
                                     id="fund_type"
                                     name="fund_type"
@@ -646,10 +710,38 @@ const NominalAccountCode = () => {
                                     <option value="4">Others</option>
                                 </select>
                             </div>
+
+
+                            {/* ISGP ID - Not mandatory */}
+                            <div className="w-1/4">
+                                <label
+                                    htmlFor="isgpp_id"
+                                    className="block text-xsm font-medium text-gray-700"
+                                >
+                                    ISGP ID
+                                </label>
+
+                                <select
+                                    id="isgpp_id"
+                                    name="isgpp_id"
+                                    autoComplete="off"
+                                    className="block w-full p-1 border border-gray-300 rounded-md"
+                                    value={selectedIsgppId}
+                                    onChange={(e) => setSelectedIsgppId(e.target.value)}
+                                >
+                                    {isgppMappingList?.map((d) => (
+                                        <option key={d?.isgppId} value={d?.isgppId}>
+                                            {d?.isgppId} - {d?.isgppDesc}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
                         </div>
 
 
                         <div className="flex items-center space-x-4">
+
                             {/* GL Group */}
                             <div className="w-1/3">
                                 <label
@@ -659,6 +751,7 @@ const NominalAccountCode = () => {
                                     GL Group
                                     <span className="text-red-500"> *</span>
                                 </label>
+
                                 <input
                                     type="url"
                                     className="block w-full p-1 border border-gray-300 rounded-md"
@@ -667,8 +760,9 @@ const NominalAccountCode = () => {
                                     value={glGroupName}
                                     ref={glGroup}
                                 />
+
                                 {showDropdown && (
-                                    <div className="absolute z-10  bg-white border border-gray-300 rounded shadow-md max-h-30 overflow-y-auto w-[390px]">
+                                    <div className="absolute z-10 bg-white border border-gray-300 rounded shadow-md max-h-30 overflow-y-auto w-[390px]">
                                         {glGroupAllList.length > 0 ? (
                                             glGroupAllList.map((d, index) => (
                                                 <div
@@ -696,6 +790,7 @@ const NominalAccountCode = () => {
                                     Receipt Payment Group
                                     <span className="text-red-500"> *</span>
                                 </label>
+
                                 <select
                                     id="receipt_payment_group"
                                     name="receipt_payment_group"
@@ -707,6 +802,7 @@ const NominalAccountCode = () => {
                                     <option value="" disabled hidden>
                                         Select Receipt Group
                                     </option>
+
                                     {receipt_payment_group_lIST?.map((d) => (
                                         <option key={d?.groupId} value={d?.groupId}>
                                             {d?.groupName}
@@ -714,6 +810,7 @@ const NominalAccountCode = () => {
                                     ))}
                                 </select>
                             </div>
+
 
                             {/* Head Classification */}
                             <div className="w-1/3">
@@ -724,6 +821,7 @@ const NominalAccountCode = () => {
                                     Head Classification
                                     <span className="text-red-500"> *</span>
                                 </label>
+
                                 <select
                                     id="head_classification"
                                     name="head_classification"
@@ -743,10 +841,12 @@ const NominalAccountCode = () => {
                                     ))}
                                 </select>
                             </div>
+
                         </div>
 
 
                         <div className="flex items-center gap-4">
+
                             {/* Major Code */}
                             <div className="w-[200px]">
                                 <label
@@ -755,8 +855,8 @@ const NominalAccountCode = () => {
                                 >
                                     Major Code
                                     <span className="text-red-500"> *</span>
-
                                 </label>
+
                                 <input
                                     id="major_code"
                                     name="major_code"
@@ -769,6 +869,7 @@ const NominalAccountCode = () => {
                                 />
                             </div>
 
+
                             {/* Minor Code */}
                             <div className="w-[200px]">
                                 <label
@@ -777,8 +878,8 @@ const NominalAccountCode = () => {
                                 >
                                     Minor Code
                                     <span className="text-red-500"> *</span>
-
                                 </label>
+
                                 <input
                                     id="minor_code"
                                     name="minor_code"
@@ -788,9 +889,9 @@ const NominalAccountCode = () => {
                                     className="p-1 block w-full border border-gray-300 rounded-md"
                                     ref={minorCode}
                                     maxLength={3}
-
                                 />
                             </div>
+
 
                             {/* Sub Group */}
                             <div className="w-[200px]">
@@ -800,8 +901,8 @@ const NominalAccountCode = () => {
                                 >
                                     Sub Group
                                     <span className="text-red-500"> *</span>
-
                                 </label>
+
                                 <input
                                     id="sub_group"
                                     name="sub_group"
@@ -811,9 +912,9 @@ const NominalAccountCode = () => {
                                     className="p-1 block w-full border border-gray-300 rounded-md"
                                     ref={subGroup}
                                     maxLength={4}
-
                                 />
                             </div>
+
 
                             {/* Object Code */}
                             <div className="w-[200px]">
@@ -823,8 +924,8 @@ const NominalAccountCode = () => {
                                 >
                                     Object Code
                                     <span className="text-red-500"> *</span>
-
                                 </label>
+
                                 <input
                                     id="object_code"
                                     name="object_code"
@@ -837,6 +938,7 @@ const NominalAccountCode = () => {
                                 />
                             </div>
 
+
                             {/* Scheme UID */}
                             <div className="w-[200px]">
                                 <label
@@ -845,8 +947,8 @@ const NominalAccountCode = () => {
                                 >
                                     Scheme Uid
                                     <span className="text-red-500"> *</span>
-
                                 </label>
+
                                 <input
                                     id="scheme_uid"
                                     name="scheme_uid"
@@ -856,9 +958,9 @@ const NominalAccountCode = () => {
                                     className="p-1 block w-full border border-gray-300 rounded-md"
                                     ref={schemeUid}
                                     maxLength={4}
-
                                 />
                             </div>
+
 
                             {/* Scheme Child UID */}
                             <div className="w-[200px]">
@@ -868,8 +970,8 @@ const NominalAccountCode = () => {
                                 >
                                     Scheme Child Uid
                                     <span className="text-red-500"> *</span>
-
                                 </label>
+
                                 <input
                                     id="scheme_child_uid"
                                     name="scheme_child_uid"
@@ -879,10 +981,11 @@ const NominalAccountCode = () => {
                                     className="p-1 block w-full border border-gray-300 rounded-md"
                                     ref={schemeChildUid}
                                     maxLength={4}
-
                                 />
                             </div>
+
                         </div>
+
 
                         <div className="col-span-2 flex justify-left items-center mt-2 gap-2">
                             <label
@@ -891,6 +994,7 @@ const NominalAccountCode = () => {
                             >
                                 Acc Code
                             </label>
+
                             <input
                                 type="text"
                                 placeholder="Account Code"
@@ -898,6 +1002,7 @@ const NominalAccountCode = () => {
                                 disabled
                                 className="border border-gray-300 rounded py-1 px-4 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
+
                             <button
                                 type="reset"
                                 className="bg-gray-200 hover:bg-gray-300 text-black font-bold py-1 px-8 rounded"
@@ -905,6 +1010,7 @@ const NominalAccountCode = () => {
                             >
                                 Reset
                             </button>
+
                             {userData?.USER_LEVEL === "HQ" || userData?.USER_INDEX === 7162 ?
                                 <button
                                     type="button"
@@ -932,9 +1038,9 @@ const NominalAccountCode = () => {
                             }
                         </div>
 
-
                     </div>
                 </div>
+
 
                 <div className=" flex justify-between items-center h-12">
                     <div className="flex items-center space-x-0">
@@ -951,12 +1057,12 @@ const NominalAccountCode = () => {
                                 </option>
                             ))}
                         </select>
+
                         &nbsp;
 
                         <button
                             className="bg-cyan-700 text-white px-2 py-2 rounded text-sm "
                             onClick={() => exportToExcel(data, "Nominal Account Code")}
-
                         >
                             Download Excel
                         </button>
@@ -970,8 +1076,9 @@ const NominalAccountCode = () => {
                         className="border-2 rounded-lg border-zinc-400"
                         onChange={(e) => setFiltering(e.target.value)}
                     />
-
                 </div>
+
+
                 <div className="px-2 flex flex-col ">
                     <Table style={{ border: "1px solid #444 " }}>
                         {table.getHeaderGroups().map((headerGroup) => (
@@ -996,11 +1103,13 @@ const NominalAccountCode = () => {
                                         )}
                                     </Table.HeadCell>
                                 ))}
+
                                 <Table.HeadCell className="p-1 normal-case bg-cyan-400/90 border-black btn-blue text-xs">
                                     Actions
                                 </Table.HeadCell>
                             </Table.Head>
                         ))}
+
 
                         <Table.Body className="divide-y" style={{ border: "1px solid #444 " }}>
                             {table.getRowModel().rows.map((row) => (
@@ -1010,7 +1119,6 @@ const NominalAccountCode = () => {
                                             style={{ border: "1px solid #444 " }}
                                             key={cell.id}
                                             className="p-1 text-xs"
-
                                         >
                                             {flexRender(
                                                 cell.column.columnDef.cell,
@@ -1019,33 +1127,51 @@ const NominalAccountCode = () => {
                                         </Table.Cell>
                                     ))}
 
+
                                     <Table.Cell className="border-gray-600 flex items-center justify-center space-x-4 p-1">
-                                        <button onClick={() => {
-                                            accCode.current.value = row.original.accountCode;
-                                            receiptPayment.current.value = row.original.rcptpmntFlag === "Receipt" ? "R" : "P";
-                                            // ✅ NEW: set receiptType if available in row (safe fallback)
-                                            receiptType.current.value =
-                                                row.original.accountCodeType ??
-                                                row.original.accountCodeTypeId ??
-                                                row.original.accCodeType ??
-                                                "";
-                                            department.current.value = row.original.deptId;
-                                            scheme.current.value = row.original.schemeId;
-                                            accountCodeDesc.current.value = row.original.accountCodeDescAct;
-                                            receiptPaymentNature.current.value = row.original.rcptpmntNature;
-                                            fundType.current.value = row.original.fundType;
-                                            setGlGroupName(row.original.glGroupName);
-                                            receiptPaymentGroup.current.value = row.original.rcptGroupPS;
-                                            receiptPaymentGp.current.value = row.original.rcptGroupGP;
-                                            majorCode.current.value = row.original.majorCode;
-                                            minorCode.current.value = row.original.minorCode;
-                                            subGroup.current.value = row.original.subCode;
-                                            objCode.current.value = row.original.objectCode;
-                                            schemeUid.current.value = row.original.schemeUid;
-                                            schemeChildUid.current.value = row.original.schemechildUid;
-                                            setMutationId(row.original.accountCode);
-                                            window.scrollTo({ top: 0, behavior: "smooth" });
-                                        }}>
+                                        <button
+                                            onClick={() => {
+                                                accCode.current.value = row.original.accountCode;
+
+                                                receiptPayment.current.value =
+                                                    row.original.rcptpmntFlag === "Receipt" ? "R" : "P";
+
+                                                receiptType.current.value =
+                                                    row.original.accountCodeType ??
+                                                    row.original.accountCodeTypeId ??
+                                                    row.original.accCodeType ??
+                                                    "";
+
+                                                department.current.value = row.original.deptId;
+                                                scheme.current.value = row.original.schemeId;
+                                                accountCodeDesc.current.value = row.original.accountCodeDescAct;
+                                                receiptPaymentNature.current.value = row.original.rcptpmntNature;
+                                                fundType.current.value = row.original.fundType;
+
+                                                setSelectedIsgppId(
+                                                    row.original.isgppId !== undefined && row.original.isgppId !== null
+                                                        ? String(row.original.isgppId)
+                                                        : row.original.isgpId !== undefined && row.original.isgpId !== null
+                                                            ? String(row.original.isgpId)
+                                                            : row.original.isgppID !== undefined && row.original.isgppID !== null
+                                                                ? String(row.original.isgppID)
+                                                                : "20"
+                                                );
+
+                                                setGlGroupName(row.original.glGroupName);
+                                                receiptPaymentGroup.current.value = row.original.rcptGroupPS;
+                                                receiptPaymentGp.current.value = row.original.rcptGroupGP;
+                                                majorCode.current.value = row.original.majorCode;
+                                                minorCode.current.value = row.original.minorCode;
+                                                subGroup.current.value = row.original.subCode;
+                                                objCode.current.value = row.original.objectCode;
+                                                schemeUid.current.value = row.original.schemeUid;
+                                                schemeChildUid.current.value = row.original.schemechildUid;
+                                                setMutationId(row.original.accountCode);
+
+                                                window.scrollTo({ top: 0, behavior: "smooth" });
+                                            }}
+                                        >
                                             <Icon
                                                 icon={"mingcute:edit-line"}
                                                 className="text-cyan-600 hover:underline text-lg cursor-pointer"

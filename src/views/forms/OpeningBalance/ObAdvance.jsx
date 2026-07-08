@@ -20,7 +20,7 @@ const ObAdvance = () => {
         const startYear = currentMonth >= 3 ? currentYear : currentYear - 1; // April onwards belongs to the next FY
         const endYear = startYear + 1;
 
-        setCurrentFinancialYear(`${startYear}-${endYear}`);
+        setCurrentFinancialYear("2025-2026");
     }, []);
 
     // useEffect(() => {

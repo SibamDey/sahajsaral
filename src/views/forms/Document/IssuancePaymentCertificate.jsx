@@ -130,7 +130,7 @@ const PaymentCertificateDocument = React.forwardRef(
 
     const first = rows[0]; // use first row for header information
     const financialYear = getFinancialYearLabel(
-       first.voucherDate
+      first.voucherDate
     );
 
     return (
@@ -205,6 +205,7 @@ const PaymentCertificateDocument = React.forwardRef(
               <th className="border border-black px-1  w-[220px]">
                 Transaction ID & Description of works
               </th>
+              <th className="border border-black px-1 ">Work Order No.</th>
               <th className="border border-black px-1 ">Total Amount</th>
               <th className="border border-black px-1 ">Income Tax</th>
               <th className="border border-black px-1 ">GST</th>
@@ -231,6 +232,9 @@ const PaymentCertificateDocument = React.forwardRef(
                 </td>
                 <td className="border border-black px-1">
                   {row.activityDesc}
+                </td>
+                <td className="border border-black px-1 text-center">
+                  {row.workOrderNo}
                 </td>
                 <td className="border border-black px-1 text-right">
                   {row.grossAmount}
@@ -308,7 +312,7 @@ const PaymentCertificateDocument = React.forwardRef(
           </div>
           <div>
             Pradhan <br />
-            
+
           </div>
           <div className="text-right">
             {getSignatureText(userLevel)} <br />
@@ -512,9 +516,8 @@ const IssuancePaymentCertificate = () => {
   const printRef = useRef();
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
-    documentTitle: `PaymentCertificate_${
-      certificateRows[0]?.partyCode || ""
-    }_${certificateRows[0]?.voucherId || ""}`,
+    documentTitle: `PaymentCertificate_${certificateRows[0]?.partyCode || ""
+      }_${certificateRows[0]?.voucherId || ""}`,
   });
 
   return (

@@ -200,6 +200,8 @@ const PaymentCertificateDocument = React.forwardRef(
               <th className="border border-black px-1 py-1 w-[220px]">
                 Transaction ID & Description of works
               </th>
+
+              <th className="border border-black px-1 py-1">Work Order No.</th>
               <th className="border border-black px-1 py-1">Total Amount</th>
               <th className="border border-black px-1 py-1">Income Tax</th>
               <th className="border border-black px-1 py-1">GST</th>
@@ -226,6 +228,9 @@ const PaymentCertificateDocument = React.forwardRef(
 
                 <td className="border border-black px-1 py-1">
                   {row.activityDesc}
+                </td>
+                <td className="border border-black px-1 text-center">
+                  {row.workOrderNo}
                 </td>
                 <td className="border border-black px-1 py-1 text-right">
                   {row.grossAmount}
