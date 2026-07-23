@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetch } from "../../../functions/Fetchfunctions";
 import {
     getDeductionList, deletePassForPayment, getPassForPaymentById, getPassForPaymentDetails, getParabaithakActivityByScheme, getTenderList, getPartyTypeList, getAcCodeDescList, getContractorList, getEmployeeList, getJobWorkerList, getDepartmentList, getLsgList, getDeductedtAcCodeList, addInsertPassForPayment, verifyPassForPayment, getAccountHeadList,
-    getNextPFPVerify, getGlGroupBalance, addPTaxLogin, verifyClaim, updateClaimStatus
+    getNextPFPVerify, getGlGroupBalance, addPTaxLogin, verifyClaim, updateClaimStatus, updatePassForPaymentDocs
 } from "../../../Service/Transaction/TransactionService";
 import { Toast } from "flowbite-react";
 import ColorRingCustomLoader from "../../Loader/Loader";
@@ -810,6 +810,46 @@ const PassForPayment = () => {
         }
     };
 
+    const onUpdatePfpDocs = () => {
+        if (!getPassForPaymentDataById?.basic?.pfpId) {
+            toast.error("Please Select a Pass for Payment ID")
+        } else if (!documentType?.trim()) {
+            toast.error("Please Enter Document Type")
+        } else if (!base64String) {
+            toast.error("Please Select a File")
+        } else {
+            setLoader(true);
+
+            updatePassForPaymentDocs(
+                userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD :
+                    userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD :
+                        userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
+                getPassForPaymentDataById?.basic?.pfpId,
+                documentType.trim(),
+                base64String,
+                userData?.USER_INDEX,
+                (r) => {
+                    setLoader(false);
+                    if (r?.status == 0) {
+                        toast.success(r?.message || "Document uploaded successfully");
+                        setBase64String("");
+                        setImagePreview(null);
+                        const fileInput = document.getElementById("pfpDocUpload");
+                        if (fileInput) {
+                            fileInput.value = "";
+                        }
+                    } else {
+                        toast.error(r?.message || "Document upload failed");
+                    }
+                },
+                (error) => {
+                    setLoader(false);
+                    toast.error(error || "Document upload failed");
+                }
+            );
+        }
+    };
+
     const onSave = () => {
         if (!selectedDate) {
             toast.error("Please Select Payment Date")
@@ -867,8 +907,15 @@ const PassForPayment = () => {
     }
 
     const onPageChange = (e) => {
-        setPageChange(e.target.value);
+        const selectedPage = e.target.value;
+        setPageChange(selectedPage);
         setGetPassForPaymentDataById("");
+
+        if (selectedPage === "FileUpload") {
+            setDocumentType("");
+            setBase64String("");
+            setImagePreview(null);
+        }
         // Add additional logic here
     };
 
@@ -894,7 +941,7 @@ const PassForPayment = () => {
 
         } else {
             getPassForPaymentDetails(userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
-                fromDatePassForPayment, toDatePassForPayment, pageChange === "Query" ? "0" : "I", 0,
+                fromDatePassForPayment, toDatePassForPayment, (pageChange === "Query" || pageChange === "FileUpload") ? "0" : "I", 0,
             ).then(function (result) {
                 const response = result?.data;
                 console.log(response, "report")
@@ -912,6 +959,12 @@ const PassForPayment = () => {
             const response = result?.data;
             console.log(response, "report")
             setGetPassForPaymentDataById(response);
+
+            if (pageChange === "FileUpload") {
+                setDocumentType(response?.basic?.docType || "");
+                setBase64String("");
+                setImagePreview(null);
+            }
 
             setModalPassForPaymentId(false)
             setPassForPaymentDetailsById([])
@@ -2489,7 +2542,20 @@ const PassForPayment = () => {
                                             className="form-radio text-blue-500 mr-2"
                                             onChange={onPageChange}
                                         />
-                                        Query
+                                        Querys
+                                    </label>
+                                </div>
+                                <div className="flex items-center">
+                                    <label className="flex items-center text-xs">
+                                        <input
+                                            type="radio"
+                                            name="action"
+                                            value="FileUpload"
+                                            checked={pageChange === "FileUpload"}
+                                            className="form-radio text-blue-500 mr-2"
+                                            onChange={onPageChange}
+                                        />
+                                        File Upload
                                     </label>
                                 </div>
                                 {userData?.ROLE === "1" || userData?.ROLE === "2" ?
@@ -3178,7 +3244,7 @@ const PassForPayment = () => {
                         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
                         // page for query verify and delete*/}
 
-                        {pageChange === "Query" || pageChange === "Verify" || pageChange === "Delete" ?
+                        {pageChange === "Query" || pageChange === "FileUpload" || pageChange === "Verify" || pageChange === "Delete" ?
                             <div>
                                 <div className="flex w-full space-x-4">
                                     <div className="px-3 w-1/2 flex flex-col mb-1">
@@ -3633,30 +3699,55 @@ const PassForPayment = () => {
 
 
                                 <div className="flex items-center">
-                                    {/* Document Type Label and Input */}
-                                    <div class="ml-3 w-1/2 flex items-center border bg-gray-200 rounded h-8">
-                                        <span class="px-2 bg-gray-200 text-xs">Document Type</span>
-                                        <input type="text"
-                                            class="flex-grow text-xs px-3 py-2 h-8 outline-none rounded"
-                                            placeholder="Enter Document Type..."
-                                            disabled
-                                            value={getPassForPaymentDataById?.basic?.docType}
+                                    {pageChange === "FileUpload" ?
+                                        <>
+                                            {/* Document Type Label and Input */}
+                                            <div className="ml-3 w-1/2 flex items-center border bg-gray-200 rounded h-8">
+                                                <span className="px-2 bg-gray-200 text-xs">Document Type<span className="text-red-500"> * </span></span>
+                                                <input type="text"
+                                                    className="flex-grow text-xs px-3 py-2 h-8 outline-none rounded"
+                                                    placeholder="Enter Document Type..."
+                                                    onChange={onDocumentType}
+                                                    value={documentType || ""}
+                                                />
+                                            </div>
 
-                                        />
+                                            {/* Upload Button */}
+                                            <div className="flex items-center px-3">
+                                                <input
+                                                    type="file"
+                                                    id="pfpDocUpload"
+                                                    accept="application/pdf"
+                                                    onChange={onFile}
+                                                    className="rounded text-xs"
+                                                />
+                                            </div>
+                                        </>
+                                        :
+                                        <>
+                                            {/* Document Type Label and Input */}
+                                            <div className="ml-3 w-1/2 flex items-center border bg-gray-200 rounded h-8">
+                                                <span className="px-2 bg-gray-200 text-xs">Document Type</span>
+                                                <input type="text"
+                                                    className="flex-grow text-xs px-3 py-2 h-8 outline-none rounded"
+                                                    placeholder="Enter Document Type..."
+                                                    disabled
+                                                    value={getPassForPaymentDataById?.basic?.docType}
+                                                />
+                                            </div>
 
-                                    </div>
-
-                                    {/* Upload Button */}
-                                    <button
-                                        onClick={() => window.open("https://javaapi.wbpms.in/" + getPassForPaymentDataById?.basic?.docFile)}
-                                        className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition"
-                                        title="View PDF"
-                                        disabled={!getPassForPaymentDataById?.basic?.docFile}
-                                    >
-
-                                        <FontAwesomeIcon icon={faEye} title="View File" />
-
-                                    </button>
+                                            {/* View Button */}
+                                            <button
+                                                type="button"
+                                                onClick={() => window.open("https://javaapi.wbpms.in/" + getPassForPaymentDataById?.basic?.docFile)}
+                                                className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition"
+                                                title="View PDF"
+                                                disabled={!getPassForPaymentDataById?.basic?.docFile}
+                                            >
+                                                <FontAwesomeIcon icon={faEye} title="View File" />
+                                            </button>
+                                        </>
+                                    }
                                 </div>
 
                             </div> : ""}
@@ -3696,6 +3787,16 @@ const PassForPayment = () => {
 
                                 <button className="bg-red-500 text-white px-4 py-1 text-xs rounded hover:bg-red-600 transition duration-200" onClick={onDeletePop}>
                                     Delete
+                                </button> : ""}
+
+                            {pageChange === "FileUpload" ?
+                                <button
+                                    type="button"
+                                    className="bg-green-500 text-white px-4 py-1 text-xs rounded hover:bg-green-600 transition duration-200 disabled:opacity-50"
+                                    onClick={onUpdatePfpDocs}
+                                    disabled={loader}
+                                >
+                                    {loader ? "Submitting..." : "Submit"}
                                 </button> : ""}
 
 

@@ -7,7 +7,7 @@ import {
     getRealAccWithbalance, getPartyTypeList, getChequeNoForVoucher, getContractorList
     , getEmployeeList, getJobWorkerList, getDepartmentList, getLsgList, deleteVoucher,
     addVoucherEntry, getAccountHeadList, getReferenceOfDetails, getNextPassForPaymentId, getReferenceOfAdvanceAdj, getRealAccAllList, verifyVoucher,
-    getNextQuery, getNextVerify, addPTaxLogin, verifyClaim, updateVoucherClaimStatus, updateClaimStatus
+    getNextQuery, getNextVerify, addPTaxLogin, verifyClaim, updateVoucherClaimStatus, updateClaimStatus, updateVoucherDocs
 } from "../../../Service/Transaction/TransactionService";
 import Modal from 'react-modal';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -107,7 +107,7 @@ const VoucherEntry = () => {
     const [matches000, setMatches000] = useState(false);
     const [voucherDate, setVoucherDate] = useState(
         new Date().toISOString().split("T")[0]
-        );
+    );
     const [receiptPaymentDate, setReceiptPaymentDate] = useState(
         new Date().toISOString().split("T")[0]
     );
@@ -193,7 +193,7 @@ const VoucherEntry = () => {
             }
             if (voucherTypeData === "N" && [
                 // "Online",
-                 "PFMS", "Allotment Receipt"].includes(item.value)) {
+                "PFMS", "Allotment Receipt"].includes(item.value)) {
                 return false; // Exclude these for "N"
             }
             if (voucherTypeData === "R" && voucherType === "B" && ["None", "Token", "Bank Charges", "Bill", "PFMS"].includes(item.value)) {
@@ -222,9 +222,9 @@ const VoucherEntry = () => {
                 return false; // Exclude these for "R"
             }
 
-            if (voucherTypeData === "P" && voucherType === "C" && ["Bank Interest", "Fund Transfer", "UPI Trn ID", 
+            if (voucherTypeData === "P" && voucherType === "C" && ["Bank Interest", "Fund Transfer", "UPI Trn ID",
                 // "Online",
-                 "Allotment Receipt"].includes(item.value)) {
+                "Allotment Receipt"].includes(item.value)) {
                 return false; // Exclude these for "R"
             }
 
@@ -242,9 +242,16 @@ const VoucherEntry = () => {
     console.log(instType, "instType")
 
     const onPageChange = (e) => {
-        setPageChange(e.target.value);
+        const selectedPage = e.target.value;
+        setPageChange(selectedPage);
         setGetVoucherDataById("")
-        console.log(`Selected option: ${e.target.value}`);
+
+        if (selectedPage === "FileUpload") {
+            setBase64String("");
+            setImagePreview(null);
+        }
+
+        console.log(`Selected option: ${selectedPage}`);
 
     };
 
@@ -461,6 +468,12 @@ const VoucherEntry = () => {
             const response = result?.data;
             console.log(response, "report")
             setGetVoucherDataById(response);
+
+            if (pageChange === "FileUpload") {
+                setBase64String("");
+                setImagePreview(null);
+            }
+
             setModalVoucherId(false)
             // setPaymentDesc(response?.basic?.paymentDesc);
             // setPassForPaymentDetailsById([])
@@ -502,7 +515,7 @@ const VoucherEntry = () => {
 
         } else {
             getVoucherDetails(userData?.USER_LEVEL == "DIST" ? userData?.DIST_LGD : userData?.USER_LEVEL == "BLOCK" ? userData?.BLOCK_LGD : userData?.USER_LEVEL == "GP" ? userData?.GP_LGD : 0,
-                fromDateVoucher, toDateVoucher, voucherModalType, pageChange === "Query" ? voucherStatus : pageChange === "Verify" ? "I" : pageChange === "Delete" ? "I" : 0, voucherModalNarration ? voucherModalNarration : 0
+                fromDateVoucher, toDateVoucher, voucherModalType, (pageChange === "Query" || pageChange === "FileUpload") ? voucherStatus : pageChange === "Verify" ? "I" : pageChange === "Delete" ? "I" : 0, voucherModalNarration ? voucherModalNarration : 0
             ).then(function (result) {
                 const response = result?.data;
                 console.log(response, "report")
@@ -1387,7 +1400,6 @@ const VoucherEntry = () => {
         }
     }
 
-
     const onSubmitVerify = () => {
 
         verifyVoucher(userData?.CORE_LGD, voucherDataById?.basic?.voucherId, userData?.USER_INDEX,
@@ -1943,6 +1955,49 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
             };
             reader.readAsDataURL(file);
         }
+    };
+
+    const onUpdateVoucherDocs = () => {
+        const voucherId = voucherDataById?.basic?.voucherId;
+
+        if (!voucherId) {
+            toast.error("Please select Voucher ID");
+            return;
+        }
+
+        if (!base64String) {
+            toast.error("Please select a file");
+            return;
+        }
+
+        setLoader(true);
+
+        updateVoucherDocs(
+            userData?.CORE_LGD,
+            voucherId,
+            base64String,
+            userData?.USER_INDEX,
+            (response) => {
+                setLoader(false);
+
+                if (response?.status == 0) {
+                    toast.success(response?.message || "Document uploaded successfully");
+                    setBase64String("");
+                    setImagePreview(null);
+
+                    const fileInput = document.getElementById("voucherDocUpload");
+                    if (fileInput) {
+                        fileInput.value = "";
+                    }
+                } else {
+                    toast.error(response?.message || "Document upload failed");
+                }
+            },
+            (error) => {
+                setLoader(false);
+                toast.error(error || "Document upload failed");
+            }
+        );
     };
 
     const onDeletePop = () => {
@@ -4215,7 +4270,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                 >
                     {/* Title */}
                     <h1 className="text-center text-blue-800 text-2xl font-bold mb-1">
-                        List of {pageChange === "Query" ? "" : "Unverified"} Vouchers
+                        List of {pageChange === "Query" || pageChange === "FileUpload" ? "" : "Unverified"} Vouchers
                     </h1>
 
                     {/* Form Row */}
@@ -4268,7 +4323,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
 
                             </select>
                         </div>
-                        {pageChange === "Query" ?
+                        {pageChange === "Query" || pageChange === "FileUpload" ?
                             <div className="flex-2">
                                 <label htmlFor="year" className="block font-semibold mb-1 text-xs">
                                     Voucher Status:
@@ -4420,6 +4475,20 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                                             onChange={onPageChange}
                                         />
                                         Query
+                                    </label>
+                                </div>
+
+                                <div className="flex items-center">
+                                    <label className="flex items-center text-xs">
+                                        <input
+                                            type="radio"
+                                            name="action"
+                                            value="FileUpload"
+                                            checked={pageChange === "FileUpload"}
+                                            className="form-radio text-blue-500 mr-2"
+                                            onChange={onPageChange}
+                                        />
+                                        File Upload
                                     </label>
                                 </div>
                                 {userData?.ROLE === "1" || userData?.ROLE === "3" ?
@@ -5436,7 +5505,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
 
                         {/* /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */}
 
-                        {pageChange === "Query" ?
+                        {pageChange === "Query" || pageChange === "FileUpload" ?
                             <div>
                                 <fieldset className="border border-gray-300 rounded-lg mb-1">
                                     {/* <legend className="text-lg font-semibold text-gray-700 px-2"></legend> */}
@@ -6170,16 +6239,30 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
 
                                         {/* Second Input Box */}
                                         <div className="w-1/2 ">
-                                            <button
-                                                // onClick={() => window.open("https://javaapi.wbpms.in/" + getPassForPaymentDataById?.basic?.docFile)}
-                                                className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition"
-                                                title="View PDF"
-                                                disabled={!getPassForPaymentDataById?.basic?.docFile}
-                                            >
+                                            {pageChange === "FileUpload" ? (
+                                                <div className="flex items-center border bg-gray-200 rounded h-7">
+                                                    <span className="px-2 bg-gray-200 text-xs">Upload Document<span className="text-red-500"> * </span></span>
+                                                    <input
+                                                        type="file"
+                                                        id="voucherDocUpload"
+                                                        className="flex-grow text-xs outline-none"
+                                                        onChange={onFile}
+                                                        accept="application/pdf"
+                                                        style={{ fontSize: "12px", lineHeight: "0.5rem" }}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => window.open("https://javaapi.wbpms.in/" + voucherDataById?.basic?.docLink, "_blank")}
+                                                    className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition"
+                                                    title="View PDF"
+                                                    disabled={!voucherDataById?.basic?.docLink}
+                                                >
 
-                                                <FontAwesomeIcon icon={faEye} title="View File" />
+                                                    <FontAwesomeIcon icon={faEye} title="View File" />
 
-                                            </button>
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
 
@@ -6927,7 +7010,7 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                                                 // onClick={() => window.open("https://javaapi.wbpms.in/" + getPassForPaymentDataById?.basic?.docFile)}
                                                 className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition"
                                                 title="View PDF"
-                                                disabled={!getPassForPaymentDataById?.basic?.docFile}
+                                                disabled={!getPassForPaymentDataById?.basic?.docLink}
                                             >
 
                                                 <FontAwesomeIcon icon={faEye} title="View File" />
@@ -7752,6 +7835,16 @@ text-align: center !important;font-style: italic; margin:30px !important;padding
                         {pageChange === "Add" && voucherModeData === "R" && voucherTypeData === "C" ?
                             < button className="bg-blue-500 text-white px-4 py-1 text-xs rounded hover:bg-blue-600 transition duration-200" onClick={onCashierReceiptPrint} disabled={VoucherResponse?.voucherStatus ? false : true}>
                                 Cashier Receipt
+                            </button> : ""}
+
+                        {pageChange === "FileUpload" ?
+                            <button
+                                type="button"
+                                className="bg-green-500 text-white px-4 py-1 text-xs rounded hover:bg-green-600 transition duration-200 disabled:opacity-50"
+                                onClick={onUpdateVoucherDocs}
+                                disabled={loader}
+                            >
+                                {loader ? "Submitting..." : "Submit"}
                             </button> : ""}
 
                         {pageChange === "Query" ?

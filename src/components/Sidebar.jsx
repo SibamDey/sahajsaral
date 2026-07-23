@@ -101,6 +101,8 @@ import BankInterestCharges from "../views/forms/Register/BankInterestCharges";
 import AdvanceRegister from "../views/forms/Register/AdvanceRegister";
 import UploadBankStatement from "../views/forms/Auditor/UploadBankStatement";
 import UploadBRS from "../views/forms/Auditor/UploadBRS";
+import RectificationDocument from "../views/forms/RectificationDocument/RectificationDocument";
+import ViewRectificationDocument from "../views/forms/RectificationDocument/ViewRectificationDocument";
 
 
 // import PublicPaymentCertificate from "../views/forms/Document/PublicPaymentCertificate";
@@ -747,6 +749,22 @@ export const sideBarList = [
     permissions: [1],
   },
 
+  {
+    Component: RectificationDocument,
+    text: "RectificationDocument",
+    route: "/rectification-document",
+    permissions: [1],
+  },
+
+  {
+    Component: ViewRectificationDocument,
+    text: "ViewRectificationDocument",
+    route: "/view-rectification-document",
+    permissions: [1],
+  },
+
+
+
 
 
 
@@ -1233,6 +1251,21 @@ export const Sidebar = () => {
               </span>
             </div>
           </SidebarElement>}
+        {userData?.ROLE === "1" ?
+
+          <SidebarElement
+            to="/rectification-document"
+            customCss={"flex justify-start pl-4 "}
+          >
+            <div className="text-sm items-start py-1 capitalize">
+              <span className="flex items-center space-x-4">
+                {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                <span>Rectification Document</span>
+              </span>
+            </div>
+          </SidebarElement>
+          : ""}
+
       </SidebarExpand>
 
       {/* {[20546, 7175, 5281, 7161, 7162, 7177, 7164, 22061, 22062, 22063].includes(Number(userData?.USER_INDEX)) && (
@@ -1286,6 +1319,7 @@ export const Sidebar = () => {
                 </span>
               </div>
             </SidebarElement>
+
             {userData?.ROLE === "9" ? "" :
               <SidebarElement
                 to="/preparation-payment-certificate"
@@ -1920,6 +1954,18 @@ export const Sidebar = () => {
                 <span className="flex items-center space-x-4">
                   {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
                   <span>Audit Trail</span>
+                </span>
+              </div>
+            </SidebarElement>
+
+            <SidebarElement
+              to="/view-rectification-document"
+              customCss={"flex justify-start pl-4 "}
+            >
+              <div className="text-sm items-start py-1 capitalize">
+                <span className="flex items-center space-x-4">
+                  {/* <Icon icon={"streamline:manual-book"} className="text-xl" /> */}
+                  <span>View Rectification Document</span>
                 </span>
               </div>
             </SidebarElement>

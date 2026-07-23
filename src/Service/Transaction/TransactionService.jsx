@@ -150,6 +150,40 @@ export const addInsertPassForPayment = async (lgdCode, finYear, paymentDate, sch
 };
 
 
+export const updatePassForPaymentDocs = async (
+    lgdCode,
+    pfpId,
+    docType,
+    docFile,
+    userIndex,
+    onSuccess,
+    onFailure
+) => {
+    try {
+        const res = await webApi.post(
+            `/PassForPayment/UpdatePfpDocs`,
+            {
+                lgdCode: lgdCode,
+                pfpId: pfpId,
+                docType: docType,
+                docFile: docFile,
+                userIndex: userIndex
+            }
+        );
+
+        return onSuccess(res?.data);
+    } catch (error) {
+        console.error("Update PFP document error:", error);
+
+        return onFailure(
+            error?.response?.data?.message ||
+            error?.message ||
+            "Something went wrong while uploading the document."
+        );
+    }
+};
+
+
 export const addPTaxLogin = async (onSuccess, onFailure) => {
     try {
         const res = await webAPI.post("/xauth", {
@@ -569,3 +603,34 @@ export const getNextVerify = async (lgd, voucherId) => {
 export const getNextPFPVerify = async (lgd, voucherId) => {
     return await webApi.get(`/PassForPayment/NextPfpIdQuery?lgdCode=${lgd}&pfpId=${voucherId}`,);
 }
+
+export const updateVoucherDocs = async (
+    lgdCode,
+    voucherId,
+    docFile,
+    userIndex,
+    onSuccess,
+    onFailure
+) => {
+    try {
+        const res = await webApi.post(
+            `/Voucher/UpdateVoucherDocs`,
+            {
+                lgdCode: lgdCode,
+                voucherId: voucherId,
+                docFile: docFile,
+                userIndex: userIndex
+            }
+        );
+
+        return onSuccess(res?.data);
+    } catch (error) {
+        console.error("Update Voucher document error:", error);
+
+        return onFailure(
+            error?.response?.data?.message ||
+            error?.message ||
+            "Something went wrong while uploading the document."
+        );
+    }
+};
